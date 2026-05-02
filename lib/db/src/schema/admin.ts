@@ -1,0 +1,94 @@
+import { pgTable, text, boolean, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+
+export const adminVaultConfig = pgTable("admin_vault_config", {
+  id: text("id").primaryKey().default("singleton"),
+  openaiModel: text("openai_model").notNull().default("gpt-4o"),
+  paddleEnv: text("paddle_env").notNull().default("sandbox"),
+  paddleApiKey: text("paddle_api_key").notNull().default(""),
+  paddleMonthlyPriceId: text("paddle_monthly_price_id").notNull().default(""),
+  paddleYearlyPriceId: text("paddle_yearly_price_id").notNull().default(""),
+  paddleWebhookSecret: text("paddle_webhook_secret").notNull().default(""),
+  resendApiKey: text("resend_api_key").notNull().default(""),
+  sessionSecret: text("session_secret").notNull().default(""),
+  admobAndroidAppId: text("admob_android_app_id").notNull().default(""),
+  admobIosAppId: text("admob_ios_app_id").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const adminAdsConfig = pgTable("admin_ads_config", {
+  id: text("id").primaryKey().default("singleton"),
+  adsEnabled: boolean("ads_enabled").notNull().default(false),
+  webAdsEnabled: boolean("web_ads_enabled").notNull().default(false),
+  admobEnabled: boolean("admob_enabled").notNull().default(false),
+  rewardedAdsEnabled: boolean("rewarded_ads_enabled").notNull().default(false),
+  hideAdsForPremium: boolean("hide_ads_for_premium").notNull().default(true),
+  adProvider: text("ad_provider").notNull().default("none"),
+  adsenseClientId: text("adsense_client_id").notNull().default(""),
+  adsenseHomeSlotId: text("adsense_home_slot_id").notNull().default(""),
+  adsenseBottomSlotId: text("adsense_bottom_slot_id").notNull().default(""),
+  adsensePracticeSlotId: text("adsense_practice_slot_id").notNull().default(""),
+  adsenseProfileSlotId: text("adsense_profile_slot_id").notNull().default(""),
+  admobBannerAndroid: text("admob_banner_android").notNull().default(""),
+  admobBannerIos: text("admob_banner_ios").notNull().default(""),
+  admobRewardedAndroid: text("admob_rewarded_android").notNull().default(""),
+  admobRewardedIos: text("admob_rewarded_ios").notNull().default(""),
+  rewardedAdCreditAmount: integer("rewarded_ad_credit_amount").notNull().default(1),
+  rewardedAdMaxPerDay: integer("rewarded_ad_max_per_day").notNull().default(3),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const adminPaywallConfig = pgTable("admin_paywall_config", {
+  id: text("id").primaryKey().default("singleton"),
+  headline: text("headline").notNull().default("Desbloqueie o CelpePrep Premium"),
+  subheadline: text("subheadline").notNull().default(""),
+  monthlyPrice: text("monthly_price").notNull().default("R$ 44,99"),
+  monthlyLabel: text("monthly_label").notNull().default("por mês"),
+  yearlyPrice: text("yearly_price").notNull().default("R$ 479,88"),
+  yearlyLabel: text("yearly_label").notNull().default("R$ 39,99/mês — economize 11%"),
+  yearlyBadge: text("yearly_badge").notNull().default("Mais Popular"),
+  ctaMonthly: text("cta_monthly").notNull().default("Assinar Mensal"),
+  ctaYearly: text("cta_yearly").notNull().default("Assinar Anual"),
+  features: jsonb("features").$type<string[]>().notNull().default([]),
+  footnote: text("footnote").notNull().default("Cancele quando quiser. Sem fidelidade."),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const adminLimitsConfig = pgTable("admin_limits_config", {
+  id: text("id").primaryKey().default("singleton"),
+  freeAiEvaluationsPerMonth: integer("free_ai_evaluations_per_month").notNull().default(5),
+  freeAiGeneratedPracticesPerDay: integer("free_ai_generated_practices_per_day").notNull().default(2),
+  freeRetakesPerPractice: integer("free_retakes_per_practice").notNull().default(2),
+  freeVocabularyAiEnrichmentsPerDay: integer("free_vocabulary_ai_enrichments_per_day").notNull().default(10),
+  freePronunciationEvaluationsPerDay: integer("free_pronunciation_evaluations_per_day").notNull().default(3),
+  freeConversationMinutesPerDay: integer("free_conversation_minutes_per_day").notNull().default(5),
+  freeListeningExercisesPerDay: integer("free_listening_exercises_per_day").notNull().default(3),
+  freeGrammarLessonsPerDay: integer("free_grammar_lessons_per_day").notNull().default(3),
+  freeWritingCoachUsesPerDay: integer("free_writing_coach_uses_per_day").notNull().default(3),
+  rewardedAdCreditAmount: integer("rewarded_ad_credit_amount").notNull().default(1),
+  rewardedAdMaxPerDay: integer("rewarded_ad_max_per_day").notNull().default(3),
+  practiceTimerSeconds: integer("practice_timer_seconds").notNull().default(1500),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const adminAiConfig = pgTable("admin_ai_config", {
+  id: text("id").primaryKey().default("singleton"),
+  systemPromptFeedback: text("system_prompt_feedback").notNull().default(""),
+  systemPromptGeneration: text("system_prompt_generation").notNull().default(""),
+  modelFeedback: text("model_feedback").notNull().default("gpt-4o"),
+  modelGeneration: text("model_generation").notNull().default("gpt-4o-mini"),
+  maxTokensFeedback: integer("max_tokens_feedback").notNull().default(1024),
+  maxTokensGeneration: integer("max_tokens_generation").notNull().default(512),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const auditLogs = pgTable("audit_logs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  action: text("action").notNull(),
+  actor: text("actor").notNull().default("admin"),
+  resourceType: text("resource_type").notNull(),
+  resourceId: text("resource_id"),
+  before: jsonb("before"),
+  after: jsonb("after"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

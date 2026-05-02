@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { adminFetch, adminSave } from "@/lib/adminClient";
 
 type VaultConfig = {
   openaiModel: string;
@@ -34,14 +35,6 @@ const DEFAULTS: VaultConfig = {
   admobIosAppId: "",
 };
 
-function getApiUrl(path: string) {
-  return (import.meta.env.BASE_URL ?? "/admin").replace(/\/$/, "") + path;
-}
-
-function getAuthHeader() {
-  return { Authorization: `Bearer ${localStorage.getItem("admin_token") ?? ""}` };
-}
-
 export default function Vault() {
   const { toast } = useToast();
   const [config, setConfig] = useState<VaultConfig>(DEFAULTS);
@@ -50,9 +43,8 @@ export default function Vault() {
   const [visible, setVisible] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    fetch(getApiUrl("/api/admin/vault"), { headers: getAuthHeader() })
-      .then((r) => r.json())
-      .then((d: VaultConfig) => setConfig({ ...DEFAULTS, ...d }))
+    adminFetch<VaultConfig>("/api/admin/vault")
+      .then((d) => setConfig({ ...DEFAULTS, ...d }))
       .catch(() => toast({ title: "Erro ao carregar vault", variant: "destructive" }))
       .finally(() => setLoading(false));
   }, []);
@@ -60,12 +52,7 @@ export default function Vault() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const r = await fetch(getApiUrl("/api/admin/vault"), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify(config),
-      });
-      if (!r.ok) throw new Error();
+      await adminSave("/api/admin/vault", config);
       toast({ title: "Vault salvo com sucesso" });
     } catch {
       toast({ title: "Erro ao salvar vault", variant: "destructive" });
@@ -122,7 +109,6 @@ export default function Vault() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* OpenAI */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
@@ -148,7 +134,6 @@ export default function Vault() {
             </CardContent>
           </Card>
 
-          {/* Paddle */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
@@ -176,7 +161,6 @@ export default function Vault() {
             </CardContent>
           </Card>
 
-          {/* Email */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
@@ -189,13 +173,12 @@ export default function Vault() {
             </CardContent>
           </Card>
 
-          {/* AdMob */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
                 <KeyRound className="h-4 w-4 text-orange-500" /> AdMob — App IDs
               </CardTitle>
-              <CardDescription>IDs de aplicativo para Android e iOS (futuro suporte nativo).</CardDescription>
+              <CardDescription>IDs de aplicativo para Android e iOS.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -219,7 +202,6 @@ export default function Vault() {
             </CardContent>
           </Card>
 
-          {/* Session */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">

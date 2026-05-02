@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { adminFetch, adminSave } from "@/lib/adminClient";
 
 type LimitsConfig = {
   freeAiEvaluationsPerMonth: number;
@@ -37,13 +38,6 @@ const DEFAULTS: LimitsConfig = {
   practiceTimerSeconds: 1500,
 };
 
-function getApiUrl(path: string) {
-  return (import.meta.env.BASE_URL ?? "/admin").replace(/\/$/, "") + path;
-}
-function getAuthHeader() {
-  return { Authorization: `Bearer ${localStorage.getItem("admin_token") ?? ""}` };
-}
-
 export default function LimitsPage() {
   const { toast } = useToast();
   const [config, setConfig] = useState<LimitsConfig>(DEFAULTS);
@@ -51,9 +45,8 @@ export default function LimitsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(getApiUrl("/api/admin/limits"), { headers: getAuthHeader() })
-      .then((r) => r.json())
-      .then((d: LimitsConfig) => setConfig({ ...DEFAULTS, ...d }))
+    adminFetch<LimitsConfig>("/api/admin/limits")
+      .then((d) => setConfig({ ...DEFAULTS, ...d }))
       .catch(() => toast({ title: "Erro ao carregar limites", variant: "destructive" }))
       .finally(() => setLoading(false));
   }, []);
@@ -61,12 +54,7 @@ export default function LimitsPage() {
   const save = async () => {
     setSaving(true);
     try {
-      const r = await fetch(getApiUrl("/api/admin/limits"), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify(config),
-      });
-      if (!r.ok) throw new Error();
+      await adminSave("/api/admin/limits", config);
       toast({ title: "Limites salvos com sucesso" });
     } catch {
       toast({ title: "Erro ao salvar limites", variant: "destructive" });
@@ -87,13 +75,9 @@ export default function LimitsPage() {
         {description && <p className="text-[11px] text-muted-foreground/70 mt-0.5">{description}</p>}
       </div>
       <div className="flex items-center gap-1">
-        <Input
-          type="number"
-          min={0}
-          value={config[field]}
+        <Input type="number" min={0} value={config[field]}
           onChange={(e) => set(field, Number(e.target.value))}
-          className="w-20 font-mono text-xs bg-muted/50 text-right"
-        />
+          className="w-20 font-mono text-xs bg-muted/50 text-right" />
         {suffix && <span className="text-xs text-muted-foreground whitespace-nowrap">{suffix}</span>}
       </div>
     </div>
@@ -121,47 +105,29 @@ export default function LimitsPage() {
       ) : (
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-sm">IA e Práticas</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-mono text-sm">IA e Práticas</CardTitle></CardHeader>
             <CardContent className="space-y-4 divide-y divide-border">
               <NumField field="freeAiEvaluationsPerMonth" label="Avaliações de IA por mês" suffix="/mês" />
-              <div className="pt-4">
-                <NumField field="freeAiGeneratedPracticesPerDay" label="Práticas geradas por IA por dia" suffix="/dia" />
-              </div>
-              <div className="pt-4">
-                <NumField field="freeRetakesPerPractice" label="Retentativas por prática" suffix="tentativas" />
-              </div>
-              <div className="pt-4">
-                <NumField field="freeWritingCoachUsesPerDay" label="Usos do Writing Coach por dia" suffix="/dia" />
-              </div>
+              <div className="pt-4"><NumField field="freeAiGeneratedPracticesPerDay" label="Práticas geradas por IA por dia" suffix="/dia" /></div>
+              <div className="pt-4"><NumField field="freeRetakesPerPractice" label="Retentativas por prática" suffix="tentativas" /></div>
+              <div className="pt-4"><NumField field="freeWritingCoachUsesPerDay" label="Usos do Writing Coach por dia" suffix="/dia" /></div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-sm">Vocabulário e Gramática</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-mono text-sm">Vocabulário e Gramática</CardTitle></CardHeader>
             <CardContent className="space-y-4 divide-y divide-border">
               <NumField field="freeVocabularyAiEnrichmentsPerDay" label="Enriquecimentos de vocabulário por IA" suffix="/dia" />
-              <div className="pt-4">
-                <NumField field="freeGrammarLessonsPerDay" label="Exercícios de gramática por dia" suffix="/dia" />
-              </div>
+              <div className="pt-4"><NumField field="freeGrammarLessonsPerDay" label="Exercícios de gramática por dia" suffix="/dia" /></div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-sm">Pronúncia, Escuta e Conversação</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-mono text-sm">Pronúncia, Escuta e Conversação</CardTitle></CardHeader>
             <CardContent className="space-y-4 divide-y divide-border">
               <NumField field="freePronunciationEvaluationsPerDay" label="Avaliações de pronúncia por dia" suffix="/dia" />
-              <div className="pt-4">
-                <NumField field="freeListeningExercisesPerDay" label="Exercícios de escuta por dia" suffix="/dia" />
-              </div>
-              <div className="pt-4">
-                <NumField field="freeConversationMinutesPerDay" label="Minutos de conversação por dia" suffix="min/dia" />
-              </div>
+              <div className="pt-4"><NumField field="freeListeningExercisesPerDay" label="Exercícios de escuta por dia" suffix="/dia" /></div>
+              <div className="pt-4"><NumField field="freeConversationMinutesPerDay" label="Minutos de conversação por dia" suffix="min/dia" /></div>
             </CardContent>
           </Card>
 
@@ -172,23 +138,15 @@ export default function LimitsPage() {
             </CardHeader>
             <CardContent className="space-y-4 divide-y divide-border">
               <NumField field="rewardedAdCreditAmount" label="Créditos por anúncio assistido" suffix="créditos" />
-              <div className="pt-4">
-                <NumField field="rewardedAdMaxPerDay" label="Máx. anúncios por dia" suffix="/dia" />
-              </div>
+              <div className="pt-4"><NumField field="rewardedAdMaxPerDay" label="Máx. anúncios por dia" suffix="/dia" /></div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-sm">Timer de Prática</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-mono text-sm">Timer de Prática</CardTitle></CardHeader>
             <CardContent>
-              <NumField
-                field="practiceTimerSeconds"
-                label="Duração da prática"
-                description="1500 = 25 minutos (padrão Celpe-Bras)"
-                suffix="segundos"
-              />
+              <NumField field="practiceTimerSeconds" label="Duração da prática"
+                description="1500 = 25 minutos (padrão Celpe-Bras)" suffix="segundos" />
             </CardContent>
           </Card>
         </div>

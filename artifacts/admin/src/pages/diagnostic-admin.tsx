@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { adminFetch, adminSave } from "@/lib/adminClient";
+import { getAuthHeader } from "@/lib/adminClient";
 
 type Level = "A2" | "B1" | "B2" | "C1";
 
@@ -41,13 +43,6 @@ const EMPTY: Omit<DiagnosticQuestion, "id" | "createdAt"> = {
   active: true,
 };
 
-function getApiUrl(path: string) {
-  return (import.meta.env.BASE_URL ?? "/admin").replace(/\/$/, "") + path;
-}
-function getAuthHeader() {
-  return { Authorization: `Bearer ${localStorage.getItem("admin_token") ?? ""}` };
-}
-
 export default function DiagnosticAdmin() {
   const { toast } = useToast();
   const [questions, setQuestions] = useState<DiagnosticQuestion[]>([]);
@@ -62,21 +57,15 @@ export default function DiagnosticAdmin() {
 
   const load = () => {
     setLoading(true);
-    fetch(getApiUrl("/api/admin/diagnostic-questions"), { headers: getAuthHeader() })
-      .then((r) => r.json())
-      .then((d: DiagnosticQuestion[]) => setQuestions(d))
-      .catch(() => toast({ title: "Erro ao carregar questões", variant: "destructive" }))
+    adminFetch<DiagnosticQuestion[]>("/api/admin/diagnostic-questions")
+      .then((d) => setQuestions(Array.isArray(d) ? d : []))
+      .catch(() => { setQuestions([]); toast({ title: "Erro ao carregar questões", variant: "destructive" }); })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
 
-  const openCreate = () => {
-    setEditing(null);
-    setForm(EMPTY);
-    setDialogOpen(true);
-  };
-
+  const openCreate = () => { setEditing(null); setForm(EMPTY); setDialogOpen(true); };
   const openEdit = (q: DiagnosticQuestion) => {
     setEditing(q);
     setForm({ level: q.level, question: q.question, options: [...q.options], correct: q.correct, explanation: q.explanation, active: q.active });
@@ -90,15 +79,11 @@ export default function DiagnosticAdmin() {
     }
     setSaving(true);
     try {
-      const url = editing
-        ? getApiUrl(`/api/admin/diagnostic-questions/${editing.id}`)
-        : getApiUrl("/api/admin/diagnostic-questions");
-      const r = await fetch(url, {
-        method: editing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify(form),
-      });
-      if (!r.ok) throw new Error();
+      if (editing) {
+        await adminSave(`/api/admin/diagnostic-questions/${editing.id}`, form);
+      } else {
+        await adminSave("/api/admin/diagnostic-questions", form, "POST");
+      }
       toast({ title: editing ? "Questão atualizada" : "Questão criada" });
       setDialogOpen(false);
       load();
@@ -111,11 +96,7 @@ export default function DiagnosticAdmin() {
 
   const handleDelete = async (id: string) => {
     try {
-      const r = await fetch(getApiUrl(`/api/admin/diagnostic-questions/${id}`), {
-        method: "DELETE",
-        headers: getAuthHeader(),
-      });
-      if (!r.ok) throw new Error();
+      await fetch(`/api/admin/diagnostic-questions/${id}`, { method: "DELETE", headers: getAuthHeader() });
       toast({ title: "Questão removida" });
       setDeleteId(null);
       load();
@@ -126,11 +107,7 @@ export default function DiagnosticAdmin() {
 
   const handleToggleActive = async (q: DiagnosticQuestion) => {
     try {
-      await fetch(getApiUrl(`/api/admin/diagnostic-questions/${q.id}`), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify({ ...q, active: !q.active }),
-      });
+      await adminSave(`/api/admin/diagnostic-questions/${q.id}`, { ...q, active: !q.active });
       load();
     } catch {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
@@ -146,8 +123,8 @@ export default function DiagnosticAdmin() {
     return true;
   });
 
-  const levelCounts = { all: questions.length, A2: 0, B1: 0, B2: 0, C1: 0 };
-  questions.forEach((q) => levelCounts[q.level]++);
+  const levelCounts = { all: questions.length, A2: 0, B1: 0, B2: 0, C1: 0 } as Record<string, number>;
+  questions.forEach((q) => levelCounts[q.level] = (levelCounts[q.level] ?? 0) + 1);
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -160,44 +137,30 @@ export default function DiagnosticAdmin() {
             {questions.length} questões · {questions.filter((q) => q.active).length} ativas
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Nova Questão
-        </Button>
+        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" /> Nova Questão</Button>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 flex-wrap">
-        <Input
-          placeholder="Buscar questão..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm bg-muted/50"
-        />
+        <Input placeholder="Buscar questão..." value={search} onChange={(e) => setSearch(e.target.value)}
+          className="max-w-sm bg-muted/50" />
         <div className="flex gap-2">
           {(["all", "A2", "B1", "B2", "C1"] as const).map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => setLevelFilter(lvl)}
+            <button key={lvl} onClick={() => setLevelFilter(lvl)}
               className={`px-3 py-1.5 rounded-full text-xs font-mono border transition-colors ${
-                levelFilter === lvl
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border text-muted-foreground hover:border-primary/50"
-              }`}
-            >
-              {lvl === "all" ? "Todos" : lvl} ({levelCounts[lvl]})
+                levelFilter === lvl ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-muted-foreground hover:border-primary/50"}`}>
+              {lvl === "all" ? "Todos" : lvl} ({levelCounts[lvl] ?? 0})
             </button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
-        </div>
+        <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground font-mono">
-            Nenhuma questão encontrada.
+            {questions.length === 0 ? "Nenhuma questão cadastrada ainda." : "Nenhuma questão encontrada."}
           </CardContent>
         </Card>
       ) : (
@@ -206,14 +169,10 @@ export default function DiagnosticAdmin() {
             <Card key={q.id} className={`border ${!q.active ? "opacity-50" : ""}`}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <span className="text-xs font-mono text-muted-foreground w-6 shrink-0 pt-0.5">
-                    {idx + 1}
-                  </span>
+                  <span className="text-xs font-mono text-muted-foreground w-6 shrink-0 pt-0.5">{idx + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${LEVEL_COLORS[q.level]}`}>
-                        {q.level}
-                      </span>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${LEVEL_COLORS[q.level]}`}>{q.level}</span>
                       {!q.active && <Badge variant="secondary" className="text-[10px]">Inativa</Badge>}
                     </div>
                     <p className="text-sm font-medium text-foreground mb-2">{q.question}</p>
@@ -230,21 +189,12 @@ export default function DiagnosticAdmin() {
                         </div>
                       ))}
                     </div>
-                    {q.explanation && (
-                      <p className="text-xs text-muted-foreground mt-2 italic">{q.explanation}</p>
-                    )}
+                    {q.explanation && <p className="text-xs text-muted-foreground mt-2 italic">{q.explanation}</p>}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Switch checked={q.active} onCheckedChange={() => handleToggleActive(q)} />
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(q)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => setDeleteId(q.id)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(q)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => setDeleteId(q.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -255,7 +205,6 @@ export default function DiagnosticAdmin() {
         </div>
       )}
 
-      {/* Edit / Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -265,9 +214,7 @@ export default function DiagnosticAdmin() {
             <div className="space-y-1">
               <Label className="text-xs font-mono text-muted-foreground">Nível</Label>
               <Select value={form.level} onValueChange={(v) => setForm((f) => ({ ...f, level: v as Level }))}>
-                <SelectTrigger className="font-mono text-xs bg-muted/50">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="font-mono text-xs bg-muted/50"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="A2">A2 — Básico</SelectItem>
                   <SelectItem value="B1">B1 — Intermediário</SelectItem>
@@ -278,46 +225,28 @@ export default function DiagnosticAdmin() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs font-mono text-muted-foreground">Pergunta (use ___ para lacuna)</Label>
-              <Textarea
-                rows={3}
-                value={form.question}
-                onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))}
-                className="font-mono text-xs bg-muted/50"
-                placeholder="O estudante ___ muito esforçado."
-              />
+              <Textarea rows={3} value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))}
+                className="font-mono text-xs bg-muted/50" placeholder="O estudante ___ muito esforçado." />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-mono text-muted-foreground">Opções (selecione a correta)</Label>
               {form.options.map((opt, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, correct: i }))}
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, correct: i }))}
                     className={`w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
-                      form.correct === i ? "border-emerald-500 bg-emerald-500/20" : "border-border"
-                    }`}
-                  >
+                      form.correct === i ? "border-emerald-500 bg-emerald-500/20" : "border-border"}`}>
                     {form.correct === i && <CheckCircle2 className="h-3 w-3 text-emerald-500" />}
                   </button>
                   <span className="text-xs font-mono text-muted-foreground w-5">{["A", "B", "C", "D"][i]}.</span>
-                  <Input
-                    value={opt}
-                    onChange={(e) => setOption(i, e.target.value)}
-                    className="font-mono text-xs bg-muted/50 flex-1"
-                    placeholder={`Opção ${["A", "B", "C", "D"][i]}`}
-                  />
+                  <Input value={opt} onChange={(e) => setOption(i, e.target.value)}
+                    className="font-mono text-xs bg-muted/50 flex-1" placeholder={`Opção ${["A", "B", "C", "D"][i]}`} />
                 </div>
               ))}
             </div>
             <div className="space-y-1">
               <Label className="text-xs font-mono text-muted-foreground">Explicação</Label>
-              <Textarea
-                rows={2}
-                value={form.explanation}
-                onChange={(e) => setForm((f) => ({ ...f, explanation: e.target.value }))}
-                className="font-mono text-xs bg-muted/50"
-                placeholder="Por que essa é a resposta correta..."
-              />
+              <Textarea rows={2} value={form.explanation} onChange={(e) => setForm((f) => ({ ...f, explanation: e.target.value }))}
+                className="font-mono text-xs bg-muted/50" placeholder="Por que essa é a resposta correta..." />
             </div>
             <div className="flex items-center gap-3">
               <Switch checked={form.active} onCheckedChange={(v) => setForm((f) => ({ ...f, active: v }))} />
@@ -333,18 +262,13 @@ export default function DiagnosticAdmin() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm Dialog */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-mono">Confirmar exclusão</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="font-mono">Confirmar exclusão</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">Essa ação não pode ser desfeita. A questão será removida permanentemente.</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => deleteId && handleDelete(deleteId)}>
-              Excluir
-            </Button>
+            <Button variant="destructive" onClick={() => deleteId && handleDelete(deleteId)}>Excluir</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

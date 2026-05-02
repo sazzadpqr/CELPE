@@ -1,0 +1,68 @@
+import { pgTable, text, boolean, integer, real, jsonb, timestamp } from "drizzle-orm/pg-core";
+
+export const profiles = pgTable("profiles", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token").notNull().unique(),
+  displayName: text("display_name"),
+  email: text("email"),
+  level: text("level").notNull().default("B1"),
+  diagnosticDone: boolean("diagnostic_done").notNull().default(false),
+  targetDate: text("target_date"),
+  dailyGoalMinutes: integer("daily_goal_minutes").notNull().default(30),
+  streakDays: integer("streak_days").notNull().default(0),
+  streakLastDate: text("streak_last_date"),
+  xpTotal: integer("xp_total").notNull().default(0),
+  aiCredits: integer("ai_credits").notNull().default(5),
+  isPremium: boolean("is_premium").notNull().default(false),
+  premiumPlan: text("premium_plan"),
+  preferredTheme: text("preferred_theme").notNull().default("dark"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const attempts = pgTable("attempts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token").notNull(),
+  promptId: text("prompt_id"),
+  taskType: text("task_type").notNull(),
+  genre: text("genre").notNull().default(""),
+  text: text("text").notNull(),
+  wordCount: integer("word_count").notNull().default(0),
+  durationSeconds: integer("duration_seconds").notNull().default(0),
+  timeExpired: boolean("time_expired").notNull().default(false),
+  overallScore: real("overall_score"),
+  scoreTema: real("score_tema"),
+  scoreGenero: real("score_genero"),
+  scoreCoesao: real("score_coesao"),
+  scoreGramatica: real("score_gramatica"),
+  feedback: text("feedback"),
+  strengths: jsonb("strengths").$type<string[]>().default([]),
+  improvements: jsonb("improvements").$type<string[]>().default([]),
+  aiModel: text("ai_model"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const practiceSessions = pgTable("practice_sessions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token"),
+  taskType: text("task_type").notNull(),
+  durationSeconds: integer("duration_seconds").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  isExpired: boolean("is_expired").notNull().default(false),
+  isSubmitted: boolean("is_submitted").notNull().default(false),
+});
+
+export const subscriptions = pgTable("subscriptions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token").notNull().unique(),
+  plan: text("plan").notNull(),
+  status: text("status").notNull().default("active"),
+  paddleSubscriptionId: text("paddle_subscription_id"),
+  paddleCustomerId: text("paddle_customer_id"),
+  currentPeriodStart: timestamp("current_period_start", { withTimezone: true }),
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  canceledAt: timestamp("canceled_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});

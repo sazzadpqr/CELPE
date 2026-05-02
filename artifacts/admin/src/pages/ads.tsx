@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { adminFetch, adminSave } from "@/lib/adminClient";
 
 type AdsConfig = {
   adsEnabled: boolean;
@@ -49,14 +50,6 @@ const DEFAULTS: AdsConfig = {
   rewardedAdMaxPerDay: 3,
 };
 
-function getApiUrl(path: string) {
-  return (import.meta.env.BASE_URL ?? "/admin").replace(/\/$/, "") + path;
-}
-
-function getAuthHeader() {
-  return { Authorization: `Bearer ${localStorage.getItem("admin_token") ?? ""}` };
-}
-
 export default function AdsPage() {
   const { toast } = useToast();
   const [config, setConfig] = useState<AdsConfig>(DEFAULTS);
@@ -64,9 +57,8 @@ export default function AdsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(getApiUrl("/api/admin/ads-config"), { headers: getAuthHeader() })
-      .then((r) => r.json())
-      .then((d: AdsConfig) => setConfig({ ...DEFAULTS, ...d }))
+    adminFetch<AdsConfig>("/api/admin/ads-config")
+      .then((d) => setConfig({ ...DEFAULTS, ...d }))
       .catch(() => toast({ title: "Erro ao carregar configuração de anúncios", variant: "destructive" }))
       .finally(() => setLoading(false));
   }, []);
@@ -74,12 +66,7 @@ export default function AdsPage() {
   const save = async () => {
     setSaving(true);
     try {
-      const r = await fetch(getApiUrl("/api/admin/ads-config"), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify(config),
-      });
-      if (!r.ok) throw new Error();
+      await adminSave("/api/admin/ads-config", config);
       toast({ title: "Configuração de anúncios salva" });
     } catch {
       toast({ title: "Erro ao salvar", variant: "destructive" });
@@ -137,7 +124,6 @@ export default function AdsPage() {
         <div className="space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>
       ) : (
         <div className="space-y-6">
-          {/* Master toggles */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
@@ -150,10 +136,9 @@ export default function AdsPage() {
               <SwitchRow field="admobEnabled" label="AdMob (futuro nativo)" description="Scaffold para Android/iOS via Capacitor." />
               <SwitchRow field="rewardedAdsEnabled" label="Anúncios com Recompensa" description="Usuário assiste e ganha créditos de IA." />
               <SwitchRow field="hideAdsForPremium" label="Ocultar Ads para Premium" description="Usuários premium nunca veem anúncios." />
-
               <div className="space-y-2 pt-2">
                 <Label className="text-xs font-mono text-muted-foreground">Provedor de Anúncios</Label>
-                <Select value={config.adProvider} onValueChange={(v) => set("adProvider", v as AdsConfig["adProvider"])}>
+                <Select value={config.adProvider} onValueChange={(v) => set("adProvider", v)}>
                   <SelectTrigger className="font-mono text-xs bg-muted/50">
                     <SelectValue />
                   </SelectTrigger>
@@ -168,7 +153,6 @@ export default function AdsPage() {
             </CardContent>
           </Card>
 
-          {/* Rewarded config */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm">Anúncios com Recompensa</CardTitle>
@@ -177,30 +161,19 @@ export default function AdsPage() {
             <CardContent className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs font-mono text-muted-foreground">Créditos por Ad</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={config.rewardedAdCreditAmount}
+                <Input type="number" min={1} max={10} value={config.rewardedAdCreditAmount}
                   onChange={(e) => set("rewardedAdCreditAmount", Number(e.target.value))}
-                  className="font-mono text-xs bg-muted/50"
-                />
+                  className="font-mono text-xs bg-muted/50" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs font-mono text-muted-foreground">Máx. por Dia</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={config.rewardedAdMaxPerDay}
+                <Input type="number" min={1} max={20} value={config.rewardedAdMaxPerDay}
                   onChange={(e) => set("rewardedAdMaxPerDay", Number(e.target.value))}
-                  className="font-mono text-xs bg-muted/50"
-                />
+                  className="font-mono text-xs bg-muted/50" />
               </div>
             </CardContent>
           </Card>
 
-          {/* AdSense */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
@@ -211,12 +184,9 @@ export default function AdsPage() {
             <CardContent className="space-y-3">
               <div className="space-y-1">
                 <Label className="text-xs font-mono text-muted-foreground">Publisher Client ID</Label>
-                <Input
-                  placeholder="ca-pub-..."
-                  value={config.adsenseClientId}
+                <Input placeholder="ca-pub-..." value={config.adsenseClientId}
                   onChange={(e) => set("adsenseClientId", e.target.value)}
-                  className="font-mono text-xs bg-muted/50"
-                />
+                  className="font-mono text-xs bg-muted/50" />
               </div>
               <SlotField field="adsenseHomeSlotId" label="Slot — Home (rodapé)" />
               <SlotField field="adsenseBottomSlotId" label="Slot — Inferior global" />
@@ -225,13 +195,12 @@ export default function AdsPage() {
             </CardContent>
           </Card>
 
-          {/* AdMob */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-green-400" /> AdMob — IDs de Unidade
               </CardTitle>
-              <CardDescription>IDs de anúncio para Android e iOS (futura build nativa).</CardDescription>
+              <CardDescription>IDs de anúncio para Android e iOS.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <SlotField field="admobBannerAndroid" label="Banner Android" />

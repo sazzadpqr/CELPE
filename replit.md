@@ -17,7 +17,7 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5 + pino logging
-- **Database**: PostgreSQL + Drizzle ORM (currently unused — admin content is JSON on disk)
+- **Database**: PostgreSQL + Drizzle ORM (provisioned and active — admin config tables live in DB)
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec in `lib/api-spec/openapi.yaml`)
 - **AI**: OpenAI via Replit AI Integrations (env vars: AI_INTEGRATIONS_OPENAI_BASE_URL, AI_INTEGRATIONS_OPENAI_API_KEY)
