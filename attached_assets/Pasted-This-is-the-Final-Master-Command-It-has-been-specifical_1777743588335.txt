@@ -1,0 +1,63 @@
+This is the **Final Master Command**. It has been specifically tuned for the **Replit Agent** (Replit AI) to handle the complex integration of the Supabase backend, pedagogical AI, and the Paddle payment gateway.
+
+Copy and paste this entire block into your Replit AI prompt.
+
+---
+
+## 🏛️ Master Command: Ponte Portuguesa Final Production (v5.0)
+
+**Role:** Senior Full-Stack Architect & Growth Engineer.
+**Objective:** Finalize the "Ponte Portuguesa" platform (React + Vite + TypeScript + Supabase). 
+
+**Core Mission:** Create a high-conversion, production-ready educational platform that balances elite Celpe-Bras training with maximum monetization. The **User Interface** must be 100% in **Brazilian Portuguese (PT-BR)**, while the code and logic remain in English.
+
+### 1. Admin "God-Mode" & API Management
+Implement a robust `/admin` center where every aspect of the app is managed via UI:
+*   **API Configuration Vault:** A secure interface to view and modify API keys and endpoints for **Supabase, OpenAI, Paddle, and Resend**. (Store these in a secure `admin_config` table).
+*   **Total CRUD System:** Full management (Search/Filter/Edit/Delete) for: `users`, `user_roles`, `courses`, `lessons`, `questions`, `vocabulary_items`, `learning_paths`, `teachers`, and `app_sections` (Landing CMS).
+*   **Monetization Dashboard:** Toggle `ads_enabled`, edit Paywall labels, and track subscription analytics.
+*   **Audit Logging:** Track all administrative changes to ensure system integrity.
+
+### 2. Monetization & Paddle Integration
+*   **Paddle Gateway:** Integrate Paddle for global payments.
+*   **Subscription Plans:**
+    *   **Mensal (Monthly):** R$ 44,99.
+    *   **Anual (Yearly):** R$ 479,88 (Display as: "R$ 39,99/mês faturado anualmente").
+*   **Revenue Optimization:** Implement high-conversion paywalls, "Restore Purchase" logic, and automated "Premium" role assignment upon successful payment webhook.
+
+### 3. Celpe-Bras Practice Engine v3.2
+*   **Universal 25-Minute Timer:** Force all simulations to **1500 seconds**. Logic must be server-timestamp based to prevent timer manipulation.
+*   **Auto-Submit:** Force-submit the current draft to the AI Evaluation Edge Function when the timer hits zero.
+*   **The 6-Task Hub:** Complete support for:
+    1. **Tarefa 1 & 2:** Video/Audio tasks with internal player speed controls.
+    2. **Tarefa 3 & 4:** Reading/Graph interpretation tasks using native Recharts.
+    3. **IA Prática:** Infinite prompt generation using OpenAI.
+    4. **IA Áudio/Gráfico:** TTS (Text-to-Speech) generation stored in Supabase Storage.
+
+### 4. Advanced Learning Features (Pedagogy)
+*   **SRS Vocabulary:** Spaced Repetition logic for flashcards (Hard: 12h, Good: 7d, Easy: 30d). Focus on Portuguese-first definitions.
+*   **Weakness Dashboard:** An analytical layer identifying rubric failures (Cohesion, Grammar, etc.) from the last 10 attempts to suggest remedial lessons.
+*   **Grammar in Context:** Automatically generate exercises based on the user's specific past writing mistakes.
+*   **Diagnostic Test:** A comprehensive initial placement test that sets the user's `celfLevel` and generates a customized study plan.
+
+### 5. Production Infrastructure & UX/UI
+*   **Auth OTP:** Secure 6-digit email OTP for Register, Login, and Password Reset (Resend).
+*   **Design System:** Navy (`#1A237E`) and Amber (`#FFC107`). 
+*   **UX Polish:** Use **Skeleton Screens** for all loading states, clear "Empty States," and Toast notifications.
+*   **Performance:** Minimum 44px touch targets. Ensure the app is a high-performance PWA (Progressive Web App).
+*   **Security:** Enforce strict Row Level Security (RLS) on all Supabase tables.
+
+**Execution:** 
+1. Audit existing tables and create the `admin_config` table for API keys.
+2. Implement the Paddle subscription flow and Paywall.
+3. Finalize the 25-minute timer and Auto-Submit logic.
+4. Build the "God-Mode" Admin CRUD views.
+5. Apply the final PT-BR localization pass to all user screens.
+
+---
+
+### Important Note for Replit:
+*   **Paddle Webhooks:** Ensure you create a secure endpoint to handle Paddle events to grant/revoke Premium access automatically.
+*   **OpenAI Usage:** Optimize prompts to ensure "B2/C1" level grading accuracy according to official Celpe-Bras standards.
+
+This setup ensures that once the Replit Agent finishes, you have a **fully independent business** where you can change prices, swap AI models, or update API keys without ever needing to write another line of code.
