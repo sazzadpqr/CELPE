@@ -1,0 +1,6611 @@
+﻿================================================================
+CELPEPREP COMPLETE MASTER PROMPT - POLISHED FINAL SINGLE COMMAND
+LOVABLE + REACT + VITE + TYPESCRIPT + SUPABASE + PADDLE + OPENAI
+================================================================
+
+USE THIS ENTIRE FILE AS ONE SINGLE PROMPT/COMMAND.
+
+All sections are cumulative. If any detail conflicts, the later and more specific instruction wins. This project is a Lovable/Supabase React web app first, with future-safe Android/iOS support through guarded adapters only.
+
+ABSOLUTE STACK RULES:
+- Use React + Vite + TypeScript.
+- Use Supabase Auth, Postgres, RLS, Edge Functions, and Storage.
+- Use Lovable/Paddle payments for subscriptions.
+- Use OpenAI only from Supabase Edge Functions.
+- Use AdSense-style web ads as the primary web ads system, disabled by default.
+- Scaffold AdMob only safely for a future native wrapper; do not break web builds.
+- Do not use Firebase, Firestore, Flutter, FlutterFlow, or Dart.
+- Do not expose OpenAI, Paddle, email, payment, service role, or other secrets in frontend code.
+
+IMPLEMENTATION PRIORITY:
+1. Stable database schema, RLS, auth, profile creation, OTP dev mode, and route guards.
+2. Core learner app: Home, Practice Hub, 25-minute timer, AI feedback, vocabulary/SRS, study plan, previous exams, study library, profile.
+3. Monetization: Paddle premium, feature gates, free limits, paywall, subscription portal, analytics.
+4. Admin backend: full CRUD, roles/permissions, content control, page/nav control, exports, backups, audit logs, push notifications.
+5. Future-ready systems: ads infrastructure, Android/iOS adapters, teacher marketplace placeholders, imports, certificates, advanced learning modules.
+
+TABLE OF CONTENTS:
+- Core CelpePrep master prompt
+- Mandatory bug fixes from previous build
+- Full admin control and front page learning hub
+- Complete user profile and personal learning dashboard
+- Admin push notification sender
+- Complete Portuguese learning system and future-ready admin CMS
+- Duolingo/Preply-inspired learning system and external course links
+- Improved signup, login, onboarding, and auth UX
+- Complete monetization system and admin revenue control
+- Beautiful admin UX and role-based access control
+- Quality control, backups, content workflow, and app health
+- Admin Data Center: exports, reports, analytics, data access
+
+IMPORTANT:
+Do not summarize. Do not build only static pages. Build real routes, tables, RLS policies, Edge Function scaffolds, admin CRUD, loading/empty/error states, validations, audit logs, and safe fallbacks where third-party credentials are missing.
+
+================================================================
+BEGIN FULL APP SPECIFICATION
+================================================================
+
+================================================================
+CELPEPREP COMPLETE MASTER PROMPT
+LOVABLE + REACT + VITE + TYPESCRIPT + SUPABASE + PADDLE + OPENAI
+
+================================================================
+Build a complete production-ready web app called CelpePrep.
+This is NOT Flutter.
+This is NOT FlutterFlow.
+This is NOT Firebase.
+This is a Lovable/Supabase project using React + Vite + TypeScript.
+Use:
+- React
+- Vite
+- TypeScript
+- React Router
+- Tailwind CSS or existing Lovable styling system
+- Supabase Auth
+- Supabase Postgres
+- Supabase Row Level Security
+- Supabase Edge Functions
+- Supabase Storage where needed
+- Lovable/Paddle payments for premium subscriptions
+- OpenAI only from Supabase Edge Functions
+- Web ads infrastructure with AdSense support
+- AdMob configuration scaffold only for future Android/iOS wrapper
+- Browser MediaRecorder for recording
+- Browser localStorage/IndexedDB for drafts/cache where useful
+Never use:
+- Firebase
+- Firestore
+- Firebase Cloud Functions
+- Flutter
+- FlutterFlow
+- Dart
+- direct OpenAI calls from frontend
+- frontend-exposed secret keys
+
+================================================================
+APP PURPOSE
+
+================================================================
+CelpePrep is a Brazilian Portuguese learning and Celpe-Bras preparation app.
+It must help users:
+- prepare for Celpe-Bras
+- practice Tarefa 1, Tarefa 2, Tarefa 3, Tarefa 4, and oral tasks
+- take AI-generated Celpe-Bras style practices
+- receive AI feedback based on their actual writing
+- learn Brazilian Portuguese vocabulary deeply
+- review vocabulary with SRS flashcards
+- study grammar, reading, listening, pronunciation, writing, and conversation
+- access previous Celpe-Bras exam papers/materials
+- study manual non-AI materials
+- follow an adaptive study plan
+- track progress
+- use premium features after payment
+- allow admin to control almost every piece of content and configuration
+The app must be useful as a website first.
+It must also be compatible with future Android/iOS conversion through safe adapter patterns.
+
+================================================================
+GLOBAL DESIGN
+
+================================================================
+Language:
+- pt-BR by default.
+Theme:
+- Claro
+- Escuro
+- Sistema
+Design tone:
+- serious
+- academic
+- modern
+- trustworthy
+- adult-learning focused
+- not childish
+- not decorative-only
+Colors:
+Primary blue: #185FA5
+Success teal: #1D9E75
+Warning amber: #BA7517
+Error coral: #D85A30
+Purple: #6B21A8
+White: #FFFFFF
+Light gray text: #6B7280
+Dark text: #111827
+Card bg light: #FFFFFF
+Card bg dark: #1E2535
+Screen bg light: #F4F6FA
+Screen bg dark: #141924
+Info bg tint: #E3F2FD
+Warning bg tint: #FFF8E1
+Error bg tint: #FBE9E7
+Success bg tint: #E8F5E9
+Typography:
+H1 22px weight 700
+H2 18px weight 600
+Body 14px weight 400
+Small 12px weight 400
+Caption 11px weight 400
+UI:
+- cards radius 12px
+- pills radius 999px
+- mobile-first responsive layout
+- works on desktop/tablet/mobile browser
+- use lucide-react or existing icons
+- every list has loading/empty/error states
+Empty state:
+"Nenhum item disponível"
+Error state:
+"Erro ao carregar. Tentar novamente."
+Offline banner:
+"Sem conexão. Mostrando dados salvos."
+
+================================================================
+ROUTES
+
+================================================================
+Public:
+- /
+- /splash
+- /onboarding
+- /login
+- /register
+- /complete-profile
+- /otp-verify
+- /forgot-password
+- /reset-password-otp
+- /terms
+- /privacy
+- /support
+Protected:
+- /home
+- /diagnostic
+- /practice
+- /practice/:practiceId
+- /practice-history
+- /feedback/:attemptId
+- /questions
+- /questions/:questionId
+- /previous-exams
+- /previous-exams/:editionId
+- /previous-exams/:editionId/task/:taskId
+- /study-library
+- /study-library/:materialId
+- /courses
+- /courses/:courseId
+- /lessons/:lessonId
+- /vocab
+- /flashcards
+- /study-plan
+- /grammar
+- /listening
+- /writing-coach
+- /pronunciation
+- /conversation-ai
+- /oral-simulator
+- /notifications
+- /profile
+- /settings
+- /upgrade
+- /admin
+- /admin/security
+- /admin/preview/study-material/:id
+- /admin/preview/exam-edition/:id
+- /admin/preview/exam-task/:id
+- /admin/preview/course/:id
+- /admin/preview/lesson/:id
+Auth guard:
+- logged-out users can access only public routes
+- protected routes redirect to /login
+- logged-in users visiting /login or /register redirect to /home
+- /admin requires admin role
+- non-admins redirect to /home silently
+Logo behavior:
+- if authenticated, CelpePrep logo click goes to /home
+- if not authenticated, logo click goes to public landing/onboarding
+- never send logged-in user to login/register by clicking logo
+- only Sair/logout should return user to public/auth flow
+
+================================================================
+PAYMENTS / PREMIUM
+
+================================================================
+Use Lovable/Paddle payments as the premium provider.
+Premium cancellation:
+- keep access until current period end
+- auto-downgrade after period ends
+- do not revoke immediately on cancel
+Subscription management:
+- add "Gerenciar assinatura" button
+- open Paddle customer portal in new tab
+- users can cancel/update card/view invoices there
+Premium unlocks:
+- unlimited AI evaluations
+- unlimited AI-generated practices
+- unlimited retakes
+- unlimited vocabulary AI enrichment
+- unlimited grammar/writing/listening/pronunciation/conversation limits
+- premium lessons
+- premium previous exam materials if marked premium
+- full model answers
+- no ads
+Free users have limits.
+If payments cannot be fully enabled in preview:
+- still build paywall
+- still build premium gating
+- allow admin-only manual premium toggle for testing
+- do not remove Paddle integration points
+
+================================================================
+FREEMIUM LIMITS
+
+================================================================
+Create admin_config row key = "limits".
+value jsonb:
+{
+  "freeAiEvaluationsPerMonth": 5,
+  "freeAiGeneratedPracticesPerDay": 2,
+  "freeRetakesPerPractice": 2,
+  "freeVocabularyAiEnrichmentsPerDay": 10,
+  "freePronunciationEvaluationsPerDay": 3,
+  "freeConversationMinutesPerDay": 5,
+  "freeListeningExercisesPerDay": 3,
+  "freeGrammarLessonsPerDay": 3,
+  "freeWritingCoachUsesPerDay": 3,
+  "rewardedAdCreditAmount": 1,
+  "rewardedAdMaxPerDay": 3,
+  "practiceTimerSeconds": 1500
+}
+Create user_usage_daily:
+- id uuid primary key
+- user_id uuid references auth.users(id)
+- usage_date date
+- rewarded_ads_watched integer default 0
+- ai_generated_practices_used integer default 0
+- vocabulary_ai_enrichments_used integer default 0
+- pronunciation_evaluations_used integer default 0
+- conversation_seconds_used integer default 0
+- listening_exercises_used integer default 0
+- grammar_lessons_used integer default 0
+- writing_coach_uses_used integer default 0
+- updated_at timestamptz default now()
+Unique:
+user_id + usage_date
+Server-side enforcement required in Edge Functions:
+- do not trust frontend premium status
+- read profile.is_premium server-side
+- free users blocked when limits are exceeded
+- premium users bypass limits
+Paywall triggers:
+- AI credits exhausted
+- daily AI practice limit reached
+- third retake attempt by free user
+- premium question/material opened
+- premium lesson/course opened
+- conversation limit reached
+- pronunciation limit reached
+- vocabulary AI limit reached
+- writing coach limit reached
+After successful payment:
+- refresh premium status
+- hide ads
+- retry last blocked action automatically
+
+================================================================
+ADS INFRASTRUCTURE
+
+================================================================
+Build complete ads infrastructure now, but ads are OFF by default.
+This is a web app:
+- AdSense is primary for web
+- AdMob is only scaffolded safely for future Capacitor/native Android/iOS
+- AdMob must not break Vite web build
+admin_config key = "ads"
+value jsonb:
+{
+  "adsEnabled": false,
+  "webAdsEnabled": false,
+  "admobEnabled": false,
+  "rewardedAdsEnabled": false,
+  "adProvider": "none",
+  "hideAdsForPremium": true,
+  "adsenseClientId": "",
+  "adsenseHomeSlotId": "",
+  "adsenseBottomSlotId": "",
+  "adsensePracticeSlotId": "",
+  "adsenseProfileSlotId": "",
+  "admobAndroidAppId": "",
+  "admobIosAppId": "",
+  "admobBannerAndroid": "",
+  "admobBannerIos": "",
+  "admobRewardedAndroid": "",
+  "admobRewardedIos": "",
+  "rewardedAdCreditAmount": 1,
+  "rewardedAdMaxPerDay": 3
+}
+Default:
+- no ads visible
+- no empty boxes
+- no console-breaking errors
+- premium users never see ads if hideAdsForPremium true
+Create:
+- useAdsConfig hook
+- AdBanner component
+- RewardedAdButton component
+- ads/admobAdapter.ts
+AdBanner placements:
+- Home bottom
+- Questions bottom
+- Practice History bottom
+- Vocab bottom
+- Profile bottom
+- Practice only before start or after finish
+- never inside writing editor
+- never interrupt 25-minute timer
+- no ads on Paywall/Admin
+admobAdapter:
+- isNativeAdMobAvailable()
+- showBannerAd(placement)
+- hideBannerAd()
+- showRewardedAd()
+- web default returns false/no-op
+- use guarded dynamic imports only later
+Edge Function:
+grant-ad-credit
+Logic:
+- require auth
+- read admin_config ads
+- if rewarded disabled, return error
+- if premium, return current totals without granting
+- enforce rewardedAdMaxPerDay
+- increment ai_credits_total by rewardedAdCreditAmount
+- increment user_usage_daily.rewarded_ads_watched
+- never allow frontend direct credit updates
+Admin Ads panel:
+- Ads Enabled
+- Web Ads Enabled
+- AdMob Enabled
+- Rewarded Ads Enabled
+- Hide Ads for Premium
+- Provider none/adsense/admob/both
+- all AdSense IDs
+- all AdMob IDs
+- reward amount/max per day
+- save
+- disable all ads
+- validate config
+- preview placements
+- create audit log on save
+
+================================================================
+AUTH + OTP
+
+================================================================
+Use Supabase Auth plus email OTP verification.
+OTP Edge Functions:
+- send-email-otp
+- verify-email-otp
+- send-password-reset-otp
+- reset-password-with-otp
+Table email_otps:
+- id uuid primary key default gen_random_uuid()
+- email text not null
+- purpose text not null: register/login/password_reset
+- otp_hash text not null
+- expires_at timestamptz not null
+- attempts integer default 0
+- consumed boolean default false
+- created_at timestamptz default now()
+- last_attempt_at timestamptz nullable
+- request_ip_hash text nullable
+- user_agent_hash text nullable
+OTP rules:
+- 6 numeric digits
+- expires in 10 minutes
+- max 5 wrong attempts
+- max 3 sends per email per 15 minutes
+- max 5 sends per email per day
+- store only hashed OTP
+- never expose account existence
+- consumed after success
+- cannot reuse OTP
+Development-safe OTP:
+Environment:
+EMAIL_PROVIDER = mock/resend/sendgrid/smtp
+OTP_DEV_MODE = true/false
+OTP_DEV_CODE = 123456
+If provider missing or mock:
+- do not crash
+- generate/store OTP
+- return devMode true
+- frontend shows:
+"Modo teste: use o código 123456"
+Login:
+1. email/password sign in
+2. send OTP purpose login
+3. verify OTP
+4. /home
+5. if OTP send fails, sign out or avoid half-auth state
+Register:
+1. validate form
+2. send OTP purpose register
+3. verify OTP
+4. create auth/profile
+5. generate study plan
+6. /diagnostic
+Google login:
+- existing profile -> /home
+- new profile -> create basic profile, then /complete-profile
+- complete profile asks examDate and celfLevel
+- then diagnostic/study plan
+Forgot password:
+- send OTP
+- verify OTP
+- new password
+- reset-password-with-otp
+Frontend OTP UI:
+- 6 code input
+- resend after 60s
+- attempts remaining
+- block after 5 attempts
+- useful errors, not generic non-2xx
+
+================================================================
+CORE TABLES
+
+================================================================
+profiles:
+- id uuid primary key references auth.users(id)
+- name text
+- email text
+- photo_url text
+- celf_level text default 'B1'
+- exam_date date
+- streak_days integer default 0
+- best_streak integer default 0
+- last_active_date date nullable
+- ai_credits_used integer default 0
+- ai_credits_total integer default 5
+- is_premium boolean default false
+- premium_period_end timestamptz nullable
+- paddle_customer_id text
+- notifications_enabled boolean default true
+- theme_preference text default 'Claro'
+- completed_question_ids text[] default '{}'
+- favorite_question_ids text[] default '{}'
+- preferred_study_days text[] default '{}'
+- daily_minutes integer default 30
+- role text default 'user'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+attempts:
+- id uuid primary key
+- user_id uuid
+- question_id uuid nullable
+- generated_practice_id uuid nullable
+- practice_mode text
+- task_type text
+- genre text
+- response_text text
+- overall_score numeric
+- rubric_tema numeric
+- rubric_genero numeric
+- rubric_coesao numeric
+- rubric_gramatica numeric
+- model_commentary text
+- annotations_json jsonb default '[]'
+- time_expired boolean default false
+- attempt_number integer default 1
+- retake_of_attempt_id uuid nullable
+- status text
+- created_at timestamptz default now()
+practice_sessions:
+- id uuid primary key
+- user_id uuid
+- question_id uuid nullable
+- generated_practice_id uuid nullable
+- practice_mode text
+- task_type text
+- status text
+- started_at timestamptz
+- completed_at timestamptz nullable
+- timer_started_at timestamptz
+- time_limit_seconds integer default 1500
+- time_expired boolean default false
+- created_at timestamptz default now()
+generated_practices:
+- id uuid primary key
+- user_id uuid
+- task_type text
+- practice_mode text
+- genre text
+- theme_axis text
+- interlocution text
+- purpose text
+- sub_skills text[]
+- source_text text
+- prompt text
+- audio_url text
+- video_url text
+- external_source_url text
+- graph_data_json jsonb
+- material_type text
+- level_target text
+- created_by text default 'ai'
+- status text default 'published'
+- created_at timestamptz default now()
+questions:
+- id uuid primary key
+- edition text
+- task_type text
+- genre text
+- difficulty numeric default 2.0
+- source_text text
+- prompt text
+- how_to_understand text
+- common_mistakes text[]
+- b1_answer text
+- b2_answer text
+- b1_score_tema numeric
+- b1_score_genero numeric
+- b1_score_coesao numeric
+- b1_score_gramatica numeric
+- b2_score_tema numeric
+- b2_score_genero numeric
+- b2_score_coesao numeric
+- b2_score_gramatica numeric
+- vocabulary_words text[]
+- vocabulary_defs text[]
+- vocabulary_registers text[]
+- vocabulary_examples text[]
+- vocabulary_categories text[]
+- is_premium boolean default false
+- status text default 'draft'
+- audio_url text
+- video_url text
+- external_source_url text
+- graph_data_json jsonb
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+vocabulary_progress:
+- id uuid primary key
+- user_id uuid
+- word text
+- definition_pt text
+- simple_definition_pt text
+- meaning_en text
+- meaning_user_language text
+- part_of_speech text
+- gender text
+- plural_form text
+- verb_conjugation_json jsonb
+- pronunciation_text text
+- ipa text
+- audio_url text
+- register text
+- frequency_level text
+- celf_level text
+- category text
+- topic text
+- synonyms text[]
+- antonyms text[]
+- collocations text[]
+- example_sentence_pt text
+- example_sentence_simple_pt text
+- example_sentence_en text
+- common_mistakes text[]
+- false_friend_note text
+- usage_tip_pt text
+- source_type text
+- source_ref text
+- source_context text
+- status text default 'learning'
+- times_reviewed integer default 0
+- ease_level integer default 0
+- last_reviewed_at timestamptz
+- next_review timestamptz
+- created_at timestamptz default now()
+courses:
+- id uuid primary key
+- title text
+- description text
+- thumbnail_url text
+- target_level text
+- is_premium boolean
+- order_index integer
+- lessons_count integer
+- status text
+- created_at timestamptz default now()
+lessons:
+- id uuid primary key
+- course_id uuid
+- title text
+- content_type text
+- content text
+- video_url text
+- audio_url text
+- duration_mins integer
+- is_free boolean default false
+- order_index integer
+- status text
+- created_at timestamptz default now()
+lesson_progress:
+- id uuid primary key
+- user_id uuid
+- lesson_id uuid
+- course_id uuid
+- completed_at timestamptz
+- created_at timestamptz default now()
+notifications_admin:
+- id uuid primary key
+- title text
+- body text
+- type text
+- link text
+- target_level text default 'all'
+- is_active boolean
+- created_at timestamptz default now()
+notifications_teacher:
+- id uuid primary key
+- teacher_id uuid
+- teacher_name text
+- title text
+- body text
+- target_student_level text
+- is_active boolean
+- created_at timestamptz default now()
+user_stats_summary:
+- user_id uuid primary key
+- total_attempts integer
+- completed_attempts integer
+- failed_attempts integer
+- average_overall_score numeric
+- average_tema numeric
+- average_genero numeric
+- average_coesao numeric
+- average_gramatica numeric
+- weakest_criterion text
+- strongest_criterion text
+- mastered_words integer
+- learning_words integer
+- total_study_minutes integer
+- current_streak integer
+- best_streak integer
+- last_practice_at timestamptz
+- updated_at timestamptz
+audit_logs:
+- id uuid primary key
+- admin_user_id uuid
+- action text
+- table_name text
+- record_id text
+- before_json jsonb
+- after_json jsonb
+- created_at timestamptz default now()
+admin_config:
+- key text primary key
+- value jsonb not null
+- updated_at timestamptz
+- updated_by uuid nullable
+
+================================================================
+PREVIOUS CELPE-BRAS EXAMS
+
+================================================================
+Add Home button/card:
+Title: "Provas Anteriores"
+Subtitle: "Acesse questões, respostas e materiais de edições anteriores do Celpe-Bras."
+Button: "Ver provas"
+Route: /previous-exams
+Tables:
+exam_editions:
+- id uuid primary key default gen_random_uuid()
+- year integer not null
+- edition_label text not null unique
+- title text not null
+- description text default ''
+- exam_date date nullable
+- status text default 'draft'
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+- created_by uuid nullable
+exam_tasks:
+- id uuid primary key default gen_random_uuid()
+- edition_id uuid references exam_editions(id) on delete cascade
+- task_type text not null
+- title text not null
+- genre text default ''
+- source_text text default ''
+- prompt text default ''
+- official_answer text default ''
+- model_answer_b1 text default ''
+- model_answer_b2 text default ''
+- answer_notes text default ''
+- scoring_notes text default ''
+- vocabulary_json jsonb default '[]'
+- difficulty numeric default 2.0
+- order_index integer default 0
+- status text default 'draft'
+- is_premium boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+exam_materials:
+- id uuid primary key default gen_random_uuid()
+- task_id uuid references exam_tasks(id) on delete cascade
+- material_type text not null: video/audio/pdf/image/text/graph/external_link
+- title text not null
+- url text default ''
+- storage_path text default ''
+- transcript text default ''
+- description text default ''
+- open_mode text default 'external'
+- order_index integer default 0
+- is_required boolean default true
+- is_premium boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+exam_task_questions:
+- id uuid primary key default gen_random_uuid()
+- task_id uuid references exam_tasks(id) on delete cascade
+- question_text text not null
+- answer_text text default ''
+- explanation text default ''
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+User pages:
+- /previous-exams
+- search/filter by year/edition
+- show published editions only
+- /previous-exams/:editionId lists T1/T2/T3/T4/Oral tasks
+- /previous-exams/:editionId/task/:taskId shows source, prompt, materials, answers, model answers, scoring notes, vocabulary
+Admin:
+- full CRUD for editions/tasks/materials/questions
+- publish/unpublish/archive
+- duplicate
+- reorder
+- preview
+- audit logs
+- all exam content editable from admin
+- PDF/audio/video URLs are exam_materials, not edition descriptions
+External links:
+- web opens new tab
+- future Android/iOS opens external browser
+- use platform adapter
+
+================================================================
+EXTERNAL LINK SAFETY + PLATFORM ADAPTER
+
+================================================================
+Create:
+src/utils/openExternalLink.ts
+src/platform/platformAdapter.ts
+openExternalLink:
+- validate URL
+- allow https
+- allow http with warning in admin
+- block javascript/data/file/chrome/about/ftp/unknown
+- web: window.open(url, "_blank", "noopener,noreferrer")
+- future native: guarded Capacitor Browser support
+- never break Vite build
+- invalid URL toast: "Link inválido ou indisponível."
+platformAdapter:
+- isNativePlatform()
+- openExternalUrl(url)
+- canUseNativeBrowser()
+- default web false/window.open
+- dynamic imports only for future native
+
+================================================================
+PRACTICE SYSTEM
+
+================================================================
+Route /practice is Practice Hub.
+Six practice types:
+1. Tarefa 1 - Vídeo
+2. Tarefa 2 - Áudio
+3. Tarefa 3 - Texto 170-250 words
+4. Tarefa 4 - Texto/Gráfico/Tabela
+5. Prática IA - Escrita Aleatória
+6. Prática IA - Áudio/Gráfico
+External source links:
+- open externally/new tab
+- timer continues
+Timer:
+- 25 minutes
+- 1500 seconds
+- initial display 25:00
+- warning under 5 minutes
+- admin configurable through limits.practiceTimerSeconds
+- default 1500
+- replace all 45 min/2700 with 25 min/1500
+Practice session state:
+- timerStartedAt
+- timeLimitSeconds
+- remainingSeconds
+- timerDisplay
+- timerWarning
+- timeExpired
+- responseText
+Use timestamp calculation, not setInterval alone:
+elapsed = Date.now - timerStartedAt
+remaining = max(0, limit - elapsed)
+Background/resume:
+- listen document.visibilitychange
+- window.focus
+- pageshow
+- beforeunload
+- save timer/draft to localStorage
+- timer never pauses
+- on resume recalculate
+- if expired call handlePracticeTimeout
+Draft:
+practice_draft_[practiceSessionId]
+auto-save every 30 seconds
+restore on load
+warn before leaving
+Timeout scoring:
+If expired and response empty:
+- create attempt status time_expired
+- score all 0
+- commentary "Tempo esgotado sem resposta enviada."
+- annotations []
+- navigate feedback
+If expired and response not empty:
+- auto-submit to evaluateResponse with timeExpired true
+- AI evaluates actual text
+- commentary mentions time expired
+If AI fails during timeout:
+- failed attempt
+- score 0
+- commentary "Tempo esgotado. Não foi possível avaliar automaticamente."
+- keep draft
+Word count:
+- show word count
+- if <150 show "Recomendamos pelo menos 150 palavras"
+
+================================================================
+AI FUNCTIONS
+
+================================================================
+All AI calls from Supabase Edge Functions only.
+Required Edge Functions:
+- evaluate-response
+- generate-practice
+- generate-practice-audio
+- generate-study-plan
+- extract-vocabulary-from-text
+- enrich-vocabulary-item
+- generate-vocabulary-examples
+- generate-pronunciation-audio
+- generate-personalized-vocab-deck
+- generate-grammar-lesson
+- generate-listening-exercise
+- evaluate-pronunciation
+- check-feature-access
+- recompute-user-weaknesses
+- refresh-user-stats
+- seed-dev-data
+evaluate-response:
+- require auth
+- validate responseText/prompt/genre/taskType
+- enforce premium/credits
+- evaluate using Celpe-Bras criteria:
+  Tema 0-5
+  Gênero 0-5
+  Coesão/Coerência 0-5
+  Gramática/Vocabulário 0-5
+- overall average
+- commentary must be specific to actual user text
+- no generic feedback
+- annotations up to 5
+- clamp scores 0-5
+- increment credits only on success
+- never claim official certification
+- say "nível estimado"
+generate-practice:
+Use pools:
+Genres:
+Abaixo-assinado, anúncio de emprego, apresentação, artigo, carta, e-mail,
+artigo de opinião, capítulo de livro, carta do leitor, convite, depoimento,
+diário de viagem, editorial, guia de orientações, item de catálogo, notícia,
+panfleto, propaganda, texto para quadro de avisos, crônica, carta aberta,
+carta de apresentação, roteiro turístico, instruções, relatório, resumo,
+seção de guia.
+Interlocutions:
+Cidadão para órgão do governo, órgão do governo para população, empresa para clientes,
+cliente para empresa, funcionário para gestor, gestor para funcionário,
+funcionário para colega de trabalho, amigo para amigo, morador para vizinhos,
+leitor/ouvinte para veículo de comunicação, empresa para consumidores,
+membro de associação para empresas, integrante de comunidade educacional,
+colunista para leitores, empresa para candidato a emprego, instituição para população,
+indivíduo para profissional, organização para associados.
+Purposes:
+Aconselhar, apresentar, divulgar, incentivar, indicar, informar, orientar,
+posicionar-se, propor, recomendar, relatar experiência, solicitar, sugerir.
+Themes:
+Ambiente, ciência e tecnologia, consumo, esporte, estilos de vida, educação,
+comunicação, mundo do trabalho, habitação, transporte, serviços, compras,
+alimentação, saúde, lazer, mídia, arte, patrimônio cultural, políticas e cidadania,
+turismo.
+Subskills:
+interpretar gráficos, expressar ponto de vista, sumarizar, retextualizar,
+reescrever com outro propósito/interlocução, adaptar tabelas/gráficos,
+usar recursos linguísticos de gêneros.
+If includeAudio:
+- generate Brazilian Portuguese audio/TTS
+- save in Supabase Storage
+- store audio_url
+If includeGraph:
+- return graph_data_json with title, labels, values, unit, description
+- frontend renders chart
+
+================================================================
+VOCABULARY INTELIGENTE
+
+================================================================
+Vocabulary sources:
+- questions
+- previous exams
+- generated practices
+- lessons
+- AI feedback
+- writing mistakes
+- study materials
+- manual additions
+Vocabulary page:
+- due reviews
+- mastered/learning counts
+- category filters
+- source labels
+- manual add
+- AI enrich button
+Flashcards:
+Front:
+- Portuguese word only
+- tags level/category/register
+- audio button
+- "Toque para ver o significado"
+Back:
+Portuguese meaning first:
+1. definition_pt
+2. simple_definition_pt
+3. example_sentence_pt
+4. synonyms
+5. collocations
+6. usage_tip_pt
+7. common_mistakes
+Translation hidden behind "Ver tradução"
+SRS:
+Difícil -> now + 12h
+Revisar depois -> now + 1 day
+Bom -> now + 7 days
+Já sei -> mastered, now + 30 days
+Modes:
+- flashcard review
+- multiple choice meaning
+- fill in the blank
+- collocation practice
+- listening vocabulary
+- writing with vocabulary
+- mistake-based review
+
+================================================================
+MANUAL NON-AI STUDY LIBRARY
+
+================================================================
+Add Home card:
+"Biblioteca de Estudos"
+"Materiais, modelos, gramática e estratégias para estudar sem IA."
+Route /study-library
+Tables:
+study_categories:
+- id uuid primary key
+- title
+- slug unique
+- description
+- icon
+- order_index
+- status
+- created_at
+- updated_at
+study_materials:
+- id uuid primary key
+- category_id uuid
+- title
+- slug unique
+- summary
+- content
+- level all/A2/B1/B2/C1
+- material_type article/checklist/model_answer/grammar/vocabulary/strategy/download/quiz/simulation
+- tags text[]
+- downloadable_url
+- external_url
+- is_premium boolean
+- status draft/published/archived
+- order_index
+- created_by
+- created_at
+- updated_at
+study_quizzes:
+- id uuid primary key
+- material_id uuid
+- title
+- description
+- created_at
+study_quiz_questions:
+- id uuid primary key
+- quiz_id uuid
+- question_text
+- options jsonb
+- correct_index
+- explanation
+- order_index
+- created_at
+user_study_progress:
+- id uuid primary key
+- user_id uuid
+- material_id uuid
+- completed boolean
+- completed_at
+- bookmarked boolean
+- notes text
+- last_opened_at
+- created_at
+- updated_at
+- unique user_id/material_id
+Categories:
+- Guia do Celpe-Bras
+- Gêneros Textuais
+- Modelos de Resposta
+- Gramática Essencial
+- Conectivos e Expressões
+- Estratégias de Prova
+- Temas Frequentes
+- Vocabulário por Tema
+- Erros Comuns
+- Checklists de Escrita
+- Simulados Manuais
+- Materiais para Download
+Manual content types:
+- exam guide
+- genre guides
+- model answer bank
+- grammar reference
+- connector bank
+- vocabulary by theme
+- writing checklists
+- manual simulations
+- error bank
+- downloads/external links
+User can:
+- search/filter
+- open material
+- bookmark
+- mark completed
+- write personal notes
+- take quizzes without AI
+- download/open links
+Admin can edit every item.
+No hardcoded study content except generic UI labels.
+Admin Study Library manager:
+- CRUD categories
+- CRUD materials
+- CRUD quizzes
+- CRUD quiz questions
+- duplicate
+- preview
+- publish/unpublish
+- reorder
+- edit tags/json/repeatable fields
+- rich text or Markdown content
+- sanitize rendered HTML/Markdown
+- audit logs
+
+================================================================
+GRAMMAR / LISTENING / WRITING / PRONUNCIATION / CONVERSATION
+
+================================================================
+Grammar:
+- lessons by level/topic
+- AI lessons from user mistakes
+- manual grammar library also available
+- exercises: multiple choice, rewrite, correct error, complete, formalize, connector choice
+Writing Coach:
+- user writes any Portuguese text
+- AI returns correctedText, explanationPt, errors, improved B1/B2, useful vocab, grammar focus
+- button add errors to review
+Listening Lab:
+- Brazilian daily conversation
+- news-style audio
+- public announcement
+- interview
+- Celpe-Bras audio
+- hidden transcript
+- comprehension questions
+- dictation
+- vocab extraction
+Pronunciation:
+- browser MediaRecorder
+- record voice
+- evaluate if available
+- focus lh, nh, ão, r/rr, nasal vowels, open/closed vowels
+- scores and tips
+Conversation AI:
+- scenarios:
+  entrevista, médico, loja, atendimento público, vizinho, trabalho,
+  universidade, viagem, aluguel, banco
+- Brazilian Portuguese by default
+- adapts to level
+- summary/corrections/vocab after session
+- daily limit for free users
+
+================================================================
+STUDY PLAN
+
+================================================================
+Route /study-plan
+Adaptive plan:
+- exam date
+- intensity Leve/Moderado/Intenso
+- level
+- weakest rubric
+- vocab review load
+- recent attempts
+- preferred days
+- daily minutes
+Activities:
+- Tarefa 1
+- Tarefa 2
+- Tarefa 3
+- Tarefa 4
+- vocabulary review
+- grammar lesson
+- listening
+- rewrite weak attempt
+- course lesson
+- oral practice
+- manual study material
+Page:
+- calendar
+- today tasks
+- weekly progress
+- exam countdown
+- weakest recommendation
+- completed history
+- adjust sheet
+Adjust sheet:
+- exam date
+- intensity
+- focus Automático/Tema/Gênero/Coesão/Gramática/Vocabulário/Oral
+- preferred days
+- daily minutes
+
+================================================================
+DIAGNOSTIC
+
+================================================================
+Diagnostic uses Celpe-Bras style:
+- reading
+- listening
+- graph/material interpretation
+- writing
+- optional oral self-assessment
+AI diagnostic evaluation does not consume credits.
+After diagnostic:
+- estimate celf level
+- update profile
+- generate study plan
+- go home
+Seed diagnostic:
+reading text about Brazilian biodiversity
+correct answer "De todos os cidadãos"
+writing prompt: formal email to city hall about public transport
+listening audio_url empty fallback
+graph sample
+
+================================================================
+COURSES / LESSONS
+
+================================================================
+Courses page:
+- grid/list
+- published only
+- premium lock
+- progress count
+Course detail:
+- title
+- description
+- level
+- lessons
+Lesson viewer:
+- video/text/audio
+- mark complete
+- next lesson
+- premium lessons locked
+
+================================================================
+NOTIFICATIONS
+
+================================================================
+Admin notifications and teacher notifications.
+Notifications page:
+- tabs general/teacher
+- unread/read
+- mark all read
+- deep links
+- notification_reads table/subsystem
+Push/web notifications optional where browser supports.
+
+================================================================
+PROFILE
+
+================================================================
+Profile:
+- avatar upload
+- name/email
+- level
+- stats grid
+- attempts
+- AI sessions
+- streak
+- mastered words
+- average score
+- weakest criterion
+- practice history preview
+- study plan shortcut
+- saved study materials
+- subscription status
+- manage subscription
+- terms/privacy/support
+- logout
+- delete account
+Admin entry:
+- click avatar 6 times
+- if admin -> /admin
+
+================================================================
+ADMIN DASHBOARD
+
+================================================================
+Route /admin.
+Tabs:
+- Limits
+- Timer
+- Ads
+- Provas Celpe-Bras
+- Biblioteca de Estudos
+- Users
+- Questions
+- Generated Practices
+- Courses
+- Lessons
+- Vocabulary
+- Notifications
+- Diagnostic
+- Study Plan Templates
+- Paywall/Paddle
+- Remote Config
+- App Update
+- AI Settings
+- Legal/Support
+- Audit Logs
+- Security
+Admin can:
+- search
+- filter
+- paginate
+- sort
+- create
+- edit
+- delete
+- duplicate
+- preview
+- publish/unpublish
+- reorder
+- validate links
+- manage all URLs/media/materials
+- manage limits
+- manage ads
+- manage payment labels/settings
+- manual premium toggle for testing
+- create audit log for every change
+Admin Preview:
+- /admin/preview/study-material/:id
+- /admin/preview/exam-edition/:id
+- /admin/preview/exam-task/:id
+- /admin/preview/course/:id
+- /admin/preview/lesson/:id
+- top banner:
+"Prévia administrativa — este conteúdo ainda pode não estar publicado."
+- buttons Editar/Publicar/Voltar
+
+================================================================
+ADMIN SECURITY VALIDATION
+
+================================================================
+Route /admin/security
+Show:
+- RLS enabled?
+- admin policies exist?
+- normal user writes blocked?
+- risky policies?
+Tables:
+profiles, exam_editions, exam_tasks, exam_materials, exam_task_questions,
+study_categories, study_materials, study_quizzes, study_quiz_questions,
+vocabulary_progress, attempts, admin_config, audit_logs, user_usage_daily
+Statuses:
+- Protegido
+- Revisar
+- Risco crítico
+Use view/RPC admin_security_report if useful.
+
+================================================================
+PAGINATION / ORDERING / SEARCH
+
+================================================================
+Add pagination to:
+- previous exams
+- exam tasks
+- questions
+- study materials
+- vocabulary
+- practice history
+- courses
+- notifications
+- all admin lists
+- audit logs
+Default:
+- user lists 12/15
+- admin lists 20/25
+- audit logs 50
+Use Supabase range queries.
+Do not load all rows.
+Sorting:
+Previous exams:
+- recent, oldest, year, edition
+Questions/tasks:
+- recent, oldest, difficulty, task type, edition
+Study library:
+- recent, recommended order, level, category
+Practice history:
+- recent, high score, low score, task type
+Admin:
+- created_at
+- updated_at
+- order_index
+- status
+- title
+- year/edition
+- task_type
+- premium/free
+Search by task:
+Search fields:
+- task_type
+- edition_label
+- year
+- genre
+- title
+- prompt
+- source_text
+- theme
+- difficulty
+- status
+- tags
+Examples:
+"Tarefa 1", "T1", "áudio", "2023/2", "carta formal", "transporte", "meio ambiente", "B2"
+Debounce 300-500ms.
+Empty:
+"Nenhum resultado encontrado."
+
+================================================================
+RLS / SECURITY
+
+================================================================
+Enable RLS.
+Rules:
+- users can read/update own profile only
+- users cannot update premium/credits directly except allowed safe profile fields
+- attempts owner only
+- vocabulary owner only
+- user_usage owner read only, server writes
+- email_otps no client access
+- audit_logs admin read, server/admin write
+- admin_config safe read authenticated, write admin
+- published content readable authenticated
+- drafts admin only
+- admin writes require admin role
+- normal users cannot edit shared study/exam/admin content
+Storage:
+- avatars by owner
+- oral recordings by owner
+- generated audio by owner/server
+- lesson/admin media admin managed
+- validate file size/mime
+
+================================================================
+FIX KNOWN SCHEMA/SAVE ISSUES
+
+================================================================
+Ensure admin "Nova edição" saves into exam_editions only.
+Field mapping:
+Ano -> year
+Edição -> edition_label
+Título -> title
+Data da prova -> exam_date ISO YYYY-MM-DD
+Ordem -> order_index
+Status -> status
+Descrição -> description
+created_by -> current user
+Do not save PDF/audio/video URL into exam_editions description unless it is just text.
+Materials go into exam_materials.
+If schema cache error occurs:
+- create missing migration/table/columns
+- fix frontend table/column names to snake_case
+- refresh generated types if used
+- log full Supabase error
+- show useful toast
+Success:
+"Edição salva com sucesso."
+
+================================================================
+SEED DATA
+
+================================================================
+seed-dev-data must create:
+admin_config:
+- limits
+- ads disabled default
+- ai defaults
+- legal/support
+- app update
+Diagnostic:
+- reading biodiversity sample
+- writing public transport email
+- listening empty audio sample
+- graph sample
+Questions:
+1. T1 Carta de Reclamação 2023/1 free
+2. T3 Artigo de Opinião 2023/2 free
+3. T2 Resumo 2024/1 premium
+Courses:
+1. Dominando o Gênero Carta, B1, free, 3 lessons
+2. Conectivos Avançados para B2, premium, 2 lessons
+Notifications:
+- admin welcome
+- teacher tip
+Previous exams:
+- 2024/1
+- 2023/2
+- 2023/1
+Each with T1/T2/T3/T4 sample tasks and materials.
+Study library categories:
+- Guia do Celpe-Bras
+- Gêneros Textuais
+- Gramática Essencial
+- Conectivos e Expressões
+- Estratégias de Prova
+- Vocabulário por Tema
+- Erros Comuns
+- Checklists
+Seed at least 12 study materials:
+- Como funciona o Celpe-Bras
+- Critérios oficiais de avaliação
+- Como escrever uma carta formal
+- Como escrever um artigo de opinião
+- Conectivos para argumentação
+- Diferença entre porém, todavia, entretanto
+- Erros comuns de concordância
+- Checklist antes de enviar sua redação
+- Vocabulário: transporte
+- Vocabulário: meio ambiente
+- Estratégias para Tarefa 1
+- Estratégias para Tarefa 2
+
+================================================================
+QA CHECKLIST
+
+================================================================
+Verify:
+- app builds
+- routes work
+- auth guard works
+- logged-in logo goes home
+- logged-out logo goes landing
+- OTP mock works with 123456
+- OTP limits work
+- register/login/forgot password work
+- Paddle premium works or is scaffolded safely
+- subscription keeps access until period end
+- customer portal opens
+- premium gating works
+- free limits work
+- manual admin premium toggle works for testing
+- ads off by default
+- no empty ad boxes
+- premium never sees ads
+- admin ads config works
+- 25-minute timer works
+- timer continues after new tab/background
+- timeout empty answer score 0
+- timeout non-empty auto-submit
+- AI evaluation specific to answer
+- Practice Hub six modes work
+- practice history works
+- retake limit works
+- previous exams pages work
+- external links open safely
+- admin can CRUD previous exams
+- study library works
+- all manual study content editable by admin
+- no hardcoded study content
+- vocabulary flashcard back shows Portuguese definition first
+- SRS works
+- grammar/listening/writing/pronunciation/conversation pages exist
+- study plan works
+- admin preview works
+- pagination/sorting/search work
+- RLS blocks normal writes
+- audit logs created
+- schema cache save errors fixed
+- no Firebase/Firestore code exists
+
+================================================================
+FINAL INSTRUCTION
+
+================================================================
+Do not summarize this specification.
+Do not build only static pages.
+Implement real database schema/migrations, RLS policies, Edge Function scaffolds,
+frontend routes, reusable components, admin CRUD, loading states, empty states,
+error states, validation, pagination, search, sorting, premium gating, OTP,
+ads infrastructure, timers, timeout behavior, previous exams, study library,
+and all admin editability described above.
+If third-party credentials are missing, use safe placeholders/dev mode and keep
+the app working in Lovable preview.
+
+================================================================
+END COMPLETE CELPEPREP MASTER PROMPT
+
+================================================================
+
+================================================================
+MANDATORY BUG FIXES FROM PREVIOUS BUILD
+
+================================================================
+The previous build had these bugs. Fix them explicitly.
+1. Admin Save Error
+Bug:
+Saving "Nova edição" in /admin caused:
+"Could not query the database for the schema cache. Retrying."
+Fix:
+- Ensure exam_editions, exam_tasks, exam_materials, exam_task_questions exist.
+- Ensure frontend insert uses exact snake_case column names.
+- Ensure "Nova edição" inserts only into exam_editions.
+- Save PDF/video/audio links as exam_materials, not exam_editions description.
+- Add/repair RLS admin insert/update policies.
+- Log full Supabase error.
+- Show useful toast instead of generic schema cache message.
+2. OTP Login/Register Error
+Bug:
+Login/register showed:
+"Erro ao enviar código"
+"Edge Function returned a non-2xx status code"
+Fix:
+- Repair send-email-otp Edge Function.
+- Add email_otps table if missing.
+- Add dev/mock OTP mode.
+- If email provider is missing, do not crash.
+- In preview/dev, return devCode 123456.
+- Frontend shows "Modo teste: use o código 123456".
+- Verify OTP attempt limit, expiry, resend limit, and no reuse.
+3. Logo Navigation Bug
+Bug:
+Logged-in user clicking CelpePrep logo returned to public login/register landing page.
+Fix:
+- If authenticated, logo click navigates to /home.
+- If unauthenticated, logo click navigates to public landing/onboarding.
+- Logged-in users visiting /login or /register redirect to /home.
+- Only "Sair" logs user out.
+4. Ads Stack Conflict
+Bug:
+Earlier instructions mentioned Firebase/Firestore/AdMob directly.
+Fix:
+- This project is Supabase/Lovable.
+- Use Supabase tables, RLS, and Edge Functions.
+- Use AdSense-style web ads as primary.
+- Scaffold AdMob only safely for future native wrapper.
+- Ads OFF by default.
+- Admin can turn ads on/off.
+5. Payment Access Rules
+Bug risk:
+Subscription cancellation behavior and management flow were unclear.
+Fix:
+- Use Paddle/Lovable payments.
+- Keep Premium access until current period end after cancellation.
+- Add Paddle customer portal/manage subscription button.
+- Verify payment webhooks/signature/env filtering/price mapping/grace period.
+6. Practice Timer Bug Risk
+Bug risk:
+Old instructions used 45 minutes / 2700 seconds.
+Fix:
+- All practice timers must be 25 minutes / 1500 seconds.
+- Timer continues during background/new tab.
+- Empty timeout creates score 0.
+- Non-empty timeout auto-submits to AI.
+These are not optional. They must be fixed before adding new polish.
+
+================================================================
+END MANDATORY BUG FIXES
+
+================================================================
+
+================================================================
+FINAL EXPANSION: FULL ADMIN CONTROL + FRONT PAGE LEARNING HUB
+
+================================================================
+Goal:
+The admin backend must control the app from 0 to 100%.
+No learning content, marketing copy, pricing text, banners, homepage sections,
+navigation labels, study material, exam material, notification, legal text, or
+app configuration should require code edits after launch.
+The frontend must offer richer learning opportunities immediately from the first
+authenticated page and public landing page.
+Do not break existing Supabase/Lovable architecture.
+Use React + Vite + TypeScript + Supabase.
+Do not use Firebase.
+
+================================================================
+1. ADMIN CONTROL PRINCIPLE
+
+================================================================
+Admin must be able to manage:
+- all homepage content
+- all public landing page content
+- all navigation labels and visibility
+- all banners
+- all announcements
+- all study categories
+- all study materials
+- all Celpe-Bras previous exams
+- all questions
+- all AI practice templates/settings
+- all courses
+- all lessons
+- all vocabulary lists
+- all grammar lessons
+- all listening materials
+- all pronunciation prompts
+- all writing prompts
+- all conversation scenarios
+- all diagnostic questions
+- all study plan templates
+- all paywall text/plans/features
+- all ads settings
+- all app update messages
+- all legal/support links
+- all user limits
+- all premium locks
+- all feature flags
+- all frontend section ordering
+- all footer/header links
+- all SEO/public metadata where applicable
+Nothing important should be hardcoded except:
+- route paths
+- generic loading/empty/error text
+- internal technical constants
+- safe fallback defaults
+
+================================================================
+2. NEW ADMIN TABLES
+
+================================================================
+Create or extend these Supabase tables.
+Table: app_pages
+Purpose:
+Admin-controlled page content and layout.
+Columns:
+- id uuid primary key default gen_random_uuid()
+- page_key text unique not null
+  examples: landing, home, practice, vocab, study_library, previous_exams, paywall
+- title text default ''
+- subtitle text default ''
+- hero_title text default ''
+- hero_subtitle text default ''
+- hero_cta_label text default ''
+- hero_cta_route text default ''
+- secondary_cta_label text default ''
+- secondary_cta_route text default ''
+- content_json jsonb default '{}'
+- seo_title text default ''
+- seo_description text default ''
+- status text default 'published'
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Table: app_sections
+Purpose:
+Admin controls sections shown on landing/home/app pages.
+Columns:
+- id uuid primary key default gen_random_uuid()
+- page_key text not null
+- section_key text not null
+- title text default ''
+- subtitle text default ''
+- body text default ''
+- cta_label text default ''
+- cta_route text default ''
+- icon text default ''
+- image_url text default ''
+- config_json jsonb default '{}'
+- order_index integer default 0
+- is_visible boolean default true
+- requires_auth boolean default false
+- requires_premium boolean default false
+- status text default 'published'
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Unique:
+- page_key + section_key
+Table: app_navigation
+Purpose:
+Admin controls visible navigation items.
+Columns:
+- id uuid primary key default gen_random_uuid()
+- nav_area text not null
+  allowed: public_header, app_header, bottom_mobile, footer, profile_menu, admin_menu
+- label text not null
+- route text not null
+- icon text default ''
+- order_index integer default 0
+- is_visible boolean default true
+- requires_auth boolean default false
+- requires_premium boolean default false
+- admin_only boolean default false
+- status text default 'published'
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Table: feature_flags
+Purpose:
+Admin can turn app features on/off without code edits.
+Columns:
+- key text primary key
+- label text not null
+- description text default ''
+- enabled boolean default true
+- config_json jsonb default '{}'
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Required flags:
+- ai_practice_enabled
+- ai_feedback_enabled
+- study_library_enabled
+- previous_exams_enabled
+- courses_enabled
+- vocab_enabled
+- grammar_enabled
+- listening_enabled
+- pronunciation_enabled
+- conversation_enabled
+- ads_enabled
+- premium_enabled
+- registration_enabled
+- google_login_enabled
+- otp_required
+- maintenance_mode
+Table: app_banners
+Purpose:
+Admin controls top banners and alerts.
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- body text default ''
+- type text default 'info'
+  allowed: info, warning, success, error, update, promo
+- placement text default 'home'
+  allowed: landing, home, all_app, practice, paywall, admin
+- cta_label text default ''
+- cta_route text default ''
+- external_url text default ''
+- bg_color text default '#E3F2FD'
+- text_color text default '#185FA5'
+- is_dismissible boolean default true
+- is_active boolean default false
+- starts_at timestamptz nullable
+- ends_at timestamptz nullable
+- order_index integer default 0
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Table: learning_paths
+Purpose:
+Manual/adaptive learning paths editable by admin.
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- description text default ''
+- target_level text default 'all'
+- goal text default ''
+- estimated_days integer default 30
+- is_premium boolean default false
+- status text default 'draft'
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Table: learning_path_steps
+Columns:
+- id uuid primary key default gen_random_uuid()
+- path_id uuid references learning_paths(id) on delete cascade
+- step_type text not null
+  allowed: study_material, previous_exam_task, question, course_lesson, vocab_review, grammar, listening, writing, speaking, external_link
+- title text not null
+- description text default ''
+- linked_table text default ''
+- linked_id uuid nullable
+- external_url text default ''
+- duration_mins integer default 10
+- order_index integer default 0
+- is_required boolean default true
+- status text default 'published'
+- updated_at timestamptz default now()
+Table: content_blocks
+Purpose:
+Reusable admin-managed content blocks.
+Columns:
+- id uuid primary key default gen_random_uuid()
+- block_key text unique not null
+- title text default ''
+- content text default ''
+- content_json jsonb default '{}'
+- block_type text default 'text'
+  allowed: text, markdown, html_safe, faq, checklist, card_grid, pricing, stats, testimonial, instructions
+- status text default 'published'
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+
+================================================================
+3. ADMIN DASHBOARD MUST INCLUDE NEW SECTIONS
+
+================================================================
+Add these admin tabs or sub-tabs:
+1. Páginas
+- edit landing page
+- edit authenticated Home page
+- edit paywall page
+- edit page titles/subtitles/CTA labels
+- edit SEO fields where applicable
+- edit content_json safely
+2. Seções da Página
+- create/edit/delete page sections
+- reorder sections
+- hide/show sections
+- set premium/auth visibility
+- choose icon/image/CTA
+- preview section
+3. Navegação
+- edit public header links
+- edit app header links
+- edit mobile/bottom navigation if used
+- edit footer links
+- edit profile menu links
+- reorder nav items
+- hide/show nav items
+- admin-only toggle
+4. Feature Flags
+- turn major features on/off
+- maintenance mode
+- registration on/off
+- Google login on/off
+- OTP required on/off
+- AI practice on/off
+- ads on/off
+- premium on/off
+5. Banners
+- create scheduled banners
+- choose placement
+- choose type/colors
+- CTA route or external link
+- dismissible on/off
+- active date range
+6. Learning Paths
+- create learning paths
+- create/edit/reorder path steps
+- link steps to materials, questions, lessons, previous exams
+- publish/unpublish
+- premium/free
+7. Content Blocks
+- reusable FAQ
+- reusable instructions
+- reusable homepage cards
+- reusable paywall feature list
+- reusable exam explanations
+- reusable support/legal snippets
+8. Global Texts
+- edit common labels:
+  Login, Register, Premium, Practice Hub, Study Plan, Vocabulary,
+  Previous Exams, Study Library, Save, Cancel, Continue, Back, Start
+- store as JSON in admin_config key = "ui_texts"
+9. App Settings
+- app name
+- version text
+- support email
+- social links
+- legal URLs
+- maintenance message
+- default theme
+- default locale
+
+================================================================
+4. POWERFUL CRUD REQUIREMENTS
+
+================================================================
+Every admin CRUD list must include:
+- search
+- filters
+- pagination
+- sorting
+- create
+- edit
+- delete
+- duplicate
+- preview
+- publish/unpublish
+- archive
+- restore if archived
+- bulk select
+- bulk publish
+- bulk unpublish
+- bulk archive
+- bulk delete with confirmation
+- order_index editing
+- status badge
+- premium/free badge
+- last updated info
+- updated_by info where available
+- validation errors
+- save/cancel
+- unsaved changes warning
+- success/error toast
+- audit log
+For destructive actions:
+- require confirmation
+- show item title/name
+- do not silently delete
+- prefer archive over hard delete where appropriate
+
+================================================================
+5. ADMIN PREVIEW REQUIREMENTS
+
+================================================================
+Admin must preview before publishing:
+Previewable:
+- landing page
+- home page
+- app section
+- study material
+- previous exam edition
+- previous exam task
+- course
+- lesson
+- quiz
+- banner
+- paywall
+- learning path
+Preview page:
+- shows exactly what user sees
+- top warning:
+  "Prévia administrativa — conteúdo não necessariamente publicado."
+- buttons:
+  Editar
+  Publicar
+  Voltar
+Normal users must never access admin preview routes.
+
+================================================================
+6. FRONT PAGE / FIRST PAGE LEARNING HUB
+
+================================================================
+Improve the first authenticated page /home so it becomes a learning hub,
+not just a dashboard.
+Home must include admin-controlled sections:
+1. Continue estudando
+- resume last unfinished activity
+- practice draft
+- current study plan task
+- last opened material
+2. Sessão de hoje
+- vocabulary review
+- grammar task
+- practice task
+- reading/listening/manual material
+- button: "Começar sessão"
+3. Provas Anteriores
+- shortcut to previous Celpe-Bras exam papers
+4. Biblioteca de Estudos
+- shortcut to non-AI manual materials
+5. Practice Hub
+- shortcut to six practice modes
+6. Vocabulário Inteligente
+- due words
+- start flashcards
+7. Leitura
+- recommended reading/study material
+8. Escuta
+- recommended listening exercise
+9. Gramática em Contexto
+- recommended grammar material/exercise
+10. Escrita Guiada
+- writing coach/manual writing prompt
+11. Conversação / Pronúncia
+- speaking options
+12. Trilhas de Aprendizagem
+- learning paths selected by admin or recommended by level
+13. Atividade recente
+- recent attempts/materials/lessons
+14. Seu progresso
+- level, streak, average score, mastered words
+Admin must be able to:
+- show/hide each Home section
+- reorder sections
+- edit title/subtitle/button labels
+- choose linked route
+- set premium/free visibility
+- set level-specific visibility if possible
+
+================================================================
+7. PUBLIC LANDING PAGE CONTROL
+
+================================================================
+The public first page for logged-out users must also be admin-controlled.
+Landing page sections:
+- hero
+- benefits
+- Celpe-Bras explanation
+- how app works
+- practice types
+- AI feedback explanation
+- vocabulary/SRS explanation
+- study library explanation
+- pricing/premium CTA
+- FAQ
+- footer
+Admin can edit all text, buttons, ordering, visibility, and links.
+Logged-in users should not be sent here by logo click.
+
+================================================================
+8. MORE NON-AI LEARNING OPPORTUNITIES
+
+================================================================
+Add more manual learning options, all admin-editable:
+1. Phrase Bank
+- useful formal phrases
+- openings/closings
+- argument phrases
+- complaint phrases
+- request phrases
+2. Connector Trainer
+- grouped connectors
+- manual examples
+- mini quizzes
+3. Genre Templates
+- fillable templates for carta, e-mail, artigo, resumo, relatório
+- structure explanation
+- checklist
+4. Reading Packs
+- admin-created readings by level/topic
+- questions and answer key
+5. Listening Packs
+- admin-created audio/video links
+- transcript
+- comprehension questions
+6. Writing Prompts Bank
+- manual prompts without AI
+- model answers
+- scoring guide
+7. Exam Strategy Cards
+- time management
+- how to read prompt
+- how to plan answer
+- how to revise answer
+8. Mistake Library
+- common errors
+- wrong/correct examples
+- mini exercises
+9. Download Center
+- PDFs
+- worksheets
+- official links
+- checklists
+10. FAQ / Help Center
+- app usage
+- premium
+- Celpe-Bras
+- technical help
+Each of these must be managed through study_materials, content_blocks,
+learning_paths, or dedicated admin CRUD if needed.
+Do not hardcode them.
+
+================================================================
+9. ADMIN CONTROL OF FRONTEND LOOK AND CONTENT
+
+================================================================
+Admin should be able to change without code:
+- homepage headings
+- homepage buttons
+- landing page headings
+- section order
+- banners
+- button labels
+- footer links
+- support links
+- premium feature list
+- paywall headline
+- free limit numbers
+- practice timer seconds
+- ad settings
+- feature availability
+- maintenance mode
+- study path content
+- exam paper content
+- manual study library content
+- course/lesson content
+- notification content
+- diagnostic content
+If something cannot be safely admin-editable, document why in code comments
+and keep a safe fallback.
+
+================================================================
+10. SAFETY AGAINST ADMIN MISTAKES
+
+================================================================
+Admin forms must prevent common mistakes:
+- required field validation
+- URL validation
+- slug uniqueness
+- status validation
+- JSON validation
+- order_index numeric validation
+- color hex validation
+- warning before publishing incomplete content
+- warning before deleting content used elsewhere
+- preview before publish
+- save draft option
+For external URLs:
+- validate protocol
+- prefer HTTPS
+- block dangerous protocols
+- test link button
+For rich text/markdown:
+- sanitize output
+- prevent XSS
+For JSON:
+- validate before save
+- show clear error
+
+================================================================
+11. RLS FOR NEW TABLES
+
+================================================================
+Enable RLS for:
+- app_pages
+- app_sections
+- app_navigation
+- feature_flags
+- app_banners
+- learning_paths
+- learning_path_steps
+- content_blocks
+Policies:
+- published/visible safe content readable by authenticated users
+- public landing page content readable by anonymous users where needed
+- admin can insert/update/delete all
+- normal users cannot write
+- drafts admin only
+
+================================================================
+12. AUDIT LOGS FOR EVERYTHING
+
+================================================================
+Every admin change must create audit_logs entry.
+Include:
+- admin_user_id
+- action
+- table_name
+- record_id
+- before_json
+- after_json
+- created_at
+Actions must cover:
+- create
+- update
+- delete
+- archive
+- restore
+- duplicate
+- publish
+- unpublish
+- reorder
+- toggle_feature
+- update_settings
+- update_navigation
+- update_home_section
+- update_landing_section
+
+================================================================
+13. VERSIONING / SAFE UPDATE SUPPORT
+
+================================================================
+Add simple content versioning where practical.
+For important admin content:
+- store updated_at
+- updated_by
+- audit before/after JSON
+- allow admin to duplicate before major edits
+App update config:
+admin_config key = "app_update"
+Fields:
+- isActive
+- title
+- body
+- minVersion
+- isForce
+- link
+- updatedAt
+Frontend:
+- if active and force, show non-dismissible update modal
+- if active and not force, show banner
+
+================================================================
+14. PERFORMANCE
+
+================================================================
+Admin lists must not load everything at once.
+Use:
+- pagination
+- search debounce
+- filters
+- order_by
+- range queries
+Cache safe admin config where appropriate.
+Do not make Home page slow by loading every table at once.
+Load sections progressively where possible.
+
+================================================================
+15. SEED DEFAULT ADMIN-CONTROLLED CONTENT
+
+================================================================
+Seed:
+- landing page content
+- home page sections
+- navigation items
+- feature flags
+- app banners disabled
+- learning paths:
+  "Comece do zero"
+  "Preparação B1"
+  "Rumo ao B2"
+  "Revisão final antes da prova"
+- content blocks:
+  FAQ básico
+  Como funciona o Celpe-Bras
+  Critérios de avaliação
+  Como usar o CelpePrep
+- app settings
+- ui_texts
+All seeded content must be editable from admin.
+
+================================================================
+16. QA CHECKLIST
+
+================================================================
+Verify:
+- Admin can edit landing page content.
+- Admin can edit authenticated Home sections.
+- Admin can reorder Home sections.
+- Admin can hide/show Home sections.
+- Admin can edit navigation items.
+- Admin can enable/disable features.
+- Admin can create banners.
+- Admin can schedule banners.
+- Admin can create learning paths.
+- Admin can add path steps.
+- Admin can preview draft content.
+- Admin can publish/unpublish content.
+- Admin CRUD has search/filter/pagination/sorting.
+- Admin bulk actions work safely.
+- Admin changes create audit logs.
+- Normal users cannot edit admin content.
+- Public users can see only public landing content.
+- Logged-in users see only published/allowed app content.
+- Home page has richer learning opportunities.
+- No important app content is hardcoded.
+- External URLs are protected.
+- Rich text is sanitized.
+- App still works if admin config rows are missing by using safe fallbacks.
+
+================================================================
+FINAL REQUIREMENT
+
+================================================================
+The final result must allow the admin to update almost the entire app from
+the backend without needing code changes.
+If a new material, exam paper, lesson, banner, homepage section, navigation
+item, learning path, paywall text, support link, or study resource needs to
+be changed after launch, admin must be able to do it from the dashboard.
+Do not introduce unstable changes that break existing auth, OTP, payments,
+timer, practice, study library, previous exams, or RLS.
+
+================================================================
+END FINAL EXPANSION
+
+================================================================
+
+================================================================
+FINAL EXPANSION: COMPLETE USER PROFILE + PERSONAL LEARNING DASHBOARD
+
+================================================================
+Add a complete user profile system.
+The profile must not be only a settings page. It must be the user’s personal
+learning dashboard, progress tracker, account center, premium center, and study
+history.
+Use Supabase/Lovable React + Vite + TypeScript architecture.
+Do not use Firebase.
+
+================================================================
+1. PROFILE PURPOSE
+
+================================================================
+The profile page must help users:
+- see their current Portuguese/Celpe-Bras level
+- track writing progress
+- track vocabulary progress
+- track study streak
+- view previous AI feedback
+- view practice history
+- view saved materials
+- manage exam date and study goals
+- manage premium subscription
+- manage notification preferences
+- manage account and privacy
+- understand what to study next
+
+================================================================
+2. ROUTES
+
+================================================================
+Create/complete routes:
+- /profile
+- /profile/edit
+- /profile/progress
+- /profile/history
+- /profile/saved
+- /profile/settings
+- /profile/subscription
+- /profile/privacy
+- /profile/export-data
+- /profile/delete-account
+If too many routes are unnecessary, use tabs inside /profile, but the UI must
+still include all sections.
+
+================================================================
+3. PROFILE DATA MODEL
+
+================================================================
+Extend profiles table if missing:
+profiles:
+- id uuid primary key references auth.users(id)
+- name text
+- email text
+- photo_url text
+- native_language text default ''
+- target_level text default 'B2'
+- celf_level text default 'B1'
+- exam_date date nullable
+- study_goal text default ''
+- daily_minutes integer default 30
+- preferred_study_days text[] default '{}'
+- preferred_study_time text default ''
+- learning_focus text default 'Automático'
+  allowed: Automático, Tema, Gênero, Coesão, Gramática, Vocabulário, Oral, Escuta
+- theme_preference text default 'Claro'
+- notifications_enabled boolean default true
+- email_notifications_enabled boolean default true
+- reminder_time text default ''
+- is_premium boolean default false
+- premium_period_end timestamptz nullable
+- ai_credits_used integer default 0
+- ai_credits_total integer default 5
+- streak_days integer default 0
+- best_streak integer default 0
+- last_active_date date nullable
+- onboarding_completed boolean default false
+- diagnostic_completed boolean default false
+- profile_completed boolean default false
+- role text default 'user'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table user_profile_preferences:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- show_translations boolean default false
+- prefer_portuguese_explanations boolean default true
+- audio_autoplay boolean default false
+- compact_mode boolean default false
+- difficulty_preference text default 'adaptive'
+- content_level_filter text default 'all'
+- updated_at timestamptz default now()
+Unique:
+- user_id
+Create table user_achievements:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- achievement_key text not null
+- title text not null
+- description text default ''
+- icon text default ''
+- unlocked_at timestamptz default now()
+Unique:
+- user_id + achievement_key
+Create table user_saved_items:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- item_type text not null
+  allowed: question, previous_exam_task, study_material, lesson, vocabulary, attempt, course
+- item_id uuid nullable
+- item_title text default ''
+- notes text default ''
+- created_at timestamptz default now()
+Unique:
+- user_id + item_type + item_id
+Create table user_learning_notes:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- source_type text default ''
+- source_id uuid nullable
+- title text not null
+- note text default ''
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+
+================================================================
+4. PROFILE MAIN PAGE
+
+================================================================
+Route:
+/profile
+Sections:
+1. Profile Header
+- avatar
+- name
+- email
+- current estimated level
+- target level
+- exam countdown
+- premium badge if premium
+- edit profile button
+Avatar:
+- user can upload/change avatar
+- store in Supabase Storage
+- fallback initials if no photo
+- validate file size and type
+2. Quick Stats Grid
+Show:
+- current streak
+- best streak
+- total attempts
+- average score
+- mastered vocabulary
+- study minutes this week
+- completed lessons
+- completed study materials
+3. Level Progress
+Show:
+- current estimated level A2/B1/B2/C1
+- target level
+- progress bar
+- text:
+  "Seu nível é uma estimativa baseada no seu desempenho no app."
+Never claim official certification.
+4. Weakness Summary
+Show weakest areas:
+- Tema
+- Gênero
+- Coesão
+- Gramática/Vocabulário
+- Vocabulário
+- Escuta
+- Oral
+Button:
+"Estudar ponto fraco"
+This should navigate to recommended activity.
+5. Study Goal Card
+Show:
+- exam date
+- days left
+- daily minutes
+- weekly target
+- button "Ajustar meta"
+6. AI Credits / Premium Card
+Free user:
+- credits used / total
+- upgrade button
+- watch rewarded ad button if enabled
+Premium user:
+- "Premium ativo"
+- period end date
+- manage subscription button
+7. Recent Activity
+Show:
+- last attempts
+- last lessons
+- last vocabulary reviews
+- last study materials opened
+8. Saved Items
+Preview saved:
+- questions
+- previous exams
+- study materials
+- lessons
+- vocabulary
+Button:
+"Ver salvos"
+9. Achievements
+Show professional badges:
+- Primeira redação enviada
+- 7 dias de estudo
+- 30 palavras dominadas
+- 100 palavras dominadas
+- Primeira tarefa B2
+- Melhorou em Coesão
+- Revisão completa da semana
+10. Settings Shortcuts
+- Edit profile
+- Notifications
+- Theme
+- Subscription
+- Privacy
+- Export data
+- Delete account
+- Logout
+
+================================================================
+5. EDIT PROFILE PAGE
+
+================================================================
+Route:
+/profile/edit
+Editable fields:
+- name
+- avatar
+- native language
+- current level
+- target level
+- exam date
+- study goal
+- daily minutes
+- preferred study days
+- preferred study time
+- learning focus
+- theme preference
+Validation:
+- name required
+- exam date cannot be in the past
+- daily minutes between 5 and 180
+- target level one of A2/B1/B2/C1
+- current level one of A2/B1/B2/C1
+On save:
+- update profiles
+- update updated_at
+- show toast "Perfil atualizado com sucesso."
+- if exam date or study intensity changed, offer:
+  "Deseja atualizar seu plano de estudos?"
+
+================================================================
+6. PROFILE PROGRESS PAGE
+
+================================================================
+Route:
+/profile/progress
+Show detailed analytics:
+Writing:
+- average overall score
+- average Tema
+- average Gênero
+- average Coesão
+- average Gramática
+- score trend over time
+- best attempt
+- lowest scoring criterion
+Vocabulary:
+- learning words
+- mastered words
+- due today
+- review accuracy
+- categories mastered
+Study:
+- study minutes this week
+- completed study plan tasks
+- completed lessons
+- completed study materials
+Practice:
+- total practices
+- completed practices
+- failed/time-expired practices
+- retakes
+- favorite task type
+Use charts if available.
+If no data:
+"Continue estudando para ver seu progresso aqui."
+
+================================================================
+7. PROFILE HISTORY PAGE
+
+================================================================
+Route:
+/profile/history
+Tabs:
+- Práticas
+- Feedbacks
+- Vocabulário
+- Aulas
+- Materiais
+- Simulados
+- Atividades
+Practice history:
+- filters by task type, score, date, status
+- view feedback
+- retake
+- save item
+Feedback history:
+- list attempts with score
+- open feedback page
+Vocabulary history:
+- reviewed words
+- mastered words
+- due words
+Lessons/materials:
+- completed and in progress
+Pagination required.
+Search required.
+Sorting required.
+
+================================================================
+8. SAVED ITEMS PAGE
+
+================================================================
+Route:
+/profile/saved
+Show user_saved_items.
+Filters:
+- Todos
+- Questões
+- Provas anteriores
+- Materiais
+- Aulas
+- Vocabulário
+- Feedbacks
+- Cursos
+Each saved item:
+- title
+- type
+- notes
+- open button
+- remove button
+User can add/edit private note for saved item.
+
+================================================================
+9. SETTINGS PAGE
+
+================================================================
+Route:
+/profile/settings
+Sections:
+Account:
+- name
+- email
+- avatar
+- change password if email login
+- logout
+Preferences:
+- theme Claro/Escuro/Sistema
+- Portuguese-first explanations toggle
+- show translations toggle
+- audio autoplay toggle
+- compact mode toggle
+Notifications:
+- enable/disable notifications
+- email notifications
+- reminder time
+- study reminder days
+Learning:
+- target level
+- learning focus
+- daily minutes
+- preferred study days
+Subscription:
+- current plan
+- premium status
+- manage subscription
+- upgrade button if free
+Privacy:
+- export data
+- delete account
+
+================================================================
+10. SUBSCRIPTION PAGE
+
+================================================================
+Route:
+/profile/subscription
+Free user:
+- show current free limits
+- AI credits used/total
+- premium benefits
+- upgrade button
+Premium user:
+- premium active
+- next renewal/period end
+- cancellation keeps access until period end
+- manage subscription button opens Paddle customer portal
+If subscription expired:
+- show free status
+- upgrade button
+
+================================================================
+11. PRIVACY / EXPORT / DELETE
+
+================================================================
+Export Data:
+Route:
+/profile/export-data
+User can request/export:
+- profile data
+- attempts
+- feedback
+- vocabulary
+- study progress
+- saved items
+- notes
+Format:
+- JSON download if possible
+- or show generated export data page
+Delete Account:
+Route:
+/profile/delete-account
+Flow:
+- warning page
+- explain permanent deletion
+- require confirmation text:
+  "EXCLUIR"
+- call delete-account Edge Function
+- delete/anonymize user data according to app policy
+- sign out
+- redirect to public landing
+Edge Function:
+delete-account
+- require auth
+- delete or anonymize user-owned data
+- delete avatar/recordings if possible
+- delete Supabase Auth user if permitted
+- return success
+
+================================================================
+12. PROFILE COMPLETION
+
+================================================================
+If profile is incomplete, show completion card on Home/Profile.
+Profile completeness fields:
+- name
+- exam_date
+- celf_level
+- target_level
+- daily_minutes
+- preferred_study_days
+Show:
+"Complete seu perfil para receber um plano melhor."
+Progress:
+- 0-100%
+Button:
+"Completar perfil"
+When complete:
+set profile_completed = true
+
+================================================================
+13. PERSONAL RECOMMENDATIONS
+
+================================================================
+Profile must show recommendations:
+Based on:
+- weakest criterion
+- due vocabulary
+- incomplete study plan
+- recent low score
+- target level
+- exam date
+Recommendation cards:
+- "Revise conectivos"
+- "Pratique Tarefa 2"
+- "Faça uma reescrita"
+- "Revise vocabulário de transporte"
+- "Leia um modelo B2"
+- "Complete sua sessão de hoje"
+These can be rule-based first.
+AI is optional, not required.
+
+================================================================
+14. ADMIN CONTROL OVER PROFILE EXPERIENCE
+
+================================================================
+Admin dashboard must include profile settings control.
+Admin can configure:
+- which profile sections are visible
+- achievement definitions
+- default daily minutes
+- default target level
+- profile completion required fields
+- free credit display text
+- premium card text
+- recommendations text
+- profile help text
+Create admin_config key = "profile"
+value jsonb:
+{
+  "showAchievements": true,
+  "showWeaknessSummary": true,
+  "showStudyMinutes": true,
+  "showSavedItems": true,
+  "defaultDailyMinutes": 30,
+  "defaultTargetLevel": "B2",
+  "profileCompletionRequiredFields": ["name", "exam_date", "celf_level", "target_level"],
+  "premiumCardText": "Desbloqueie avaliações ilimitadas e recursos avançados.",
+  "freeCreditsText": "Você tem créditos gratuitos para testar a avaliação por IA."
+}
+Admin can CRUD achievements:
+Table achievement_definitions:
+- key text primary key
+- title text not null
+- description text default ''
+- icon text default ''
+- rule_json jsonb default '{}'
+- is_active boolean default true
+- order_index integer default 0
+- updated_at timestamptz default now()
+
+================================================================
+15. RLS POLICIES
+
+================================================================
+profiles:
+- user can read own profile
+- user can update safe personal fields
+- user cannot directly update:
+  is_premium, ai_credits_total, ai_credits_used, role
+- admin can read/update profiles as needed
+user_profile_preferences:
+- user can read/write own row
+- admin can read if needed
+user_achievements:
+- user can read own achievements
+- server/admin can insert/update
+- user cannot fake achievements
+user_saved_items:
+- user can CRUD own saved items
+user_learning_notes:
+- user can CRUD own notes
+achievement_definitions:
+- authenticated users can read active definitions
+- admin can CRUD all
+
+================================================================
+16. ADMIN USER MANAGEMENT
+
+================================================================
+In Admin Dashboard add/complete "Users" tab.
+Admin can:
+- search users
+- filter by premium/free
+- filter by level
+- filter by active/inactive
+- view user profile summary
+- view attempts count
+- view subscription status
+- view credits
+- manually toggle premium for testing
+- adjust ai credits if needed
+- disable user account if needed
+- view user progress summary
+- never view user password
+- never expose sensitive auth secrets
+Admin user actions must create audit_logs.
+
+================================================================
+17. QA CHECKLIST
+
+================================================================
+Verify:
+- User can view profile.
+- User can edit profile.
+- Avatar upload works.
+- Profile stats load.
+- Progress analytics show correctly.
+- Empty progress state works.
+- Saved items work.
+- User notes work.
+- Achievements display.
+- Profile completion works.
+- Premium card reflects real status.
+- Manage subscription opens Paddle portal.
+- Free credits display correctly.
+- Settings update theme/preferences.
+- Notifications preferences save.
+- Export data works or is scaffolded safely.
+- Delete account flow is protected.
+- RLS prevents users from editing premium/role/credits directly.
+- Admin can manage users safely.
+- Admin profile config changes affect frontend.
+- Profile page works on mobile and desktop.
+
+================================================================
+END COMPLETE USER PROFILE EXPANSION
+
+================================================================
+
+================================================================
+FINAL EXPANSION: ADMIN PUSH NOTIFICATION SENDER
+
+================================================================
+Add a complete admin-controlled push notification system.
+This is a Supabase/Lovable React + Vite + TypeScript project.
+Do not use Firebase unless already configured specifically for web push.
+If Firebase Cloud Messaging is not configured, implement a provider-agnostic
+push notification architecture that can support OneSignal, Web Push API,
+or another provider later.
+
+================================================================
+1. PURPOSE
+
+================================================================
+Admin must be able to send notifications to users from the backend/admin panel.
+Notification types:
+- in-app notification
+- web push notification where browser permission is granted
+- email notification optional/future
+- announcement banner optional
+Admin can send:
+- to all users
+- to premium users only
+- to free users only
+- by level A2/B1/B2/C1
+- by target exam date range
+- by inactive users
+- by users with due vocabulary
+- by users who have not completed study plan
+- by custom selected users
+
+================================================================
+2. TABLES
+
+================================================================
+Create table notification_campaigns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- body text not null
+- type text default 'general'
+  allowed: general, study_reminder, update, premium, warning, exam, vocab, course, practice
+- target_type text default 'all'
+  allowed: all, premium, free, level, exam_date_range, inactive, due_vocab, incomplete_plan, custom
+- target_level text nullable
+- target_query jsonb default '{}'
+- deep_link text default ''
+- external_url text default ''
+- send_push boolean default false
+- send_in_app boolean default true
+- send_email boolean default false
+- status text default 'draft'
+  allowed: draft, scheduled, sending, sent, failed, cancelled
+- scheduled_at timestamptz nullable
+- sent_at timestamptz nullable
+- created_by uuid nullable
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table user_notifications:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- campaign_id uuid references notification_campaigns(id) on delete set null
+- title text not null
+- body text not null
+- type text default 'general'
+- deep_link text default ''
+- external_url text default ''
+- read boolean default false
+- read_at timestamptz nullable
+- created_at timestamptz default now()
+Create table push_subscriptions:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- provider text default 'web_push'
+  allowed: web_push, onesignal, fcm, other
+- endpoint text default ''
+- p256dh text default ''
+- auth text default ''
+- provider_user_id text default ''
+- device_label text default ''
+- user_agent text default ''
+- is_active boolean default true
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Unique:
+- user_id + endpoint where endpoint is not empty
+
+================================================================
+3. FRONTEND USER NOTIFICATION PERMISSION
+
+================================================================
+Add notification permission flow.
+On Profile/Settings:
+- toggle "Notificações"
+- button "Ativar notificações neste dispositivo"
+When clicked:
+- ask browser Notification permission
+- if granted:
+  - register service worker if needed
+  - save push subscription in push_subscriptions
+  - update profile.notifications_enabled = true
+  - show toast "Notificações ativadas."
+- if denied:
+  - show "Permissão negada. Você pode alterar isso nas configurações do navegador."
+Do not block app if permission denied.
+
+================================================================
+4. IN-APP NOTIFICATIONS
+
+================================================================
+Notifications page /notifications must read user_notifications.
+Features:
+- unread count badge
+- mark one as read
+- mark all as read
+- filter by type
+- deep link click
+- external URL click using protected external link utility
+Header bell icon:
+- shows unread count
+- click opens /notifications
+
+================================================================
+5. ADMIN NOTIFICATION SENDER
+
+================================================================
+In Admin Dashboard add tab:
+"Notificações Push"
+Admin can:
+- create campaign
+- edit draft campaign
+- preview notification
+- send now
+- schedule for later
+- cancel scheduled campaign
+- duplicate campaign
+- view delivery stats
+Fields:
+- title
+- body
+- type
+- target type
+- target level
+- target query options
+- deep link
+- external URL
+- send in-app toggle
+- send push toggle
+- send email toggle future/scaffold
+- schedule date/time
+- status
+Target builder UI:
+- all users
+- premium only
+- free only
+- level A2/B1/B2/C1
+- inactive for X days
+- exam date within X days
+- users with due vocabulary
+- users with incomplete study plan
+- custom user IDs/search selected users
+Before sending:
+- show estimated recipient count
+- show preview
+- require confirmation:
+  "Enviar notificação para X usuários?"
+
+================================================================
+6. EDGE FUNCTIONS
+
+================================================================
+Create Edge Functions:
+1. send-notification-campaign
+Input:
+- campaignId
+- sendNow boolean
+Logic:
+- require admin
+- load campaign
+- resolve target users
+- create user_notifications rows if send_in_app=true
+- send web push to active push_subscriptions if send_push=true
+- update campaign status sent/failed
+- write audit_logs
+- return counts:
+  targeted
+  inAppCreated
+  pushSent
+  pushFailed
+2. register-push-subscription
+Input:
+- endpoint
+- keys p256dh/auth
+- provider
+Logic:
+- require auth
+- upsert push_subscriptions for user
+- mark active
+3. mark-notification-read
+Input:
+- notificationId
+Logic:
+- require auth
+- verify notification belongs to user
+- set read=true, read_at=now
+4. mark-all-notifications-read
+Logic:
+- require auth
+- mark all user notifications as read
+
+================================================================
+7. WEB PUSH PROVIDER
+
+================================================================
+If Web Push VAPID keys are available:
+Use Web Push API from Edge Function.
+Environment variables:
+- VAPID_PUBLIC_KEY
+- VAPID_PRIVATE_KEY
+- VAPID_SUBJECT
+If VAPID keys are missing:
+- still create in-app notifications
+- do not crash
+- campaign result should show:
+  "Push não enviado: VAPID não configurado."
+- admin UI should show setup warning
+If using OneSignal later:
+- keep provider field and adapter structure ready
+Create push provider adapter:
+- sendWebPush(subscription, payload)
+- safely handles missing config
+- returns success/failure
+
+================================================================
+8. NOTIFICATION PAYLOAD
+
+================================================================
+Push payload:
+{
+  title,
+  body,
+  icon: "/icon.png",
+  badge: "/badge.png",
+  data: {
+    deep_link,
+    external_url,
+    campaign_id,
+    type
+  }
+}
+Service worker:
+- displays notification
+- on click:
+  - if deep_link exists, open app at that route
+  - else open /notifications
+  - external_url opens safely if needed
+
+================================================================
+9. RLS POLICIES
+
+================================================================
+notification_campaigns:
+- admins can CRUD
+- normal users cannot read campaign admin data directly
+user_notifications:
+- users can read/update read state for own notifications
+- users cannot create arbitrary notifications
+- admins/server can create
+push_subscriptions:
+- users can create/read/update/delete own subscriptions
+- admins/server can use for sending
+- do not expose other users’ subscriptions
+
+================================================================
+10. ADMIN DELIVERY STATS
+
+================================================================
+For each campaign show:
+- targeted users
+- in-app created
+- push sent
+- push failed
+- status
+- sent_at
+- scheduled_at
+- created_by
+Optional table notification_delivery_logs:
+- id
+- campaign_id
+- user_id
+- channel
+- status
+- error_message
+- created_at
+Add if useful.
+
+================================================================
+11. SAFETY RULES
+
+================================================================
+Prevent admin mistakes:
+- title required
+- body required
+- target required
+- show recipient count before send
+- confirm before sending
+- block external unsafe URLs
+- scheduled time cannot be in the past
+- do not send duplicate campaign twice unless duplicated intentionally
+
+================================================================
+12. QA CHECKLIST
+
+================================================================
+Verify:
+- user can enable notifications
+- denied permission does not break app
+- push subscription saves
+- admin can create notification campaign
+- admin can preview campaign
+- admin can send in-app notification
+- user receives in-app notification
+- unread badge updates
+- mark as read works
+- mark all read works
+- admin target filters work
+- if VAPID missing, in-app still works and push fails gracefully
+- audit log created for campaign send
+- normal users cannot send notifications
+- users cannot read others’ notifications
+
+================================================================
+END ADMIN PUSH NOTIFICATION SENDER
+
+================================================================
+
+================================================================
+FINAL EXPANSION: COMPLETE PORTUGUESE LEARNING SYSTEM + FUTURE-READY ADMIN CMS
+
+================================================================
+Goal:
+Make CelpePrep a complete Brazilian Portuguese learning platform from absolute
+beginner to advanced/Celpe-Bras preparation, with a future-ready admin backend.
+This must extend the current Supabase/Lovable React + Vite + TypeScript app.
+Do not use Firebase.
+Do not break existing auth, payments, OTP, practice, profile, admin, ads,
+study library, previous exams, or RLS.
+
+================================================================
+1. COMPLETE LEARNING ROADMAP FROM A0 TO C1
+
+================================================================
+Add support for full learning levels:
+- A0: Absolute beginner
+- A1: Beginner
+- A2
+- B1
+- B2
+- C1
+Keep Celpe-Bras display levels A2/B1/B2/C1 where relevant, but for general
+Portuguese learning allow A0 and A1.
+Add table: proficiency_levels
+Columns:
+- id uuid primary key default gen_random_uuid()
+- code text unique not null
+  examples: A0, A1, A2, B1, B2, C1
+- title text not null
+- description text default ''
+- can_do_statements jsonb default '[]'
+- order_index integer default 0
+- status text default 'published'
+- updated_at timestamptz default now()
+Admin can edit:
+- level descriptions
+- can-do statements
+- order
+- visibility
+User profile:
+- current general Portuguese level
+- current Celpe-Bras estimated level
+- target level
+
+================================================================
+2. ABSOLUTE BEGINNER LEARNING MODULES
+
+================================================================
+Add beginner-friendly non-AI modules:
+- Alphabet and sounds
+- Brazilian pronunciation basics
+- greetings and introductions
+- numbers, dates, time
+- gender and plural
+- ser vs estar
+- regular verbs
+- essential irregular verbs
+- basic sentence structure
+- asking questions
+- daily life vocabulary
+- survival Portuguese
+- pronunciation of nasal sounds
+- listening to slow Portuguese
+Admin must be able to add/edit/remove/reorder all beginner modules.
+These should live inside study_materials, learning_paths, and/or courses.
+
+================================================================
+3. SKILL TREE / LEARNING MAP
+
+================================================================
+Add a visual learning map.
+Route:
+/learning-map
+Purpose:
+Users can see a structured path from A0 to C1.
+Sections:
+- Fundamentos
+- Vocabulário Essencial
+- Gramática
+- Escuta
+- Leitura
+- Escrita
+- Fala
+- Celpe-Bras
+Table: skill_nodes
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- description text default ''
+- level_code text default 'A1'
+- skill_area text not null
+  allowed: vocabulary, grammar, listening, reading, writing, speaking, celpe_bras, culture
+- parent_id uuid nullable references skill_nodes(id)
+- linked_type text default ''
+- linked_id uuid nullable
+- order_index integer default 0
+- is_premium boolean default false
+- status text default 'published'
+- updated_at timestamptz default now()
+Table: user_skill_progress
+Columns:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id)
+- skill_node_id uuid references skill_nodes(id)
+- status text default 'not_started'
+  allowed: not_started, in_progress, completed
+- completed_at timestamptz nullable
+- updated_at timestamptz default now()
+Admin:
+- create/edit/delete/reorder skill nodes
+- link nodes to materials, lessons, practices, quizzes
+- preview map
+
+================================================================
+4. GRAMMAR SRS
+
+================================================================
+Vocabulary already has SRS. Add grammar SRS too.
+Table: grammar_review_items
+Columns:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id)
+- grammar_topic text not null
+- rule_summary text not null
+- example_correct text default ''
+- example_wrong text default ''
+- explanation text default ''
+- source_type text default ''
+- source_id uuid nullable
+- status text default 'learning'
+- times_reviewed integer default 0
+- next_review timestamptz default now()
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Route:
+/grammar-review
+Review buttons:
+- Difícil -> +12h
+- Revisar depois -> +1 day
+- Bom -> +7 days
+- Já sei -> +30 days
+Sources:
+- user writing mistakes
+- admin-created grammar rules
+- manual grammar lessons
+- AI feedback if available
+
+================================================================
+5. PERSONAL NOTEBOOK
+
+================================================================
+Add a personal notebook.
+Route:
+/notebook
+Users can save:
+- personal notes
+- useful phrases
+- grammar rules
+- vocabulary examples
+- writing ideas
+- teacher/admin tips
+- corrections from feedback
+Table: notebook_entries
+Columns:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id)
+- title text not null
+- body text default ''
+- entry_type text default 'note'
+  allowed: note, phrase, grammar, vocabulary, correction, writing_idea
+- tags text[] default '{}'
+- source_type text default ''
+- source_id uuid nullable
+- is_favorite boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Features:
+- search
+- filters
+- tags
+- favorite
+- edit/delete
+- link back to source
+
+================================================================
+6. DICTATION AND TRANSCRIPTION PRACTICE
+
+================================================================
+Add Dictation mode.
+Route:
+/dictation
+Purpose:
+Improve listening and spelling.
+Admin can create dictation exercises manually.
+Table: dictation_exercises
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- level_code text default 'A2'
+- audio_url text default ''
+- transcript text not null
+- topic text default ''
+- is_premium boolean default false
+- status text default 'draft'
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+User flow:
+- play audio
+- user types what they hear
+- compare with transcript
+- highlight differences if possible
+- show score manually/rule-based
+- allow adding vocabulary to review
+Admin:
+- CRUD dictation exercises
+- upload/add audio URL
+- edit transcript
+- publish/unpublish
+
+================================================================
+7. SHADOWING PRACTICE
+
+================================================================
+Add Shadowing practice.
+Route:
+/shadowing
+Purpose:
+User listens to Brazilian audio and repeats aloud.
+Features:
+- audio
+- transcript
+- record user voice
+- compare self manually
+- optional AI pronunciation feedback if enabled
+Table: shadowing_exercises
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- level_code text default 'A2'
+- audio_url text not null
+- transcript text not null
+- focus_sounds text[] default '{}'
+- topic text default ''
+- status text default 'draft'
+- is_premium boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Admin can CRUD all.
+
+================================================================
+8. DIALOGUE PRACTICE WITHOUT AI
+
+================================================================
+Add manual dialogue practice.
+Route:
+/dialogues
+Purpose:
+Practice real Brazilian situations without AI.
+Table: dialogue_scenarios
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- situation text default ''
+- level_code text default 'A2'
+- roles jsonb default '[]'
+- dialogue_lines jsonb default '[]'
+- vocabulary_json jsonb default '[]'
+- comprehension_questions jsonb default '[]'
+- status text default 'draft'
+- is_premium boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Features:
+- read dialogue
+- listen if audio links exist
+- role-play mode
+- hide/show translation
+- quiz questions
+- save phrases
+Admin can CRUD all dialogue content.
+
+================================================================
+9. CULTURE AND REAL-LIFE BRAZILIAN PORTUGUESE
+
+================================================================
+Add cultural/life modules.
+Route:
+/culture
+Topics:
+- politeness in Brazil
+- formal vs informal speech
+- workplace communication
+- university language
+- public services
+- healthcare
+- housing/rent
+- transportation
+- bureaucracy
+- regional variation
+- idioms
+- slang with caution
+- media/news language
+Use study_materials or dedicated table:
+culture_lessons:
+- id
+- title
+- topic
+- level_code
+- content
+- examples_json
+- quiz_json
+- external_url
+- status
+- is_premium
+- order_index
+- created_at
+- updated_at
+Admin can CRUD.
+
+================================================================
+10. WRITING PORTFOLIO
+
+================================================================
+Add user writing portfolio.
+Route:
+/writing-portfolio
+Purpose:
+Users see their written texts over time.
+Features:
+- list all submitted writings
+- drafts
+- AI-evaluated attempts
+- manual practice writings
+- rewritten versions
+- compare first version vs rewrite
+- export text
+- save as favorite
+Table: writing_portfolio_items
+Columns:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id)
+- title text not null
+- source_type text default ''
+- source_id uuid nullable
+- text_content text not null
+- version_number integer default 1
+- parent_item_id uuid nullable
+- score numeric nullable
+- feedback_summary text default ''
+- is_favorite boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+When user submits practice:
+- optionally create portfolio item.
+When user rewrites:
+- create new version linked to parent.
+
+================================================================
+11. MANUAL TEACHER FEEDBACK READY SYSTEM
+
+================================================================
+Future-ready option:
+Admin/teacher can manually comment on user attempts if enabled.
+Table: manual_feedback
+Columns:
+- id uuid primary key default gen_random_uuid()
+- attempt_id uuid references attempts(id) on delete cascade
+- reviewer_id uuid references auth.users(id)
+- user_id uuid references auth.users(id)
+- feedback_text text not null
+- rubric_tema numeric nullable
+- rubric_genero numeric nullable
+- rubric_coesao numeric nullable
+- rubric_gramatica numeric nullable
+- status text default 'published'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Feature flag:
+manual_teacher_feedback_enabled
+Admin/teacher dashboard:
+- view submitted attempts
+- add manual feedback
+- edit own feedback
+- publish/unpublish feedback
+User:
+- sees manual feedback on feedback page if available.
+
+================================================================
+12. CONTENT IMPORT TOOLS FOR ADMIN
+
+================================================================
+Admin should be able to import content faster.
+Add admin tools:
+1. CSV Import
+For:
+- vocabulary
+- study materials
+- exam editions
+- exam tasks
+- quiz questions
+2. JSON Import
+For:
+- full exam papers
+- learning paths
+- study library categories/materials
+- dialogues
+3. Bulk URL Import
+For:
+- audio/video/PDF materials
+Admin import flow:
+- upload/paste CSV or JSON
+- validate preview
+- show errors
+- confirm import
+- create audit log
+Tables:
+content_import_jobs:
+- id uuid primary key
+- admin_user_id uuid
+- import_type text
+- status text
+- source_filename text
+- rows_total integer
+- rows_success integer
+- rows_failed integer
+- error_json jsonb
+- created_at timestamptz default now()
+
+================================================================
+13. TAGGING SYSTEM
+
+================================================================
+Add centralized tags.
+Table: content_tags
+Columns:
+- id uuid primary key default gen_random_uuid()
+- name text unique not null
+- slug text unique not null
+- color text default '#185FA5'
+- description text default ''
+- created_at timestamptz default now()
+Use tags for:
+- study materials
+- exam tasks
+- questions
+- vocabulary
+- lessons
+- culture lessons
+- dictation
+- dialogues
+Admin can CRUD tags.
+User can filter by tags.
+
+================================================================
+14. CERTIFICATES OF COMPLETION
+
+================================================================
+Add non-official completion certificates.
+Important:
+Never claim official Celpe-Bras certification.
+Certificate text:
+"Certificado de conclusão de estudos no CelpePrep"
+or
+"Comprovante de conclusão de trilha"
+Table: completion_certificates
+Columns:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id)
+- certificate_type text
+- title text
+- description text
+- related_type text
+- related_id uuid nullable
+- issued_at timestamptz default now()
+- verification_code text unique
+- metadata jsonb default '{}'
+Generate when:
+- user completes learning path
+- user completes course
+- user completes final review module
+Route:
+/certificates
+User can view/download/share.
+Admin can enable/disable certificate types.
+
+================================================================
+15. BETTER ONBOARDING PERSONALIZATION
+
+================================================================
+Improve onboarding after register.
+Ask:
+- current level
+- target level
+- native language
+- exam date
+- daily study time
+- main goal
+  options: Celpe-Bras, Work, Study, Travel, Daily life, General Portuguese
+- weak skill self-assessment
+  reading/listening/writing/speaking/vocab/grammar
+Save to profile.
+Use to recommend:
+- learning path
+- daily plan
+- first study session
+Admin can edit onboarding questions from backend if possible.
+Table: onboarding_questions
+- id
+- question_key
+- question_text
+- input_type
+- options_json
+- order_index
+- is_required
+- is_active
+Table: user_onboarding_answers
+- id
+- user_id
+- question_key
+- answer_json
+- created_at
+
+================================================================
+16. UI / UX IMPROVEMENTS
+
+================================================================
+Add UX polish:
+- global command/search menu if practical
+- breadcrumbs on deep pages
+- "Continue where you left off"
+- saved/favorite button across content
+- clear locked premium states
+- skeleton loaders
+- progress bars
+- mobile sticky primary action where useful
+- keyboard-friendly forms
+- autosave drafts
+- unsaved changes warning
+- friendly empty states with action buttons
+- error boundaries for major routes
+- responsive admin tables
+- admin preview mode
+- accessible labels
+- minimum tap target 44px
+- no text overlap on mobile
+Home UX:
+- learning hub sections
+- continue studying
+- today’s session
+- recommended next step
+- weak area card
+- due vocabulary
+- previous exams
+- study library
+- practice hub
+- learning map
+
+================================================================
+17. ADMIN FUTURE FEATURE PLACEHOLDERS
+
+================================================================
+Add backend/admin configuration placeholders for future features,
+disabled by default:
+Feature flags:
+- marketplace_enabled
+- teacher_feedback_enabled
+- live_classes_enabled
+- community_enabled
+- certificates_enabled
+- placement_test_v2_enabled
+- mobile_app_mode_enabled
+- offline_mode_enabled
+- content_import_enabled
+Admin can turn these on later, but if frontend feature is not implemented,
+show "Em breve" safely.
+
+================================================================
+18. RLS / SECURITY FOR NEW FEATURES
+
+================================================================
+Enable RLS for all new tables.
+General:
+- users can read published content
+- users can manage only their own progress/notes/portfolio
+- admins can CRUD shared content
+- teachers/reviewers can access manual feedback only if role permits
+- import jobs admin only
+- certificates owner read, admin read
+Do not expose private user data to other users.
+
+================================================================
+19. SEED CONTENT
+
+================================================================
+Seed:
+- proficiency levels A0, A1, A2, B1, B2, C1
+- beginner learning path
+- Celpe-Bras B1 path
+- Celpe-Bras B2 path
+- 10 skill nodes
+- 5 grammar review examples
+- 5 phrase bank materials
+- 3 dictation exercises
+- 3 shadowing exercises
+- 3 dialogues
+- 5 culture lessons
+- default tags
+- onboarding questions
+- feature flags disabled for future features
+Everything seeded must be editable by admin.
+
+================================================================
+20. QA CHECKLIST
+
+================================================================
+Verify:
+- A0/A1 levels work for general learning.
+- Celpe-Bras estimated level still works.
+- Learning map loads.
+- Admin can edit skill nodes.
+- Grammar SRS works.
+- Notebook works.
+- Dictation works without AI.
+- Shadowing works.
+- Dialogues work.
+- Culture lessons work.
+- Writing portfolio saves attempts.
+- Manual feedback system is safely disabled/enabled by flag.
+- Admin import tools validate before import.
+- Tags work for filtering.
+- Certificates do not claim official certification.
+- Onboarding personalization saves answers.
+- Home recommends next steps.
+- All new content is admin-editable.
+- New RLS policies protect user data.
+- App remains stable if future feature flags are disabled.
+
+================================================================
+END COMPLETE PORTUGUESE LEARNING SYSTEM EXPANSION
+
+================================================================
+
+================================================================
+FINAL EXPANSION: DUOLINGO/PREPLY-INSPIRED LEARNING SYSTEM
++ ADMIN-CONTROLLED PORTUGUESE COURSE LINKS
+
+================================================================
+Goal:
+Improve CelpePrep with proven learning mechanics inspired by language-learning
+apps such as Duolingo and tutor platforms such as Preply, without copying
+their branding, UI, protected content, or proprietary systems.
+Build original CelpePrep versions of:
+- learning path
+- short lessons
+- XP/streak motivation
+- practice exercises
+- review system
+- tutor/teacher-ready infrastructure
+- admin-controlled external course/video links from beginner to advanced
+Use Supabase/Lovable React + Vite + TypeScript.
+Do not use Firebase.
+Do not break existing app.
+
+================================================================
+1. DUOLINGO-STYLE LEARNING MECHANICS
+
+================================================================
+Add a lightweight gamified learning system.
+Purpose:
+Encourage daily study without making the app childish.
+Features:
+- XP points
+- streak
+- daily goal
+- lesson units
+- short exercises
+- hearts/energy optional and disabled by default
+- achievements
+- weekly progress
+- review reminders
+- skill mastery
+Create table user_xp_events:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- event_type text not null
+  allowed: lesson_complete, practice_complete, vocab_review, grammar_review,
+           listening_complete, writing_submit, streak_bonus, diagnostic_complete
+- xp_amount integer not null default 0
+- source_type text default ''
+- source_id uuid nullable
+- created_at timestamptz default now()
+Create table user_daily_goals:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- goal_type text default 'xp'
+  allowed: xp, minutes, lessons
+- target_value integer default 20
+- current_value integer default 0
+- goal_date date default current_date
+- completed boolean default false
+- updated_at timestamptz default now()
+Unique:
+- user_id + goal_date + goal_type
+Create table learning_units:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- description text default ''
+- level_code text default 'A1'
+- skill_area text default 'general'
+- order_index integer default 0
+- is_premium boolean default false
+- status text default 'draft'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table learning_unit_lessons:
+- id uuid primary key default gen_random_uuid()
+- unit_id uuid references learning_units(id) on delete cascade
+- title text not null
+- description text default ''
+- lesson_type text default 'mixed'
+  allowed: vocab, grammar, listening, reading, writing, speaking, mixed
+- linked_material_id uuid nullable
+- linked_lesson_id uuid nullable
+- linked_practice_id uuid nullable
+- estimated_minutes integer default 5
+- xp_reward integer default 10
+- order_index integer default 0
+- status text default 'published'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table lesson_exercises:
+- id uuid primary key default gen_random_uuid()
+- unit_lesson_id uuid references learning_unit_lessons(id) on delete cascade
+- exercise_type text not null
+  allowed: multiple_choice, fill_blank, match_pairs, order_words,
+           listen_choose, listen_type, translate_to_pt, choose_connector,
+           identify_error, short_answer
+- prompt text not null
+- options_json jsonb default '[]'
+- correct_answer_json jsonb default '{}'
+- explanation text default ''
+- audio_url text default ''
+- image_url text default ''
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table user_lesson_progress:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- unit_id uuid references learning_units(id) on delete cascade
+- unit_lesson_id uuid references learning_unit_lessons(id) on delete cascade
+- status text default 'not_started'
+  allowed: not_started, in_progress, completed
+- score numeric nullable
+- xp_earned integer default 0
+- completed_at timestamptz nullable
+- updated_at timestamptz default now()
+
+================================================================
+2. EXERCISE TYPES
+
+================================================================
+Implement original CelpePrep exercise components:
+- Multiple choice
+- Fill in the blank
+- Match word to definition
+- Match phrase to function
+- Order words into sentence
+- Choose the best connector
+- Identify the error
+- Listen and choose
+- Listen and type
+- Short written answer
+- Formal vs informal rewrite
+All exercises must work without AI.
+Admin creates/edits all exercises.
+When user completes exercise:
+- show correct/incorrect
+- show explanation
+- award XP if lesson completed
+- update progress
+- update daily goal
+
+================================================================
+3. XP AND STREAK RULES
+
+================================================================
+Default XP:
+- lesson complete: 10 XP
+- vocabulary review: 5 XP
+- grammar review: 5 XP
+- practice complete: 20 XP
+- listening complete: 10 XP
+- writing submit: 20 XP
+- diagnostic complete: 30 XP
+Admin can edit XP rewards in admin_config key = "gamification".
+value:
+{
+  "xpEnabled": true,
+  "heartsEnabled": false,
+  "leaderboardEnabled": false,
+  "dailyGoalDefault": 20,
+  "lessonCompleteXp": 10,
+  "practiceCompleteXp": 20,
+  "vocabReviewXp": 5,
+  "grammarReviewXp": 5,
+  "streakBonusXp": 5
+}
+Do not make the UI childish.
+Use professional progress design.
+
+================================================================
+4. HEARTS / ENERGY SYSTEM OPTIONAL
+
+================================================================
+Add optional heart/energy system but disabled by default.
+Purpose:
+Future monetization/gamification option.
+admin_config gamification:
+- heartsEnabled false
+- maxHearts 5
+- heartRefillMinutes 60
+If disabled:
+- do not show hearts anywhere.
+If enabled later:
+- wrong exercise answer loses heart
+- premium users can have unlimited hearts if admin config says so
+Keep implementation safe and hidden by default.
+
+================================================================
+5. PREPLY-STYLE TUTOR / TEACHER INFRASTRUCTURE
+
+================================================================
+Add future-ready teacher/tutor system.
+Disabled by default through feature flag:
+teacher_marketplace_enabled = false
+Tables:
+teacher_profiles:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id)
+- display_name text not null
+- bio text default ''
+- photo_url text default ''
+- languages text[] default '{}'
+- specialties text[] default '{}'
+- hourly_rate numeric nullable
+- currency text default 'USD'
+- intro_video_url text default ''
+- is_active boolean default false
+- is_verified boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+teacher_availability:
+- id uuid primary key default gen_random_uuid()
+- teacher_id uuid references teacher_profiles(id) on delete cascade
+- weekday integer not null
+- start_time text not null
+- end_time text not null
+- timezone text default 'UTC'
+- is_active boolean default true
+lesson_bookings:
+- id uuid primary key default gen_random_uuid()
+- student_id uuid references auth.users(id)
+- teacher_id uuid references teacher_profiles(id)
+- scheduled_at timestamptz
+- duration_minutes integer default 50
+- status text default 'pending'
+  allowed: pending, confirmed, cancelled, completed
+- meeting_url text default ''
+- notes text default ''
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+manual_teacher_feedback:
+- already exists or create if missing
+- teacher/admin can review user writing attempts
+Frontend future routes:
+- /teachers
+- /teachers/:teacherId
+- /bookings
+- /bookings/:bookingId
+If teacher marketplace flag disabled:
+- hide routes from navigation
+- if visited directly, show "Em breve"
+Admin:
+- manage teachers
+- verify teachers
+- set marketplace enabled/disabled
+- manage bookings if enabled
+- manage manual teacher feedback
+
+================================================================
+6. ADMIN-CONTROLLED EXTERNAL COURSE LINKS
+
+================================================================
+Add a complete resource area for external Brazilian Portuguese courses,
+videos, playlists, websites, PDFs, and official resources from absolute
+beginner to advanced.
+Route:
+/course-links
+User-facing name:
+"Cursos e Links Úteis"
+Home card:
+Title: "Cursos e Links Úteis"
+Subtitle: "Recursos externos organizados do básico ao avançado."
+Button: "Ver links"
+Table: external_course_resources
+Columns:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- description text default ''
+- provider_name text default ''
+- resource_type text not null
+  allowed: youtube_video, youtube_playlist, website, pdf, audio, podcast,
+           online_course, official_resource, article, exercise_site
+- url text not null
+- level_code text default 'all'
+  allowed: all, A0, A1, A2, B1, B2, C1
+- skill_area text default 'general'
+  allowed: general, vocabulary, grammar, listening, reading, writing,
+           speaking, pronunciation, celpe_bras, culture
+- topic text default ''
+- language_of_instruction text default 'pt'
+- is_free boolean default true
+- is_premium boolean default false
+- is_featured boolean default false
+- thumbnail_url text default ''
+- tags text[] default '{}'
+- order_index integer default 0
+- status text default 'draft'
+  allowed: draft, published, archived
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Admin can:
+- add/edit/delete resources
+- publish/unpublish
+- reorder
+- mark featured
+- mark premium/free
+- validate URL
+- preview
+- duplicate
+User can:
+- search
+- filter by level
+- filter by skill
+- filter by type
+- filter free/premium
+- save resource
+- open external link safely
+External links must use openExternalLink adapter.
+Never open unsafe links.
+
+================================================================
+7. RESOURCE COLLECTIONS / PLAYLISTS
+
+================================================================
+Admin can group external resources into collections.
+Table: resource_collections
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- description text default ''
+- level_code text default 'all'
+- skill_area text default 'general'
+- is_premium boolean default false
+- status text default 'draft'
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Table: resource_collection_items
+- id uuid primary key default gen_random_uuid()
+- collection_id uuid references resource_collections(id) on delete cascade
+- resource_id uuid references external_course_resources(id) on delete cascade
+- order_index integer default 0
+- notes text default ''
+Examples:
+- Português do Zero
+- Pronúncia Brasileira Essencial
+- Celpe-Bras: Materiais Oficiais
+- Escuta para B1
+- Escrita Formal para B2
+- Revisão Final Celpe-Bras
+
+================================================================
+8. FRONTEND COURSE LINKS PAGE
+
+================================================================
+Route:
+/course-links
+Sections:
+- Featured resources
+- Beginner A0/A1 resources
+- Celpe-Bras official resources
+- Listening resources
+- Grammar resources
+- Pronunciation resources
+- Writing resources
+Each resource card:
+- title
+- provider
+- type
+- level
+- skill area
+- free/premium badge
+- description
+- save button
+- open button
+Open button:
+- web: new tab
+- future Android/iOS: external browser adapter
+If premium resource and user not premium:
+- show locked state and paywall button
+
+================================================================
+9. ADMIN CMS FOR COURSE LINKS
+
+================================================================
+In Admin Dashboard add tab:
+"Cursos e Links"
+Admin features:
+- resource list
+- search
+- filters by level/type/skill/status/premium
+- create/edit/delete/duplicate
+- publish/unpublish
+- reorder
+- validate URL
+- preview resource card
+- manage collections
+- reorder collection items
+- audit logs for every change
+Admin form fields:
+- title
+- description
+- provider
+- resource type
+- URL
+- level
+- skill area
+- topic
+- language of instruction
+- free/premium
+- featured
+- thumbnail URL
+- tags
+- order
+- status
+
+================================================================
+10. INTEGRATE COURSE LINKS INTO LEARNING PATHS
+
+================================================================
+learning_path_steps must support:
+step_type = external_resource
+When admin creates a learning path step:
+- can link to external_course_resources
+- can set duration
+- can require completion
+- can mark optional
+User can mark external resource as completed.
+Progress counts toward learning path.
+
+================================================================
+11. SAFE LEGAL / CONTENT NOTE
+
+================================================================
+Since external resources may belong to third parties:
+- app should store links, not copy copyrighted course content
+- show provider/source name
+- open original source externally
+- admin responsible for adding valid legal links
+Add optional disclaimer content block:
+"Alguns recursos externos pertencem aos seus respectivos autores."
+Admin can edit this disclaimer.
+
+================================================================
+12. UI/UX IMPROVEMENTS INSPIRED BY DUOLINGO/PREPLY
+
+================================================================
+Add:
+- daily goal card
+- XP progress card
+- learning path progress
+- lesson completion animation/subtle success state
+- review due indicator
+- streak calendar
+- continue button
+- "next best lesson" recommendation
+- tutor/teacher feature hidden if disabled
+- clean progress map
+Avoid:
+- copying Duolingo or Preply branding
+- childish UI
+- aggressive gamification
+- public leaderboards by default
+
+================================================================
+13. ADMIN FUTURE FLAGS
+
+================================================================
+Add feature flags:
+- gamification_enabled true
+- hearts_enabled false
+- teacher_marketplace_enabled false
+- external_course_links_enabled true
+- resource_collections_enabled true
+- leaderboards_enabled false
+- live_lessons_enabled false
+- community_enabled false
+If disabled:
+- hide frontend links
+- keep admin config available
+
+================================================================
+14. RLS
+
+================================================================
+external_course_resources:
+- published readable by authenticated users
+- public readable if admin config allows
+- admin can CRUD
+resource_collections:
+- published readable by authenticated users
+- admin can CRUD
+resource_collection_items:
+- readable if parent collection published
+- admin can CRUD
+user_xp_events:
+- user can read own
+- server/admin can insert
+- user cannot fake XP directly
+user_daily_goals:
+- user can read/update own safe progress where appropriate
+- server can update
+teacher tables:
+- hidden unless enabled
+- admin can CRUD
+- teachers can manage own profile if role teacher
+- users can read active verified teachers only when enabled
+
+================================================================
+15. SEED DATA
+
+================================================================
+Seed:
+- gamification config
+- feature flags
+- 5 learning units
+- 20 sample exercises
+- 10 external course resources with placeholder safe URLs
+- 4 resource collections
+- teacher marketplace disabled
+- hearts disabled
+- leaderboard disabled
+All seed content must be editable by admin.
+
+================================================================
+16. QA CHECKLIST
+
+================================================================
+Verify:
+- XP events are created after lessons/practices.
+- Daily goal updates.
+- Hearts hidden by default.
+- Learning units load.
+- Exercises work without AI.
+- Admin can CRUD exercises.
+- Course links page works.
+- External links open safely.
+- Admin can CRUD course links.
+- Admin can create resource collections.
+- Learning paths can link external resources.
+- Teacher marketplace is hidden when disabled.
+- Future teacher routes do not crash.
+- RLS prevents fake XP insertion by users.
+- No Duolingo/Preply branding or copied UI/content is used.
+
+================================================================
+END DUOLINGO/PREPLY-INSPIRED EXPANSION
+
+================================================================
+
+================================================================
+FINAL EXPANSION: IMPROVED SIGNUP, LOGIN, ONBOARDING, AND AUTH UX
+
+================================================================
+Update the authentication and onboarding system so it supports the complete
+CelpePrep learning platform: Portuguese from A0 to C1, Celpe-Bras preparation,
+premium limits, personalization, OTP, future mobile compatibility, and admin
+control.
+Use Supabase/Lovable React + Vite + TypeScript.
+Do not use Firebase.
+
+================================================================
+1. AUTH PRINCIPLES
+
+================================================================
+Signup must be easy, but onboarding must collect enough information to
+personalize the app.
+Do not make the first signup form too long.
+Use progressive onboarding after account creation.
+Recommended flow:
+1. Register basic account
+2. Verify OTP
+3. Complete learning profile
+4. Optional diagnostic/placement
+5. Home personalized dashboard
+Login flow:
+1. Email/password or Google
+2. OTP if enabled by admin
+3. Home
+Admin can control whether OTP is required.
+
+================================================================
+2. AUTH ROUTES
+
+================================================================
+Ensure routes exist:
+- /login
+- /register
+- /otp-verify
+- /complete-profile
+- /onboarding-goals
+- /placement-choice
+- /diagnostic
+- /forgot-password
+- /reset-password-otp
+
+================================================================
+3. REGISTER FORM
+
+================================================================
+Keep register form simple.
+Fields:
+- name
+- email
+- password
+- confirm password
+- accept terms checkbox
+- accept privacy checkbox
+Validation:
+- name required
+- valid email
+- password minimum 6 characters
+- confirm password matches
+- terms must be accepted
+- privacy must be accepted
+Do NOT ask every learning question here.
+Collect those after OTP in onboarding.
+After register submit:
+- call send-email-otp if OTP is enabled
+- navigate to /otp-verify
+- after OTP success, create/complete Supabase user profile
+- navigate to /complete-profile or /onboarding-goals
+
+================================================================
+4. LOGIN FORM
+
+================================================================
+Fields:
+- email
+- password
+Options:
+- Entrar
+- Entrar com Google
+- Esqueci minha senha
+- Criar conta
+Login behavior:
+- sign in with Supabase Auth
+- if OTP is enabled, send login OTP and navigate to /otp-verify
+- if OTP disabled, go to /home
+- if profile incomplete, go to /complete-profile instead of /home
+- if maintenance mode active and user is not admin, show maintenance screen
+Errors:
+- wrong password: "E-mail ou senha inválidos."
+- OTP send failure: useful message, not generic non-2xx
+- network failure: "Erro de conexão. Tente novamente."
+
+================================================================
+5. OTP ADMIN CONTROL
+
+================================================================
+Admin config:
+admin_config key = "auth"
+value:
+{
+  "otpRequiredForLogin": true,
+  "otpRequiredForRegister": true,
+  "otpRequiredForPasswordReset": true,
+  "googleLoginEnabled": true,
+  "emailPasswordEnabled": true,
+  "registrationEnabled": true,
+  "maintenanceMode": false,
+  "maintenanceMessage": "Estamos fazendo melhorias. Tente novamente em breve.",
+  "requireTermsAcceptance": true,
+  "minimumPasswordLength": 6
+}
+Admin dashboard:
+Add Auth Settings section.
+Admin can edit:
+- OTP required for login
+- OTP required for register
+- OTP required for password reset
+- Google login enabled
+- email/password login enabled
+- registration enabled
+- maintenance mode
+- maintenance message
+- minimum password length
+- terms acceptance required
+
+================================================================
+6. OTP VERIFY PAGE
+
+================================================================
+Route:
+/otp-verify
+Features:
+- 6 digit input
+- resend code after 60 seconds
+- attempts remaining
+- dev mode banner:
+  "Modo teste: use o código 123456"
+- back button
+- clear error messages
+OTP must support purposes:
+- register
+- login
+- password_reset
+After OTP success:
+- register purpose -> /complete-profile or /onboarding-goals
+- login purpose -> /home unless profile incomplete
+- password_reset purpose -> /reset-password-otp
+
+================================================================
+7. COMPLETE PROFILE PAGE
+
+================================================================
+Route:
+/complete-profile
+Fields:
+- native language
+- current Portuguese level:
+  "Não sei / Sou iniciante", A0, A1, A2, B1, B2, C1
+- target level:
+  A1, A2, B1, B2, C1
+- main goal:
+  Celpe-Bras, Trabalho, Estudos, Viagem, Vida diária, Português geral
+- exam date if Celpe-Bras selected
+- daily study minutes
+- preferred study days
+- preferred study time
+- learning focus:
+  Automático, Vocabulário, Gramática, Escuta, Fala, Escrita, Celpe-Bras
+Validation:
+- target level required
+- goal required
+- daily minutes 5-180
+- if goal is Celpe-Bras, exam date recommended but not blocking
+- if user selects "Não sei", recommend diagnostic
+On save:
+- update profile
+- set profile_completed true
+- create default user_profile_preferences
+- create first daily goal
+- recommend placement/diagnostic
+- navigate /placement-choice
+
+================================================================
+8. PLACEMENT CHOICE PAGE
+
+================================================================
+Route:
+/placement-choice
+Purpose:
+Let user decide how to start.
+Options:
+1. "Fazer nivelamento"
+Description:
+"Recomendado se você não sabe seu nível."
+Action:
+go /diagnostic
+2. "Começar do básico"
+Description:
+"Para quem está começando agora."
+Action:
+assign learning path A0/A1 and go /home
+3. "Preparar para o Celpe-Bras"
+Description:
+"Para quem quer focar no exame."
+Action:
+assign Celpe-Bras path and go /diagnostic or /home
+4. "Explorar sozinho"
+Description:
+"Acessar materiais e práticas livremente."
+Action:
+go /home
+Admin can edit texts through app_pages/app_sections/content_blocks.
+
+================================================================
+9. GOOGLE SIGNUP/LOGIN
+
+================================================================
+Google auth behavior:
+- if profile exists and profile_completed true -> /home
+- if profile exists but incomplete -> /complete-profile
+- if no profile:
+  - create profile with name/email/photo
+  - set profile_completed false
+  - navigate /complete-profile
+If OTP for Google is disabled, do not ask OTP.
+If admin enables OTP for Google later, support it through auth config.
+
+================================================================
+10. TERMS AND PRIVACY
+
+================================================================
+Register must include:
+- "Aceito os Termos de Uso"
+- "Aceito a Política de Privacidade"
+Links:
+- /terms
+- /privacy
+Store in profile:
+- accepted_terms_at
+- accepted_privacy_at
+- accepted_terms_version
+- accepted_privacy_version
+Extend profiles table:
+- accepted_terms_at timestamptz nullable
+- accepted_privacy_at timestamptz nullable
+- accepted_terms_version text default ''
+- accepted_privacy_version text default ''
+Admin config legal:
+admin_config key = "legal"
+value:
+{
+  "termsVersion": "1.0",
+  "privacyVersion": "1.0",
+  "termsRequired": true,
+  "privacyRequired": true
+}
+If legal version changes:
+- show user prompt to accept updated terms before continuing.
+
+================================================================
+11. PROFILE CREATION SAFETY
+
+================================================================
+Avoid broken/orphan profiles.
+After auth signup/login:
+- ensure profile row exists
+- if missing, create it safely
+- if partial, complete required defaults
+- never crash Home because profile row is missing
+Create helper:
+ensureUserProfile(user)
+Default profile:
+- name from auth metadata or email prefix
+- email
+- photo_url from provider if available
+- celf_level = B1 or empty if unknown
+- current general level = A0/A1 if beginner selected later
+- ai_credits_total = 5
+- ai_credits_used = 0
+- is_premium = false
+- daily_minutes = 30
+- theme_preference = Claro
+- profile_completed = false
+- diagnostic_completed = false
+
+================================================================
+12. PASSWORD RESET
+
+================================================================
+Forgot password:
+- email field
+- send OTP purpose password_reset
+- navigate /reset-password-otp
+Reset password page:
+- OTP
+- new password
+- confirm password
+Validation:
+- OTP required
+- password minimum from admin_config/auth
+- confirm matches
+On success:
+- show "Senha atualizada com sucesso."
+- navigate /login
+
+================================================================
+13. LOGIN / REGISTER PAGE UX
+
+================================================================
+Improve UX:
+Login page:
+- app logo
+- short benefit text
+- email/password fields
+- password visibility toggle
+- forgot password
+- Google button if enabled
+- create account link
+- loading state
+- clear errors
+Register page:
+- app logo
+- short promise:
+  "Comece sua preparação personalizada para português brasileiro e Celpe-Bras."
+- name/email/password/confirm
+- terms/privacy checkboxes
+- Google signup if enabled
+- login link
+- loading state
+- clear errors
+Mobile:
+- no text overlap
+- buttons full width
+- input height comfortable
+- password eye button accessible
+
+================================================================
+14. ONBOARDING PERSONALIZATION DATA
+
+================================================================
+Create/ensure tables:
+onboarding_questions:
+- id uuid primary key default gen_random_uuid()
+- question_key text unique
+- question_text text
+- input_type text
+- options_json jsonb default '[]'
+- order_index integer default 0
+- is_required boolean default true
+- is_active boolean default true
+user_onboarding_answers:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- question_key text
+- answer_json jsonb
+- created_at timestamptz default now()
+Admin can edit onboarding questions later.
+
+================================================================
+15. POST-ONBOARDING AUTOMATION
+
+================================================================
+After complete-profile:
+- create default daily goal
+- assign recommended learning path
+- initialize user_stats_summary
+- initialize user_profile_preferences
+- if Celpe-Bras goal selected, generate study plan
+- if beginner selected, assign beginner path
+- if current level unknown, recommend diagnostic
+- navigate to placement choice or home
+
+================================================================
+16. RLS / SECURITY
+
+================================================================
+profiles:
+- user can read own profile
+- user can update safe personal fields
+- user cannot update role/is_premium/credits directly
+- admin can manage users
+onboarding_questions:
+- active questions readable by users
+- admin can CRUD
+user_onboarding_answers:
+- user can read/write own answers
+- admin can read for support/analytics if needed
+admin_config auth/legal:
+- safe config readable where needed
+- admin writable only
+email_otps:
+- no client read/write
+- Edge Functions only
+
+================================================================
+17. ADMIN AUTH SETTINGS
+
+================================================================
+In Admin Dashboard add section:
+"Autenticação e Onboarding"
+Admin can manage:
+- login methods
+- OTP settings
+- registration enabled
+- maintenance mode
+- minimum password length
+- legal versions
+- onboarding questions
+- default profile values
+- default learning path by goal
+- post-register redirect behavior
+Admin changes create audit_logs.
+
+================================================================
+18. QA CHECKLIST
+
+================================================================
+Verify:
+- Register form is simple.
+- Terms/privacy required.
+- OTP register works.
+- OTP login works if enabled.
+- OTP can be disabled by admin.
+- Google login creates incomplete profile then /complete-profile.
+- Existing Google user goes /home.
+- Incomplete profile redirects to /complete-profile.
+- Complete profile saves learning goals.
+- Placement choice works.
+- Beginner path can be assigned.
+- Celpe-Bras path can be assigned.
+- Forgot password OTP works.
+- Missing profile is auto-created safely.
+- Maintenance mode blocks non-admin login.
+- Admin auth settings update frontend behavior.
+- Users cannot update premium/role/credits manually.
+
+================================================================
+END IMPROVED AUTH UX EXPANSION
+
+================================================================
+
+================================================================
+FINAL EXPANSION: COMPLETE MONETIZATION SYSTEM + ADMIN REVENUE CONTROL
+
+================================================================
+Monetization is a core goal of this app. Build a complete revenue system that
+admin can control from the backend without code changes.
+Use Supabase/Lovable React + Vite + TypeScript.
+Use Lovable/Paddle payments.
+Do not use Firebase.
+Do not expose payment secrets in frontend.
+
+================================================================
+1. MONETIZATION GOALS
+
+================================================================
+The app must support:
+- free plan with limits
+- premium subscription
+- monthly plan
+- annual plan
+- 30-day exam plan
+- free trial if enabled by admin
+- coupons/promo campaigns if supported
+- premium feature gating
+- paywall variants
+- ads for free users
+- rewarded ad credits if available
+- revenue dashboard
+- subscription management
+- cancellation with access until period end
+- Paddle customer portal
+- admin manual premium toggle for testing/support
+
+================================================================
+2. MONETIZATION TABLES
+
+================================================================
+Create table monetization_plans:
+- id uuid primary key default gen_random_uuid()
+- plan_key text unique not null
+  examples: free, monthly, annual, exam_30_days
+- title text not null
+- subtitle text default ''
+- description text default ''
+- price_label text default ''
+- billing_period text default ''
+  examples: free, monthly, annual, one_time_30_days
+- paddle_product_id text default ''
+- paddle_price_id text default ''
+- is_popular boolean default false
+- is_active boolean default true
+- trial_days integer default 0
+- order_index integer default 0
+- features_json jsonb default '[]'
+- limits_json jsonb default '{}'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+- updated_by uuid nullable
+Create table user_entitlements:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- entitlement_key text not null
+  examples: premium_access, ai_unlimited, no_ads, premium_lessons
+- source text default 'paddle'
+  allowed: paddle, admin_manual, promo, trial
+- status text default 'active'
+  allowed: active, expired, cancelled, revoked
+- starts_at timestamptz default now()
+- ends_at timestamptz nullable
+- paddle_subscription_id text default ''
+- paddle_customer_id text default ''
+- metadata jsonb default '{}'
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table monetization_events:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid nullable references auth.users(id) on delete set null
+- event_name text not null
+  examples: paywall_view, plan_selected, checkout_started, checkout_success,
+            checkout_failed, subscription_cancelled, subscription_renewed,
+            subscription_expired, portal_opened, promo_applied, ad_credit_granted
+- plan_key text default ''
+- amount numeric nullable
+- currency text default ''
+- metadata jsonb default '{}'
+- created_at timestamptz default now()
+Create table paywall_variants:
+- id uuid primary key default gen_random_uuid()
+- variant_key text unique not null
+- title text not null
+- subtitle text default ''
+- feature_list jsonb default '[]'
+- cta_label text default 'Assinar agora'
+- secondary_cta_label text default 'Continuar grátis'
+- badge_text text default ''
+- is_active boolean default false
+- audience text default 'all'
+  allowed: all, free, expired, credits_exhausted, retake_limit, premium_content
+- order_index integer default 0
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table promo_campaigns:
+- id uuid primary key default gen_random_uuid()
+- code text unique not null
+- title text not null
+- description text default ''
+- discount_label text default ''
+- paddle_discount_id text default ''
+- starts_at timestamptz nullable
+- ends_at timestamptz nullable
+- max_redemptions integer nullable
+- redemptions_count integer default 0
+- is_active boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+
+================================================================
+3. ADMIN MONETIZATION CENTER
+
+================================================================
+Add admin tab:
+"Monetização"
+Subsections:
+1. Plans
+Admin can:
+- create/edit plans
+- set Paddle product/price IDs
+- edit title/subtitle/price label
+- set monthly/annual/30-day exam plan
+- mark popular plan
+- enable/disable plan
+- reorder plans
+- edit plan features
+- edit plan limits
+2. Paywall
+Admin can:
+- edit paywall headline
+- edit feature list
+- create multiple paywall variants
+- choose active variant
+- set audience-specific paywall text
+- preview paywall
+- edit CTA labels
+3. Feature Gates
+Admin can control which features require premium:
+- AI evaluation
+- AI generated practice
+- retakes above free limit
+- premium previous exam materials
+- premium lessons
+- full model answers
+- conversation AI
+- pronunciation evaluation
+- vocabulary AI enrichment
+- writing coach
+- grammar AI generation
+- listening AI generation
+- no ads
+4. Free Limits
+Admin can edit:
+- AI credits per month
+- AI practice per day
+- retakes per practice
+- vocab AI per day
+- pronunciation per day
+- conversation minutes per day
+- writing coach per day
+- grammar/listening limits
+- rewarded ad max per day
+5. Promotions
+Admin can:
+- create promo code records
+- connect Paddle discount IDs
+- activate/deactivate campaigns
+- set start/end dates
+- track redemptions
+6. Ads Revenue
+Admin can:
+- enable/disable ads
+- edit AdSense IDs
+- edit future AdMob IDs
+- hide ads for premium
+- control rewarded ad credits
+7. Revenue Dashboard
+Show:
+- total active premium users
+- free users
+- trial users
+- expired users
+- monthly recurring revenue estimate
+- annual recurring revenue estimate
+- checkout started count
+- checkout success count
+- paywall conversion rate
+- cancellation count
+- churn estimate
+- AI credit exhaustion count
+- most common paywall trigger
+- top converting plan
+8. Users / Subscriptions
+Admin can:
+- search user
+- view subscription status
+- view entitlements
+- manually grant premium for testing/support
+- manually revoke admin-granted premium
+- adjust AI credits
+- view Paddle customer/subscription IDs
+- open audit history
+Every admin monetization change must create audit_logs.
+
+================================================================
+4. PADDLE WEBHOOK AND ENTITLEMENTS
+
+================================================================
+Paddle webhook must be robust.
+Webhook must:
+- verify Paddle signature
+- reject invalid signatures
+- ignore wrong environment if env filtering enabled
+- map price_id to monetization_plans
+- update profiles.is_premium
+- update profiles.premium_period_end
+- create/update user_entitlements
+- create monetization_events
+- handle cancellations with access until period end
+- handle renewal
+- handle expiration
+- handle failed payment if available
+- handle refund/revocation if available
+- never duplicate events if webhook retries
+Required behavior:
+- cancelled subscription keeps premium until current_period_end
+- expired subscription removes premium
+- payment success grants premium
+- refund/revocation can revoke if Paddle event indicates access should end
+
+================================================================
+5. CHECKOUT FLOW
+
+================================================================
+Paywall button:
+- user selects plan
+- create Paddle checkout/session
+- log checkout_started
+- redirect/open Paddle checkout
+- on success, refresh premium status
+- show "Premium ativado!"
+- retry last blocked action
+If Paddle is unavailable:
+- show friendly message
+- do not crash
+- log checkout_failed
+Manage subscription:
+- open Paddle customer portal
+- log portal_opened
+
+================================================================
+6. FEATURE ACCESS FUNCTION
+
+================================================================
+Create or update Edge Function:
+check-feature-access
+Input:
+- feature_key
+- requested_amount optional
+- source_id optional
+Return:
+- allowed boolean
+- reason
+- is_premium
+- remaining
+- limit
+- reset_at
+- paywall_variant_key
+Use it before:
+- AI evaluation
+- AI practice
+- retake
+- vocab AI
+- writing coach
+- conversation
+- pronunciation
+- premium content
+- ad credit
+Still enforce again inside actual action Edge Functions.
+
+================================================================
+7. PAYWALL TRIGGERS
+
+================================================================
+Show paywall when:
+- user opens premium content
+- user exceeds AI credits
+- user exceeds daily AI practice limit
+- user tries third retake
+- user exceeds vocab AI limit
+- user exceeds conversation limit
+- user exceeds pronunciation limit
+- user tries premium course/lesson
+- user wants no ads
+- user opens full model answer locked by premium
+Each trigger should pass context:
+- trigger_key
+- feature_key
+- source_id
+- last_blocked_action
+After purchase:
+- retry last blocked action automatically.
+
+================================================================
+8. MONETIZATION ANALYTICS EVENTS
+
+================================================================
+Track events:
+- paywall_view
+- paywall_cta_click
+- plan_selected
+- checkout_started
+- checkout_success
+- checkout_failed
+- premium_activated
+- subscription_cancelled
+- subscription_expired
+- subscription_renewed
+- customer_portal_opened
+- limit_reached
+- ad_shown
+- ad_credit_granted
+- promo_applied
+Store in monetization_events.
+Use this data in admin revenue dashboard.
+
+================================================================
+9. FRONTEND PREMIUM UX
+
+================================================================
+Free users:
+- show remaining AI credits
+- show free limits clearly
+- show upgrade CTA
+- show ads if enabled
+- show locked premium content with explanation
+Premium users:
+- show Premium badge
+- hide ads
+- no limit messages
+- access all premium content
+- subscription page shows period end and manage button
+Do not annoy users too much:
+- avoid showing paywall on every click
+- show clear reason why feature is locked
+- always offer a useful free alternative when possible
+
+================================================================
+10. ADMIN-CONTROLLED PRICING COPY
+
+================================================================
+Admin must edit:
+- plan names
+- price labels
+- billing period labels
+- plan descriptions
+- feature bullets
+- popular badge
+- guarantee/refund text if any
+- free plan limits text
+- premium benefits text
+- checkout button labels
+- cancellation explanation
+Do not hardcode monetization copy except safe fallbacks.
+
+================================================================
+11. SAFETY / LEGAL NOTES
+
+================================================================
+Add admin-editable content blocks:
+- billing FAQ
+- cancellation policy text
+- refund support text
+- premium terms note
+Do not promise official Celpe-Bras certification.
+Use:
+"preparação"
+"nível estimado"
+"certificado de conclusão do app" only for internal completion certificates.
+
+================================================================
+12. RLS
+
+================================================================
+monetization_plans:
+- readable by authenticated users if active
+- admin can CRUD
+paywall_variants:
+- readable active variants
+- admin can CRUD
+promo_campaigns:
+- admin can CRUD
+- users cannot modify
+user_entitlements:
+- user can read own entitlements
+- user cannot create/update/revoke entitlements
+- Edge Functions/admin only can write
+monetization_events:
+- user can insert limited client-safe events if needed
+- admin can read analytics
+- Edge Functions can insert trusted events
+Admin-only updates:
+- premium status
+- credits
+- entitlements
+- plan settings
+
+================================================================
+13. SEED DEFAULT MONETIZATION
+
+================================================================
+Seed plans:
+free:
+- price "R$ 0"
+- limited AI credits
+- limited retakes
+- ads enabled if configured
+monthly:
+- title "Mensal"
+- price label editable
+- Paddle IDs empty placeholder
+- active true
+annual:
+- title "Anual"
+- mark popular true
+- active true
+exam_30_days:
+- title "30 dias"
+- active true
+Seed paywall variant:
+Title:
+"Desbloqueie tudo com CelpePrep Premium"
+Features:
+- Avaliações por IA ilimitadas
+- Práticas geradas por IA
+- Retakes ilimitados
+- Vocabulário inteligente sem limites
+- Cursos e materiais premium
+- Sem anúncios
+- Plano de estudos avançado
+Everything must be editable by admin.
+
+================================================================
+14. QA CHECKLIST
+
+================================================================
+Verify:
+- Free limits block correctly.
+- Premium bypasses limits.
+- Paywall opens with correct reason.
+- Plans render from backend.
+- Admin can edit plans.
+- Admin can edit paywall text.
+- Admin can edit feature gates.
+- Admin can edit free limits.
+- Paddle checkout opens.
+- Paddle webhook verifies signature.
+- Webhook grants premium.
+- Cancellation keeps access until period end.
+- Expiration removes premium.
+- Customer portal opens.
+- Admin manual premium toggle works.
+- Monetization events are logged.
+- Revenue dashboard loads.
+- Ads hidden for premium.
+- Users cannot manually set themselves premium.
+- Users cannot directly edit entitlements or credits.
+
+================================================================
+END COMPLETE MONETIZATION SYSTEM
+
+================================================================
+
+================================================================
+FINAL EXPANSION: BEAUTIFUL ADMIN UX + ROLE-BASED ACCESS CONTROL
+
+================================================================
+Goal:
+Make the backend/admin panel easy, clean, safe, and understandable for a
+non-technical app owner. Add role-based access so owner can create admins,
+sub-admins, moderators, teachers, content editors, and support users with
+custom permissions.
+Use Supabase/Lovable React + Vite + TypeScript.
+Do not use Firebase.
+Do not break existing RLS/auth/payment/admin systems.
+
+================================================================
+1. ADMIN UX PRINCIPLES
+
+================================================================
+The admin panel must be:
+- clean
+- simple to navigate
+- mobile/tablet friendly if possible
+- organized by feature
+- searchable
+- understandable for non-developers
+- safe against accidental deletion
+- clear about draft vs published content
+- clear about premium vs free content
+- clear about who changed what
+- designed like a real CMS/dashboard
+Admin must never feel like editing database rows manually.
+It should feel like a friendly control panel.
+
+================================================================
+2. ADMIN LAYOUT
+
+================================================================
+Create improved admin layout:
+- left sidebar on desktop
+- top tabs or drawer on mobile
+- search bar
+- quick action button
+- breadcrumbs
+- page title + explanation
+- status badges
+- recent activity
+- clear save/cancel buttons
+- unsaved changes warning
+- confirmation modals
+- success/error toast
+Admin home dashboard should show:
+Cards:
+- Total users
+- Premium users
+- Active today
+- AI credits used
+- Revenue estimate
+- New attempts
+- Pending content drafts
+- Broken/unchecked links
+- Recent admin actions
+Quick actions:
+- Add previous exam
+- Add study material
+- Add notification
+- Add course lesson
+- Edit paywall
+- Send push notification
+- Manage users
+- View audit logs
+
+================================================================
+3. ROLE-BASED ACCESS CONTROL
+
+================================================================
+Create role and permission system.
+Roles:
+- owner
+- admin
+- sub_admin
+- moderator
+- content_editor
+- teacher
+- support
+- finance
+- ads_manager
+- read_only
+Owner:
+- full access
+- can manage roles/permissions
+- cannot be deleted by normal admin
+Admin:
+- full content/app management
+- cannot remove owner
+Sub_admin:
+- broad content access
+- limited monetization/security access
+Moderator:
+- notifications, comments/support, content review only
+Content_editor:
+- study materials, exams, courses, lessons, vocabulary only
+Teacher:
+- manual feedback, student progress if allowed, lessons assigned to them
+Support:
+- view users, assist account issues, cannot edit premium/payment unless allowed
+Finance:
+- monetization dashboard, plans, payments, subscriptions, revenue
+Ads_manager:
+- ads config and ad-related analytics
+Read_only:
+- can view admin dashboard but cannot edit
+
+================================================================
+4. TABLES
+
+================================================================
+Create table admin_roles:
+- id uuid primary key default gen_random_uuid()
+- role_key text unique not null
+- title text not null
+- description text default ''
+- is_system boolean default false
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Create table admin_permissions:
+- id uuid primary key default gen_random_uuid()
+- permission_key text unique not null
+- title text not null
+- description text default ''
+- category text not null
+- created_at timestamptz default now()
+Create table admin_role_permissions:
+- id uuid primary key default gen_random_uuid()
+- role_id uuid references admin_roles(id) on delete cascade
+- permission_key text references admin_permissions(permission_key) on delete cascade
+- allowed boolean default true
+- created_at timestamptz default now()
+Unique:
+- role_id + permission_key
+Create table admin_user_roles:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid references auth.users(id) on delete cascade
+- role_id uuid references admin_roles(id) on delete cascade
+- assigned_by uuid nullable
+- assigned_at timestamptz default now()
+- is_active boolean default true
+Unique:
+- user_id + role_id
+Create table admin_invites:
+- id uuid primary key default gen_random_uuid()
+- email text not null
+- role_id uuid references admin_roles(id)
+- invite_token text unique not null
+- invited_by uuid references auth.users(id)
+- expires_at timestamptz not null
+- accepted_at timestamptz nullable
+- status text default 'pending'
+  allowed: pending, accepted, expired, revoked
+- created_at timestamptz default now()
+
+================================================================
+5. PERMISSIONS LIST
+
+================================================================
+Create granular permissions.
+User management:
+- users.view
+- users.edit
+- users.disable
+- users.delete
+- users.adjust_credits
+- users.toggle_premium
+- users.view_private_progress
+Roles/security:
+- roles.view
+- roles.create
+- roles.edit
+- roles.delete
+- roles.assign
+- security.view
+- security.edit
+Content:
+- exams.view
+- exams.create
+- exams.edit
+- exams.delete
+- exams.publish
+- study_materials.view
+- study_materials.create
+- study_materials.edit
+- study_materials.delete
+- study_materials.publish
+- courses.view
+- courses.create
+- courses.edit
+- courses.delete
+- courses.publish
+- lessons.view
+- lessons.create
+- lessons.edit
+- lessons.delete
+- lessons.publish
+- vocabulary.view
+- vocabulary.create
+- vocabulary.edit
+- vocabulary.delete
+AI/practice:
+- ai_settings.view
+- ai_settings.edit
+- practices.view
+- practices.create
+- practices.edit
+- practices.delete
+- diagnostic.view
+- diagnostic.edit
+Notifications:
+- notifications.view
+- notifications.create
+- notifications.send
+- notifications.delete
+- banners.view
+- banners.edit
+Monetization:
+- monetization.view
+- monetization.edit
+- plans.edit
+- paywall.edit
+- subscriptions.view
+- subscriptions.manage
+- revenue.view
+Ads:
+- ads.view
+- ads.edit
+App CMS:
+- pages.view
+- pages.edit
+- navigation.edit
+- feature_flags.view
+- feature_flags.edit
+- app_update.edit
+Support:
+- support.view
+- support.respond
+Audit:
+- audit_logs.view
+Imports:
+- imports.create
+- imports.approve
+
+================================================================
+6. ADMIN PERMISSIONS UI
+
+================================================================
+Add Admin section:
+"Equipe e Permissões"
+Pages:
+1. Team Members
+- list all admins/moderators/editors
+- name/email
+- roles
+- active/inactive
+- last activity if available
+- invite button
+- edit roles button
+- remove access button
+2. Invite Admin/Sub-admin
+Fields:
+- email
+- role
+- optional custom permissions
+- send invite
+3. Roles
+- list roles
+- create role
+- edit role
+- duplicate role
+- delete custom role
+- system roles cannot be deleted
+- role description
+4. Permission Matrix
+UI:
+- categories as sections
+- permissions as checkboxes
+- role columns or role detail page
+- save button
+- clear explanation of what each permission does
+5. Custom Permissions per User
+Owner/admin can override permissions for specific user if needed.
+
+================================================================
+7. ACCESS CONTROL IN FRONTEND
+
+================================================================
+Create hook:
+useAdminPermissions()
+Returns:
+- roles
+- permissions
+- hasPermission(permissionKey)
+- canAccessAdminSection(sectionKey)
+Admin navigation:
+- hide sections user cannot access
+- if direct URL access without permission, show:
+  "Você não tem permissão para acessar esta área."
+Buttons:
+- hide or disable edit/delete/publish buttons if no permission
+- show tooltip:
+  "Sem permissão"
+Never rely only on frontend checks.
+Backend/RLS/Edge Functions must enforce permissions too.
+
+================================================================
+8. BACKEND PERMISSION CHECKS
+
+================================================================
+Create Supabase RPC:
+has_admin_permission(user_id uuid, permission_key text)
+Returns boolean.
+It checks:
+- active admin_user_roles
+- role permissions
+- owner role always true
+Use this RPC in RLS policies where possible.
+Admin Edge Functions must verify permissions before action:
+- sending notification
+- changing monetization
+- toggling premium
+- updating ads
+- importing content
+- deleting content
+- assigning roles
+
+================================================================
+9. RLS POLICY REQUIREMENTS
+
+================================================================
+RLS must use role/permission checks.
+Examples:
+- only users with exams.edit can update exam_tasks
+- only users with exams.publish can publish exam_editions
+- only users with monetization.edit can update monetization_plans
+- only users with ads.edit can update ads config
+- only users with roles.assign can assign admin roles
+- only users with audit_logs.view can view audit logs
+Owner always has all permissions.
+Normal users have no admin permissions.
+
+================================================================
+10. ADMIN INVITE FLOW
+
+================================================================
+Owner/admin with roles.assign can invite team members.
+Flow:
+1. Enter email
+2. Select role
+3. Generate invite token
+4. Send invite email if email provider configured
+5. If email not configured, show invite link in admin dev mode
+6. Invited user registers/logs in
+7. Accept invite
+8. Role is assigned
+9. Audit log created
+Route:
+- /admin/accept-invite?token=
+If token expired/revoked:
+- show error
+
+================================================================
+11. SAFETY RULES
+
+================================================================
+- Owner role cannot be removed by non-owner.
+- Last owner cannot be removed.
+- Admin cannot assign permissions they do not have.
+- Admin cannot create a role stronger than their own unless owner.
+- Destructive actions require confirmation.
+- Deleting a role requires no active users or reassignment.
+- All permission changes create audit logs.
+- All role assignments create audit logs.
+
+================================================================
+12. AUDIT LOGS
+
+================================================================
+Log:
+- invite sent
+- invite accepted
+- role assigned
+- role removed
+- role updated
+- permission changed
+- admin user disabled
+- premium manually toggled
+- credits adjusted
+- content deleted
+- settings changed
+Audit entry:
+- admin_user_id
+- action
+- table_name
+- record_id
+- before_json
+- after_json
+- created_at
+
+================================================================
+13. ADMIN UX HELP TEXT
+
+================================================================
+Every admin section should include short helpful text.
+Examples:
+- "Use esta área para gerenciar materiais de estudo."
+- "Rascunhos não aparecem para usuários."
+- "Publicar torna o conteúdo visível no app."
+- "Tenha cuidado: alterações em planos afetam pagamentos."
+Add info tooltips for dangerous/technical fields:
+- Paddle price ID
+- AdSense slot ID
+- AI model
+- feature flags
+- RLS/security
+- role permissions
+
+================================================================
+14. SEED DEFAULT ROLES
+
+================================================================
+Seed roles:
+- owner
+- admin
+- sub_admin
+- moderator
+- content_editor
+- teacher
+- support
+- finance
+- ads_manager
+- read_only
+Seed permissions.
+Assign full permissions to owner/admin.
+Assign reasonable limited permissions to each role.
+If there is an existing first admin user:
+- assign owner role to the project owner/current admin if possible.
+- do not lock the current admin out.
+
+================================================================
+15. QA CHECKLIST
+
+================================================================
+Verify:
+- Admin dashboard is easy to navigate.
+- Owner can invite admin.
+- Owner can create sub-admin.
+- Owner can assign permissions.
+- Permission matrix saves.
+- Sub-admin sees only allowed sections.
+- Content editor cannot edit monetization.
+- Finance can view monetization but not edit content unless allowed.
+- Ads manager can edit ads only.
+- Support cannot change premium unless permission granted.
+- Non-admin cannot access /admin.
+- Direct URL access is blocked without permission.
+- RLS blocks unauthorized writes.
+- Last owner cannot be removed.
+- Audit logs created for role/permission changes.
+- Admin UI explains each section clearly.
+
+================================================================
+END BEAUTIFUL ADMIN UX + ROLE-BASED ACCESS CONTROL
+
+================================================================
+Yes. The last major thing I’d add is **quality control + backups + content review workflow**. Since your admin panel will control almost the whole app, you need safeguards so one bad edit does not break the user experience.
+Add this:
+```text
+
+================================================================
+FINAL EXPANSION: QUALITY CONTROL, BACKUPS, CONTENT WORKFLOW, AND APP HEALTH
+
+================================================================
+Goal:
+Make CelpePrep safer to manage long-term. Since the admin dashboard controls
+nearly the entire app, add quality control, backups, review workflow, broken
+link checks, app health monitoring, and rollback options.
+Use Supabase/Lovable React + Vite + TypeScript.
+Do not use Firebase.
+Do not break existing app systems.
+
+================================================================
+1. CONTENT WORKFLOW
+
+================================================================
+Add a publishing workflow for important content.
+Content statuses:
+- draft
+- in_review
+- approved
+- published
+- archived
+Apply to:
+- study_materials
+- exam_editions
+- exam_tasks
+- exam_materials
+- questions
+- courses
+- lessons
+- learning_paths
+- app_pages
+- app_sections
+- banners
+- paywall_variants
+Admin roles:
+- content_editor can create/edit drafts
+- moderator/sub_admin can approve
+- admin/owner can publish
+Add fields where missing:
+- status text default 'draft'
+- submitted_for_review_at timestamptz nullable
+- approved_at timestamptz nullable
+- approved_by uuid nullable
+- published_at timestamptz nullable
+- published_by uuid nullable
+Admin actions:
+- Save draft
+- Submit for review
+- Approve
+- Publish
+- Unpublish
+- Archive
+- Restore
+
+================================================================
+2. CONTENT VERSION HISTORY
+
+================================================================
+Add table content_versions:
+- id uuid primary key default gen_random_uuid()
+- table_name text not null
+- record_id text not null
+- version_number integer not null
+- snapshot_json jsonb not null
+- created_by uuid nullable
+- created_at timestamptz default now()
+- change_note text default ''
+When admin updates important content:
+- save previous version before update
+- increment version number
+- allow admin to view version history
+- allow owner/admin to restore previous version
+Admin UI:
+- "Histórico de versões"
+- view old version
+- compare current vs previous JSON/text
+- restore version with confirmation
+
+================================================================
+3. BROKEN LINK CHECKER
+
+================================================================
+Add system to check external links.
+Table: link_checks
+- id uuid primary key default gen_random_uuid()
+- source_table text not null
+- source_id uuid not null
+- url text not null
+- status text default 'unchecked'
+  allowed: unchecked, ok, broken, warning
+- http_status integer nullable
+- error_message text default ''
+- last_checked_at timestamptz nullable
+- created_at timestamptz default now()
+Admin page:
+"Verificação de Links"
+Features:
+- list all external links
+- check one link
+- check all links
+- filter broken/warning/ok
+- open source item for editing
+- mark ignored if needed
+Edge Function:
+check-external-links
+Logic:
+- admin only
+- validate URLs
+- fetch HEAD/GET safely where possible
+- do not follow dangerous protocols
+- update link_checks
+- do not crash if CORS/network blocks; mark warning
+
+================================================================
+4. APP HEALTH DASHBOARD
+
+================================================================
+Add Admin page:
+"Saúde do App"
+Show:
+- failed Edge Function calls if logged
+- OTP send failures
+- payment webhook failures
+- AI evaluation failures
+- AI generation failures
+- broken links
+- RLS/security warnings
+- unpublished drafts count
+- pending review count
+- users blocked by errors
+- latest app errors if available
+Create table app_error_logs:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid nullable
+- area text default ''
+- error_code text default ''
+- error_message text default ''
+- metadata jsonb default '{}'
+- created_at timestamptz default now()
+Frontend:
+- log important caught errors to app_error_logs through safe Edge Function
+- never log passwords, OTPs, secrets, or full payment details
+Edge Function:
+log-app-error
+
+================================================================
+5. BACKUP / EXPORT TOOLS
+
+================================================================
+Add admin export tools.
+Admin can export:
+- study materials
+- previous exams
+- questions
+- courses/lessons
+- vocabulary lists
+- app settings
+- paywall config
+- ads config
+- navigation/pages/sections
+- audit logs
+Formats:
+- JSON
+- CSV where suitable
+Admin page:
+"Backup e Exportação"
+Features:
+- select content type
+- export JSON
+- export CSV
+- download file
+- show export timestamp
+Optional future import:
+- import JSON backup after validation
+- never overwrite without confirmation
+
+================================================================
+6. SAFE RESTORE / ROLLBACK
+
+================================================================
+For admin-controlled content:
+- allow restore from content_versions
+- allow duplicate current content before big edits
+- allow archive instead of delete
+- warn if deleting content used by learning paths, study plan, or user progress
+Before deleting:
+- show dependencies:
+  "Este material está ligado a X trilhas e Y planos."
+Create helper queries/RPC if needed to check dependencies.
+
+================================================================
+7. RELEASE NOTES / CHANGELOG
+
+================================================================
+Add admin-managed changelog.
+Table: app_changelog:
+- id uuid primary key default gen_random_uuid()
+- version text not null
+- title text not null
+- body text default ''
+- status text default 'draft'
+- published_at timestamptz nullable
+- created_at timestamptz default now()
+User page:
+/changelog
+Admin can:
+- create/edit/publish changelog
+- link changelog to app update banner
+
+================================================================
+8. USER FEEDBACK / BUG REPORTS
+
+================================================================
+Add user feedback system.
+Route:
+/support
+Table: user_feedback:
+- id uuid primary key default gen_random_uuid()
+- user_id uuid nullable references auth.users(id)
+- category text default 'general'
+  allowed: bug, suggestion, payment, content_error, account, general
+- title text not null
+- message text not null
+- page_url text default ''
+- status text default 'open'
+  allowed: open, in_progress, resolved, closed
+- admin_response text default ''
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Admin Support tab:
+- view feedback
+- filter by category/status
+- respond
+- mark resolved
+- create audit log
+
+================================================================
+9. CONTENT QUALITY CHECKLISTS
+
+================================================================
+Before publishing content, admin UI should show checklist:
+For previous exam task:
+- title filled
+- task type selected
+- prompt filled
+- at least one material or source text
+- answer/model answer optional warning
+- external links valid
+For study material:
+- title filled
+- category selected
+- content filled
+- level selected
+- status valid
+- premium/free selected
+For paywall:
+- at least one active plan
+- CTA label set
+- feature list set
+- payment provider configured or test mode shown
+For notification:
+- title/body filled
+- target selected
+- recipient count previewed
+Admin can still save draft with incomplete content.
+Publishing should warn or block depending on severity.
+
+================================================================
+10. MAINTENANCE MODE
+
+================================================================
+Admin can enable maintenance mode from App Settings.
+Behavior:
+- non-admin users see maintenance screen
+- admins can still access app/admin
+- message editable from admin_config/auth or app_settings
+- emergency disable option in admin
+
+================================================================
+11. RLS / SECURITY
+
+================================================================
+content_versions:
+- admin read
+- admin/system insert
+- owner/admin restore
+- normal users no access
+link_checks:
+- admin read/write
+- normal users no access
+app_error_logs:
+- admin read
+- frontend can insert only safe errors through Edge Function
+- normal users cannot read logs
+user_feedback:
+- users can create feedback
+- users can read own feedback
+- admins/support can read/respond
+app_changelog:
+- published readable by users
+- admin CRUD
+
+================================================================
+12. QA CHECKLIST
+
+================================================================
+Verify:
+- Content workflow statuses work.
+- Content editor cannot publish if role lacks permission.
+- Version history is created before updates.
+- Admin can restore previous version.
+- Broken link checker finds invalid links.
+- App health dashboard loads.
+- OTP/payment/AI errors can be logged safely.
+- Admin can export JSON/CSV.
+- Delete warnings show dependencies.
+- Changelog page works.
+- Users can submit feedback.
+- Admin can respond to feedback.
+- Maintenance mode blocks non-admin users.
+- Admin still accesses app during maintenance.
+- No secrets are logged.
+
+================================================================
+END QUALITY CONTROL, BACKUPS, CONTENT WORKFLOW, AND APP HEALTH
+
+================================================================
+
+================================================================
+FINAL EXPANSION: ADMIN DATA CENTER — EXPORTS, REPORTS, ANALYTICS, DATA ACCESS
+
+================================================================
+Goal:
+Give the owner/admin powerful but safe access to app data, exports, reports,
+analytics, backups, and operational insights from the admin backend.
+Use Supabase/Lovable React + Vite + TypeScript.
+Do not use Firebase.
+Do not expose secrets or unsafe private data.
+
+================================================================
+1. ADMIN DATA CENTER
+
+================================================================
+Add Admin tab:
+"Data Center"
+Purpose:
+Admin can view, filter, export, and analyze app data from one place.
+Sections:
+1. Users
+2. Learning Progress
+3. Attempts & AI Feedback
+4. Vocabulary
+5. Payments & Subscriptions
+6. Content Usage
+7. Notifications
+8. Ads
+9. Errors & Health
+10. Audit Logs
+11. Raw Exports
+12. Scheduled Reports
+
+================================================================
+2. EXPORTABLE DATA TYPES
+
+================================================================
+Admin can export:
+User data:
+- profiles
+- user stats
+- study progress
+- profile preferences
+- onboarding answers
+- saved items
+- notes
+Learning data:
+- attempts
+- AI feedback
+- practice sessions
+- study plan progress
+- vocabulary progress
+- grammar review
+- lesson progress
+- course progress
+- learning path progress
+- XP events
+- daily goals
+Content data:
+- previous exams
+- exam tasks
+- exam materials
+- study materials
+- quizzes
+- courses
+- lessons
+- external resources
+- learning paths
+- banners
+- notifications
+Business data:
+- monetization events
+- user entitlements
+- subscriptions
+- premium users
+- plan selections
+- paywall events
+- ad credit grants
+- usage limits
+Admin/security data:
+- audit logs
+- admin roles
+- permission changes
+- app error logs
+- link checks
+- import jobs
+
+================================================================
+3. EXPORT FORM
+
+================================================================
+Admin Data Center export form must include:
+Fields:
+- data type
+- date range
+- user segment
+- status
+- level
+- premium/free
+- content type
+- format: CSV or JSON
+- include related records toggle
+- anonymize personal data toggle
+- include emails toggle, admin/owner only
+- include private notes toggle, owner only
+- max rows warning
+- reason for export text field
+Before export:
+- show estimated row count if possible
+- show privacy warning
+- require confirmation for sensitive exports
+Export formats:
+- CSV for flat lists
+- JSON for nested/related data
+
+================================================================
+4. EXPORT JOBS TABLE
+
+================================================================
+Create table export_jobs:
+- id uuid primary key default gen_random_uuid()
+- requested_by uuid references auth.users(id)
+- export_type text not null
+- filters_json jsonb default '{}'
+- format text default 'csv'
+  allowed: csv, json
+- status text default 'pending'
+  allowed: pending, running, completed, failed, expired
+- file_url text default ''
+- storage_path text default ''
+- rows_exported integer default 0
+- anonymized boolean default false
+- include_sensitive boolean default false
+- reason text default ''
+- error_message text default ''
+- created_at timestamptz default now()
+- completed_at timestamptz nullable
+- expires_at timestamptz nullable
+
+================================================================
+5. EDGE FUNCTIONS
+
+================================================================
+Create Edge Functions:
+1. create-export-job
+Input:
+- export_type
+- filters_json
+- format
+- anonymized
+- include_sensitive
+- reason
+Logic:
+- require admin permission data.export
+- require owner permission for sensitive exports
+- validate filters
+- create export job
+- generate export or queue if large
+- save file to Supabase Storage admin-exports bucket
+- return job id
+2. get-export-job
+- require admin
+- return job status
+- signed download URL if completed and allowed
+3. generate-report
+- require admin
+- return analytics summary for dashboard
+4. scheduled-report-runner optional/future
+
+================================================================
+6. STORAGE
+
+================================================================
+Create private Supabase Storage bucket:
+admin-exports
+Rules:
+- only admins with data.export permission can create/read signed URLs
+- files expire or are deleted after expires_at
+- never publicly expose export files
+
+================================================================
+7. ADMIN PERMISSIONS
+
+================================================================
+Add permissions:
+- data_center.view
+- data.export
+- data.export_sensitive
+- reports.view
+- analytics.view
+- audit_logs.export
+- user_data.export
+- payment_data.export
+Only owner/admin should have sensitive export permissions by default.
+Finance can export payment data if granted.
+Support should not export sensitive data unless granted.
+
+================================================================
+8. PRIVACY AND SAFETY
+
+================================================================
+Sensitive fields:
+- email
+- private notes
+- support messages
+- payment/customer IDs
+- auth IDs
+- IP/user agent hashes
+- detailed user activity
+By default:
+- anonymize exports unless admin disables it
+- hide sensitive fields unless permission data.export_sensitive is present
+Anonymization:
+- replace email with hashed or masked email
+- remove private notes unless explicitly included
+- remove payment IDs unless payment export requested
+- keep aggregate stats safe
+Every export must create audit_logs entry:
+- who exported
+- what type
+- filters
+- row count
+- anonymized true/false
+- included sensitive true/false
+- reason
+- timestamp
+
+================================================================
+9. REPORTS AND ANALYTICS DASHBOARD
+
+================================================================
+Admin Data Center must show dashboards:
+User analytics:
+- total users
+- new users by day/week/month
+- active users
+- inactive users
+- users by level
+- users by goal
+- profile completion rate
+Learning analytics:
+- total attempts
+- average score
+- average score by level
+- weak criteria distribution
+- vocabulary mastered
+- lessons completed
+- study plan completion rate
+- most used practice type
+- most opened study materials
+Content analytics:
+- most viewed study materials
+- most saved materials
+- most completed lessons
+- most opened previous exams
+- broken/unused content
+- draft content count
+Revenue analytics:
+- free vs premium users
+- active subscriptions
+- conversion rate
+- checkout started/success
+- churn/cancel count
+- plan popularity
+- premium revenue estimate
+Operational analytics:
+- OTP failures
+- AI failures
+- payment webhook failures
+- app errors
+- broken links
+- notification delivery stats
+
+================================================================
+10. DATA TABLE VIEWER
+
+================================================================
+Add safe admin table viewer for common data.
+Admin can view filtered rows from:
+- profiles
+- attempts
+- vocabulary_progress
+- study_materials
+- exam_editions
+- exam_tasks
+- monetization_events
+- audit_logs
+- app_error_logs
+Features:
+- search
+- filters
+- sorting
+- pagination
+- column visibility
+- export current filtered view
+- open related user/content record
+Do not allow raw SQL execution from admin UI.
+Do not expose secret/internal tables.
+
+================================================================
+11. SCHEDULED REPORTS
+
+================================================================
+Add future-ready scheduled reports.
+Table scheduled_reports:
+- id uuid primary key default gen_random_uuid()
+- title text not null
+- report_type text not null
+- recipients text[] default '{}'
+- frequency text default 'weekly'
+  allowed: daily, weekly, monthly
+- filters_json jsonb default '{}'
+- is_active boolean default false
+- created_by uuid
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+Admin can:
+- create scheduled report
+- choose report type
+- choose frequency
+- choose recipients
+- activate/deactivate
+If email sending not configured:
+- show "E-mail de relatórios ainda não configurado"
+- do not crash
+
+================================================================
+12. BACKUP SNAPSHOTS
+
+================================================================
+Add backup snapshot option.
+Admin can create manual snapshot of:
+- app configuration
+- content library
+- previous exams
+- monetization settings
+- navigation/pages/sections
+Table backup_snapshots:
+- id uuid primary key default gen_random_uuid()
+- created_by uuid
+- snapshot_type text not null
+- description text default ''
+- storage_path text default ''
+- status text default 'completed'
+- created_at timestamptz default now()
+Admin can:
+- create snapshot
+- download snapshot
+- restore snapshot only if owner
+- preview restore impact before applying
+Restore requires:
+- owner permission
+- confirmation text:
+  "RESTAURAR"
+
+================================================================
+13. QA CHECKLIST
+
+================================================================
+Verify:
+- Admin Data Center loads.
+- Admin can export non-sensitive CSV.
+- Admin can export JSON.
+- Sensitive export requires permission.
+- Export creates audit log.
+- Export file stored privately.
+- Signed URL works.
+- Users cannot access exports.
+- Reports show user analytics.
+- Reports show learning analytics.
+- Reports show revenue analytics.
+- Table viewer paginates.
+- Table viewer does not allow raw SQL.
+- Scheduled reports can be configured safely.
+- Backup snapshot can be created.
+- Restore requires owner confirmation.
+- No secrets are exported.
+
+================================================================
+END ADMIN DATA CENTER
+
+================================================================
+
+================================================================
+FINAL REMINDER TO GENERATOR
+================================================================
+This is one complete cumulative command. Implement the full app using Supabase/Lovable patterns. Keep all admin-managed content editable from the backend. Keep user data safe with RLS. Keep monetization, OTP, timers, AI, ads, previous exams, study library, profile, notifications, analytics, exports, backups, and role-based admin controls working together without breaking the app.
+================================================================
+END POLISHED FINAL SINGLE COMMAND
+================================================================
