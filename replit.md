@@ -63,7 +63,7 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 - `/users` — Paginated user list, toggle premium, adjust AI credits
 - `/prompts` — Practice prompt management
 - `/grammar` — Grammar topic management
-- `/quiz` — Quiz management
+- `/quiz` — Quiz management (categories + questions + lesson content per category; "Lesson Content" tab with full CRUD)
 - `/exams` — Exam editions
 - `/wotd` — Word-of-day bank
 - `/diagnostic` — Diagnostic questions CRUD
@@ -80,6 +80,12 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 - `/config` — AI system prompts config
 - `/vault` — API key vault (Paddle, OpenAI, Resend, AdMob)
 
+## Admin Content Store (adminStore.ts)
+
+Quiz categories, questions, WOTD, exams, practice prompts, grammar topics, and quiz lesson content are stored as JSON files in `artifacts/api-server/data/`. Key types: `QuizCategory`, `QuizQuestion`, `QuizLesson` (rule + examples + mistake + tip), `WotdEntry`, `ExamEdition`.
+
+Quiz lesson content is served embedded in `GET /api/content/quiz` (each category includes a `lesson` field). Admin manages lessons via `GET/PUT /api/admin/quiz/categories/:id/lesson`.
+
 ## Mobile Screens
 
 - `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner, WOTD, quick actions
@@ -95,6 +101,7 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 - `app/library.tsx` — Study resource library
 - `app/listening.tsx` — Listening comprehension
 - `app/notifications.tsx` — In-app notifications list with read/mark-all
+- `app/grammar.tsx` — Grammar quiz with lesson phase; lesson content fetched from `/api/content/quiz` (`lesson` field per category)
 
 ## Admin Auth
 

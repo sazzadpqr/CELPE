@@ -31,6 +31,8 @@ import type {
   PracticePromptBody,
   QuizCategory,
   QuizCategoryBody,
+  QuizLesson,
+  QuizLessonBody,
   QuizQuestion,
   QuizQuestionBody,
   RequestLog,
@@ -1875,6 +1877,180 @@ export const useDeleteAdminQuizQuestion = <
   TContext
 > => {
   return useMutation(getDeleteAdminQuizQuestionMutationOptions(options));
+};
+
+/**
+ * @summary Get lesson content for a quiz category
+ */
+export const getGetAdminQuizLessonUrl = (id: string) => {
+  return `/api/admin/quiz/categories/${id}/lesson`;
+};
+
+export const getAdminQuizLesson = async (
+  id: string,
+  options?: RequestInit,
+): Promise<QuizLesson> => {
+  return customFetch<QuizLesson>(getGetAdminQuizLessonUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminQuizLessonQueryKey = (id: string) => {
+  return [`/api/admin/quiz/categories/${id}/lesson`] as const;
+};
+
+export const getGetAdminQuizLessonQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminQuizLesson>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminQuizLesson>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminQuizLessonQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminQuizLesson>>
+  > = ({ signal }) => getAdminQuizLesson(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminQuizLesson>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminQuizLessonQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminQuizLesson>>
+>;
+export type GetAdminQuizLessonQueryError = ErrorType<void>;
+
+/**
+ * @summary Get lesson content for a quiz category
+ */
+
+export function useGetAdminQuizLesson<
+  TData = Awaited<ReturnType<typeof getAdminQuizLesson>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminQuizLesson>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminQuizLessonQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create or update lesson content for a quiz category
+ */
+export const getUpsertAdminQuizLessonUrl = (id: string) => {
+  return `/api/admin/quiz/categories/${id}/lesson`;
+};
+
+export const upsertAdminQuizLesson = async (
+  id: string,
+  quizLessonBody: QuizLessonBody,
+  options?: RequestInit,
+): Promise<QuizLesson> => {
+  return customFetch<QuizLesson>(getUpsertAdminQuizLessonUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(quizLessonBody),
+  });
+};
+
+export const getUpsertAdminQuizLessonMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertAdminQuizLesson>>,
+    TError,
+    { id: string; data: BodyType<QuizLessonBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof upsertAdminQuizLesson>>,
+  TError,
+  { id: string; data: BodyType<QuizLessonBody> },
+  TContext
+> => {
+  const mutationKey = ["upsertAdminQuizLesson"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof upsertAdminQuizLesson>>,
+    { id: string; data: BodyType<QuizLessonBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return upsertAdminQuizLesson(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpsertAdminQuizLessonMutationResult = NonNullable<
+  Awaited<ReturnType<typeof upsertAdminQuizLesson>>
+>;
+export type UpsertAdminQuizLessonMutationBody = BodyType<QuizLessonBody>;
+export type UpsertAdminQuizLessonMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create or update lesson content for a quiz category
+ */
+export const useUpsertAdminQuizLesson = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upsertAdminQuizLesson>>,
+    TError,
+    { id: string; data: BodyType<QuizLessonBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof upsertAdminQuizLesson>>,
+  TError,
+  { id: string; data: BodyType<QuizLessonBody> },
+  TContext
+> => {
+  return useMutation(getUpsertAdminQuizLessonMutationOptions(options));
 };
 
 /**

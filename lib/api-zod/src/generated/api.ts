@@ -335,6 +335,75 @@ export const DeleteAdminQuizQuestionParams = zod.object({
 });
 
 /**
+ * @summary Get lesson content for a quiz category
+ */
+export const GetAdminQuizLessonParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetAdminQuizLessonResponse = zod.object({
+  categoryId: zod.string(),
+  rule: zod.string(),
+  examples: zod.array(
+    zod.object({
+      sentence: zod.string(),
+      highlight: zod.string(),
+      note: zod.string(),
+    }),
+  ),
+  mistake: zod.object({
+    wrong: zod.string(),
+    right: zod.string(),
+    reason: zod.string(),
+  }),
+  tip: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Create or update lesson content for a quiz category
+ */
+export const UpsertAdminQuizLessonParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpsertAdminQuizLessonBody = zod.object({
+  rule: zod.string(),
+  examples: zod.array(
+    zod.object({
+      sentence: zod.string(),
+      highlight: zod.string(),
+      note: zod.string(),
+    }),
+  ),
+  mistake: zod.object({
+    wrong: zod.string(),
+    right: zod.string(),
+    reason: zod.string(),
+  }),
+  tip: zod.string(),
+});
+
+export const UpsertAdminQuizLessonResponse = zod.object({
+  categoryId: zod.string(),
+  rule: zod.string(),
+  examples: zod.array(
+    zod.object({
+      sentence: zod.string(),
+      highlight: zod.string(),
+      note: zod.string(),
+    }),
+  ),
+  mistake: zod.object({
+    wrong: zod.string(),
+    right: zod.string(),
+    reason: zod.string(),
+  }),
+  tip: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
  * @summary List exam editions
  */
 export const ListAdminExamsResponseItem = zod.object({

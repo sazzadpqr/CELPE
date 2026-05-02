@@ -194,6 +194,34 @@ export interface WotdEntryBody {
   active: boolean;
 }
 
+export interface LessonExample {
+  sentence: string;
+  highlight: string;
+  note: string;
+}
+
+export interface LessonMistake {
+  wrong: string;
+  right: string;
+  reason: string;
+}
+
+export interface QuizLesson {
+  categoryId: string;
+  rule: string;
+  examples: LessonExample[];
+  mistake: LessonMistake;
+  tip: string;
+  updatedAt: string;
+}
+
+export interface QuizLessonBody {
+  rule: string;
+  examples: LessonExample[];
+  mistake: LessonMistake;
+  tip: string;
+}
+
 export type ListAdminQuizQuestionsParams = {
   categoryId?: string;
 };

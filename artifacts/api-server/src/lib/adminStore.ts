@@ -405,3 +405,85 @@ export function getWotdEntries(): WotdEntry[] {
   return readJson<WotdEntry[]>("wotd.json", DEFAULT_WOTD);
 }
 export function saveWotdEntries(entries: WotdEntry[]) { writeJson("wotd.json", entries); }
+
+// ─── Quiz Lesson Content ───────────────────────────────────────────────────────
+
+export type LessonExample = { sentence: string; highlight: string; note: string };
+export type LessonMistake = { wrong: string; right: string; reason: string };
+
+export type QuizLesson = {
+  categoryId: string;
+  rule: string;
+  examples: LessonExample[];
+  mistake: LessonMistake;
+  tip: string;
+  updatedAt: string;
+};
+
+const DEFAULT_QUIZ_LESSONS: QuizLesson[] = [
+  {
+    categoryId: "subjuntivo",
+    rule: "O subjuntivo expressa dúvida, desejo, hipótese ou sentimento. Aparece após verbos como querer, esperar, duvidar, temer + 'que'; expressões impessoais (é importante que, é necessário que); conjunções como embora, caso, quando (futuro), se (hipótese irreal).",
+    examples: [
+      { sentence: "Espero que ele venha amanhã.", highlight: "venha", note: "Presente do subjuntivo após 'esperar que'" },
+      { sentence: "Se eu fosse rico, viajaria pelo mundo.", highlight: "fosse", note: "Imperfeito do subj. em hipótese contrária à realidade" },
+      { sentence: "Quando você chegar, me avise.", highlight: "chegar", note: "Futuro do subj. com 'quando' referindo ao futuro" },
+    ],
+    mistake: { wrong: "Espero que ele vem amanhã.", right: "Espero que ele venha amanhã.", reason: "Após verbos de desejo + 'que', sempre subjuntivo." },
+    tip: "💡 Gatilho: verbo de desejo/dúvida/sentimento + 'que' → subjuntivo. 'Quando' + futuro → futuro do subjuntivo.",
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    categoryId: "concordancia",
+    rule: "O verbo concorda com o sujeito em número e pessoa. Atenção: 'haver' no sentido de existir é impessoal (singular); 'fazer' indicando tempo também. Expressões partitivas (a maioria de, parte de) admitem concordância com o núcleo ou com o complemento.",
+    examples: [
+      { sentence: "Havia muitas pessoas na festa.", highlight: "Havia", note: "Haver impessoal = sempre singular" },
+      { sentence: "A maioria dos alunos foi aprovada.", highlight: "foi", note: "Partitiva: concorda com 'maioria' (sing.) ou 'alunos' (pl.)" },
+      { sentence: "Pedro e Maria chegaram cedo.", highlight: "chegaram", note: "Sujeito composto = plural" },
+    ],
+    mistake: { wrong: "Haviam muitas pessoas aqui.", right: "Havia muitas pessoas aqui.", reason: "'Haver' como existir é sempre impessoal — singular." },
+    tip: "💡 Teste: 'ter' e 'haver' com sentido de existir = singular. 'Fazer' no sentido de tempo = singular.",
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    categoryId: "preposicoes",
+    rule: "Regência verbal: cada verbo exige uma preposição específica. Crase (à): fusão de preposição 'a' + artigo 'a' (feminino). Não há crase antes de pronomes, verbos, palavras masculinas ou nomes de cidades sem artigo.",
+    examples: [
+      { sentence: "Aspiro à vida tranquila.", highlight: "à", note: "Aspirar (desejar) + 'a' + fem. = crase" },
+      { sentence: "Vou a São Paulo amanhã.", highlight: "a", note: "Cidade sem artigo = sem crase" },
+      { sentence: "Lembrei-me da viagem.", highlight: "da", note: "Lembrar-se de + 'a' → contração 'da'" },
+    ],
+    mistake: { wrong: "Vou à São Paulo amanhã.", right: "Vou a São Paulo amanhã.", reason: "Nomes de cidades sem artigo não admitem crase." },
+    tip: "💡 Teste da crase: substitua por palavra masculina. Se usar 'ao' → há crase. Se usar 'a' → sem crase.",
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    categoryId: "pronomes",
+    rule: "Próclise (pronome antes): após negação, conjunção subordinativa, pronome relativo. Ênclise (pronome depois com hífen): início de oração, após vírgula, com imperativo afirmativo. Mesóclise (intercalado): futuro do presente e futuro do pretérito.",
+    examples: [
+      { sentence: "Não me diga isso.", highlight: "me", note: "Próclise obrigatória após negação" },
+      { sentence: "Diga-me a verdade.", highlight: "-me", note: "Ênclise com imperativo afirmativo" },
+      { sentence: "Dir-lhe-ei a resposta amanhã.", highlight: "-lhe-", note: "Mesóclise no futuro do presente" },
+    ],
+    mistake: { wrong: "Me ligue quando chegar.", right: "Ligue-me quando chegar.", reason: "Em início de oração, o pronome átono não pode aparecer antes do verbo (norma culta)." },
+    tip: "💡 Início de frase = nunca pronome átono antes do verbo em português formal. 'Me ligue' é coloquial.",
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    categoryId: "ortografia",
+    rule: "Acordo Ortográfico de 2009: eliminou o trema em palavras nativas; suprimiu acentos diferenciais em palavras como 'para', 'pelo', 'polo'; aboliu o hífen em compostos com prefixos terminados em vogal + base começada em vogal diferente.",
+    examples: [
+      { sentence: "ideia, assembleia, europeu", highlight: "ideia", note: "Ditongos abertos não recebem mais acento" },
+      { sentence: "autoescola, contraindicado", highlight: "autoescola", note: "Prefixo + vogal diferente = sem hífen" },
+      { sentence: "frequente, tranquilo, linguiça", highlight: "frequente", note: "Trema eliminado em palavras nativas" },
+    ],
+    mistake: { wrong: "idéia, heróico, tranqüilo", right: "ideia, heroico, tranquilo", reason: "O Acordo Ortográfico de 2009 eliminou esses acentos e o trema." },
+    tip: "💡 Trema só sobrou em nomes estrangeiros: Müller, Büchs. Em português nativo: sem trema.",
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+export function getQuizLessons(): QuizLesson[] {
+  return readJson<QuizLesson[]>("quiz-lessons.json", DEFAULT_QUIZ_LESSONS);
+}
+export function saveQuizLessons(lessons: QuizLesson[]) { writeJson("quiz-lessons.json", lessons); }

@@ -441,6 +441,54 @@ paths:
         "204":
           description: Deleted
 
+  /admin/quiz/categories/{id}/lesson:
+    get:
+      operationId: getAdminQuizLesson
+      tags: [admin]
+      summary: Get lesson content for a quiz category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lesson content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizLesson"
+        "404":
+          description: No lesson found
+    put:
+      operationId: upsertAdminQuizLesson
+      tags: [admin]
+      summary: Create or update lesson content for a quiz category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizLessonBody"
+      responses:
+        "200":
+          description: Saved lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizLesson"
+
   /admin/exams:
     get:
       operationId: listAdminExams
@@ -1172,3 +1220,75 @@ components:
         - definition
         - example
         - active
+
+    LessonExample:
+      type: object
+      properties:
+        sentence:
+          type: string
+        highlight:
+          type: string
+        note:
+          type: string
+      required:
+        - sentence
+        - highlight
+        - note
+
+    LessonMistake:
+      type: object
+      properties:
+        wrong:
+          type: string
+        right:
+          type: string
+        reason:
+          type: string
+      required:
+        - wrong
+        - right
+        - reason
+
+    QuizLesson:
+      type: object
+      properties:
+        categoryId:
+          type: string
+        rule:
+          type: string
+        examples:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonExample"
+        mistake:
+          $ref: "#/components/schemas/LessonMistake"
+        tip:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - categoryId
+        - rule
+        - examples
+        - mistake
+        - tip
+        - updatedAt
+
+    QuizLessonBody:
+      type: object
+      properties:
+        rule:
+          type: string
+        examples:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonExample"
+        mistake:
+          $ref: "#/components/schemas/LessonMistake"
+        tip:
+          type: string
+      required:
+        - rule
+        - examples
+        - mistake
+        - tip

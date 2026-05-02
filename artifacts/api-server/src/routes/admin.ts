@@ -17,6 +17,8 @@ import {
   saveQuizCategories,
   getQuizQuestions,
   saveQuizQuestions,
+  getQuizLessons,
+  saveQuizLessons,
   getExams,
   saveExams,
   getWotdEntries,
@@ -25,6 +27,9 @@ import {
   type GrammarTopic,
   type QuizCategory,
   type QuizQuestion,
+  type QuizLesson,
+  type LessonExample,
+  type LessonMistake,
   type ExamEdition,
   type ExamTask,
   type WotdEntry,
@@ -408,6 +413,39 @@ router.delete("/admin/quiz/questions/:id", (req, res) => {
   if (filtered.length === qs.length) { res.status(404).json({ error: "Not found" }); return; }
   saveQuizQuestions(filtered);
   res.status(204).send();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUIZ LESSON CONTENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+router.get("/admin/quiz/categories/:id/lesson", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const lessons = getQuizLessons();
+  const lesson = lessons.find((l) => l.categoryId === id);
+  if (!lesson) { res.status(404).json({ error: "No lesson for this category" }); return; }
+  res.json(lesson);
+});
+
+router.put("/admin/quiz/categories/:id/lesson", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const body = req.body as { rule?: string; examples?: LessonExample[]; mistake?: LessonMistake; tip?: string };
+  const lessons = getQuizLessons();
+  const idx = lessons.findIndex((l) => l.categoryId === id);
+  const existing = idx !== -1 ? lessons[idx]! : { categoryId: id, rule: "", examples: [], mistake: { wrong: "", right: "", reason: "" }, tip: "", updatedAt: "" };
+  const updated: QuizLesson = {
+    categoryId: id,
+    rule: body.rule ?? existing.rule,
+    examples: Array.isArray(body.examples) ? body.examples : existing.examples,
+    mistake: body.mistake ?? existing.mistake,
+    tip: body.tip ?? existing.tip,
+    updatedAt: new Date().toISOString(),
+  };
+  if (idx === -1) { lessons.push(updated); } else { lessons[idx] = updated; }
+  saveQuizLessons(lessons);
+  res.json(updated);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

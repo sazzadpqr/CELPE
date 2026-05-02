@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getQuizCategories,
   getQuizQuestions,
+  getQuizLessons,
   getExams,
   getWotdEntries,
 } from "../lib/adminStore.js";
@@ -12,11 +13,13 @@ const router = Router();
 router.get("/content/quiz", (_req, res) => {
   const categories = getQuizCategories().filter((c) => c.active);
   const questions = getQuizQuestions();
+  const lessons = getQuizLessons();
   const result = categories.map((cat) => ({
     ...cat,
     questions: questions
       .filter((q) => q.categoryId === cat.id)
       .sort((a, b) => a.order - b.order),
+    lesson: lessons.find((l) => l.categoryId === cat.id) ?? null,
   }));
   res.json(result);
 });
