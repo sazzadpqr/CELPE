@@ -81,6 +81,73 @@ export const lessons = pgTable("lessons", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const oralTasks = pgTable("oral_tasks", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  instructions: jsonb("instructions").$type<string[]>().notNull().default([]),
+  durationSeconds: integer("duration_seconds").notNull().default(300),
+  icon: text("icon").notNull().default("mic"),
+  color: text("color").notNull().default("#185FA5"),
+  order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const pronunciationCategories = pgTable("pronunciation_categories", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  icon: text("icon").notNull().default("volume-2"),
+  color: text("color").notNull().default("#185FA5"),
+  order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const pronunciationWords = pgTable("pronunciation_words", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  categoryId: text("category_id").notNull().references(() => pronunciationCategories.id, { onDelete: "cascade" }),
+  word: text("word").notNull(),
+  ipa: text("ipa").notNull().default(""),
+  tip: text("tip").notNull().default(""),
+  example: text("example").notNull().default(""),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const listeningResources = pgTable("listening_resources", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  source: text("source").notNull().default(""),
+  description: text("description").notNull().default(""),
+  url: text("url").notNull().default(""),
+  icon: text("icon").notNull().default("headphones"),
+  color: text("color").notNull().default("#185FA5"),
+  type: text("type").notNull().default("podcast"),
+  order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const listeningTips = pgTable("listening_tips", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  text: text("text").notNull(),
+  order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const conversationScenarios = pgTable("conversation_scenarios", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  label: text("label").notNull(),
+  icon: text("icon").notNull().default("message-circle"),
+  color: text("color").notNull().default("#185FA5"),
+  systemPrompt: text("system_prompt").notNull().default(""),
+  order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const lessonProgress = pgTable("lesson_progress", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   lessonId: text("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),

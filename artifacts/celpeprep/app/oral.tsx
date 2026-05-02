@@ -9,7 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
@@ -20,11 +20,11 @@ type OralTask = {
   description: string;
   instructions: string[];
   durationSeconds: number;
-  icon: keyof typeof Feather.glyphMap;
+  icon: string;
   color: string;
 };
 
-const ORAL_TASKS: OralTask[] = [
+const FALLBACK_TASKS: OralTask[] = [
   {
     id: "oral1",
     title: "Tarefa Oral 1 — Narrativa",
@@ -87,6 +87,11 @@ const ORAL_TASKS: OralTask[] = [
   },
 ];
 
+function getApiUrl(path: string) {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}${path}` : path;
+}
+
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -102,12 +107,22 @@ export default function OralSimulatorScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
+  const [tasks, setTasks] = useState<OralTask[]>(FALLBACK_TASKS);
+  const [loadingTasks, setLoadingTasks] = useState(true);
   const [phase, setPhase] = useState<"select" | "prep" | "recording" | "done">("select");
   const [selectedTask, setSelectedTask] = useState<OralTask | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [prepRemaining, setPrepRemaining] = useState(60);
   const startedAt = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/oral-tasks"))
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data && data.length > 0) setTasks(data); })
+      .catch(() => {})
+      .finally(() => setLoadingTasks(false));
+  }, []);
 
   const clearTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -168,12 +183,9 @@ export default function OralSimulatorScreen() {
 
   useEffect(() => () => clearTimer(), []);
 
-  const pct = selectedTask
-    ? 1 - remaining / selectedTask.durationSeconds
-    : 0;
+  const pct = selectedTask ? 1 - remaining / selectedTask.durationSeconds : 0;
   const isWarning = remaining > 0 && remaining <= 60;
 
-  // SELECT PHASE
   if (phase === "select") {
     return (
       <ScrollView
@@ -196,40 +208,47 @@ export default function OralSimulatorScreen() {
           </Text>
         </View>
 
-        {ORAL_TASKS.map((task) => (
-          <Pressable
-            key={task.id}
-            onPress={() => startPrep(task)}
-            style={({ pressed }) => [
-              styles.taskCard,
-              { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
-            ]}
-          >
-            <View style={[styles.taskIcon, { backgroundColor: task.color + "18" }]}>
-              <Feather name={task.icon} size={22} color={task.color} />
-            </View>
-            <View style={styles.taskMeta}>
-              <Text style={[styles.taskTitle, { color: colors.text }]}>{task.title}</Text>
-              <Text style={[styles.taskDesc, { color: colors.mutedForeground }]}>{task.description}</Text>
-              <View style={styles.taskBadges}>
-                <View style={[styles.badge, { backgroundColor: colors.muted }]}>
-                  <Feather name="clock" size={10} color={colors.mutedForeground} />
-                  <Text style={[styles.badgeText, { color: colors.mutedForeground }]}>1 min prep</Text>
-                </View>
-                <View style={[styles.badge, { backgroundColor: colors.muted }]}>
-                  <Feather name="mic" size={10} color={colors.mutedForeground} />
-                  <Text style={[styles.badgeText, { color: colors.mutedForeground }]}>5 min resposta</Text>
+        {loadingTasks ? (
+          <View style={{ alignItems: "center", paddingVertical: 32 }}>
+            <ActivityIndicator size="small" color={colors.primary} />
+          </View>
+        ) : (
+          tasks.map((task) => (
+            <Pressable
+              key={task.id}
+              onPress={() => startPrep(task)}
+              style={({ pressed }) => [
+                styles.taskCard,
+                { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
+              ]}
+            >
+              <View style={[styles.taskIcon, { backgroundColor: task.color + "18" }]}>
+                <Feather name={task.icon as any} size={22} color={task.color} />
+              </View>
+              <View style={styles.taskMeta}>
+                <Text style={[styles.taskTitle, { color: colors.text }]}>{task.title}</Text>
+                <Text style={[styles.taskDesc, { color: colors.mutedForeground }]}>{task.description}</Text>
+                <View style={styles.taskBadges}>
+                  <View style={[styles.badge, { backgroundColor: colors.muted }]}>
+                    <Feather name="clock" size={10} color={colors.mutedForeground} />
+                    <Text style={[styles.badgeText, { color: colors.mutedForeground }]}>1 min prep</Text>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: colors.muted }]}>
+                    <Feather name="mic" size={10} color={colors.mutedForeground} />
+                    <Text style={[styles.badgeText, { color: colors.mutedForeground }]}>
+                      {Math.floor(task.durationSeconds / 60)} min resposta
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-          </Pressable>
-        ))}
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+            </Pressable>
+          ))
+        )}
       </ScrollView>
     );
   }
 
-  // PREP PHASE
   if (phase === "prep" && selectedTask) {
     return (
       <ScrollView
@@ -260,10 +279,7 @@ export default function OralSimulatorScreen() {
           ))}
         </View>
 
-        <Pressable
-          style={[styles.primaryBtn, { backgroundColor: selectedTask.color }]}
-          onPress={skipPrep}
-        >
+        <Pressable style={[styles.primaryBtn, { backgroundColor: selectedTask.color }]} onPress={skipPrep}>
           <Feather name="mic" size={18} color="#fff" />
           <Text style={styles.primaryBtnText}>Começar Agora</Text>
         </Pressable>
@@ -271,23 +287,17 @@ export default function OralSimulatorScreen() {
     );
   }
 
-  // RECORDING PHASE
   if (phase === "recording" && selectedTask) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <View style={[styles.recordingContent, { paddingTop: topPad + 24 }]}>
-          {/* Timer */}
-          <View style={[
-            styles.timerRing,
-            { borderColor: isWarning ? colors.destructive : selectedTask.color },
-          ]}>
+          <View style={[styles.timerRing, { borderColor: isWarning ? colors.destructive : selectedTask.color }]}>
             <Text style={[styles.timerText, { color: isWarning ? colors.destructive : selectedTask.color }]}>
               {formatTime(remaining)}
             </Text>
             <Text style={[styles.timerLabel, { color: colors.mutedForeground }]}>restante</Text>
           </View>
 
-          {/* Pulse */}
           <View style={[styles.recordingIndicator, { backgroundColor: "#D85A30" + "20" }]}>
             <View style={[styles.recordingDot, { backgroundColor: "#D85A30" }]} />
             <Text style={[styles.recordingLabel, { color: "#D85A30" }]}>GRAVANDO</Text>
@@ -301,16 +311,11 @@ export default function OralSimulatorScreen() {
           {isWarning && (
             <View style={[styles.warningBanner, { backgroundColor: colors.destructive + "15" }]}>
               <Feather name="alert-triangle" size={14} color={colors.destructive} />
-              <Text style={[styles.warningText, { color: colors.destructive }]}>
-                Menos de 1 minuto restante!
-              </Text>
+              <Text style={[styles.warningText, { color: colors.destructive }]}>Menos de 1 minuto restante!</Text>
             </View>
           )}
 
-          <Pressable
-            style={[styles.stopBtn, { borderColor: "#D85A30" }]}
-            onPress={stopRecording}
-          >
+          <Pressable style={[styles.stopBtn, { borderColor: "#D85A30" }]} onPress={stopRecording}>
             <Feather name="square" size={18} color="#D85A30" />
             <Text style={[styles.stopBtnText, { color: "#D85A30" }]}>Encerrar</Text>
           </Pressable>
@@ -319,7 +324,6 @@ export default function OralSimulatorScreen() {
     );
   }
 
-  // DONE PHASE
   if (phase === "done" && selectedTask) {
     return (
       <ScrollView
@@ -331,9 +335,7 @@ export default function OralSimulatorScreen() {
           <Feather name="check" size={40} color={colors.success} />
         </View>
         <Text style={[styles.doneTitle, { color: colors.text }]}>Prática Concluída!</Text>
-        <Text style={[styles.doneSubtitle, { color: colors.mutedForeground }]}>
-          {selectedTask.title}
-        </Text>
+        <Text style={[styles.doneSubtitle, { color: colors.mutedForeground }]}>{selectedTask.title}</Text>
 
         <View style={[styles.doneCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.doneTip, { color: colors.text }]}>
@@ -342,17 +344,11 @@ export default function OralSimulatorScreen() {
         </View>
 
         <View style={styles.doneActions}>
-          <Pressable
-            style={[styles.outlineBtn, { borderColor: selectedTask.color }]}
-            onPress={() => startPrep(selectedTask)}
-          >
+          <Pressable style={[styles.outlineBtn, { borderColor: selectedTask.color }]} onPress={() => startPrep(selectedTask)}>
             <Feather name="refresh-cw" size={15} color={selectedTask.color} />
             <Text style={[styles.outlineBtnText, { color: selectedTask.color }]}>Repetir tarefa</Text>
           </Pressable>
-          <Pressable
-            style={[styles.primaryBtn, { backgroundColor: selectedTask.color }]}
-            onPress={reset}
-          >
+          <Pressable style={[styles.primaryBtn, { backgroundColor: selectedTask.color }]} onPress={reset}>
             <Text style={styles.primaryBtnText}>Outras tarefas</Text>
           </Pressable>
         </View>

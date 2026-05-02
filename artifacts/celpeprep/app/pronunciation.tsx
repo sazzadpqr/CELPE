@@ -2,8 +2,9 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -14,33 +15,34 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 
-type Category = {
-  id: string;
-  title: string;
-  icon: keyof typeof Feather.glyphMap;
-  color: string;
-  words: WordEntry[];
-};
-
 type WordEntry = {
+  id: string;
   word: string;
   ipa: string;
   tip: string;
   example: string;
 };
 
-const CATEGORIES: Category[] = [
+type Category = {
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  words: WordEntry[];
+};
+
+const FALLBACK_CATEGORIES: Category[] = [
   {
     id: "nasais",
     title: "Vogais Nasais",
     icon: "wind",
     color: "#185FA5",
     words: [
-      { word: "irmã", ipa: "/iɾˈmɐ̃/", tip: "O til nasaliza a vogal. Não pronuncie o 'n'.", example: "Minha irmã mora em São Paulo." },
-      { word: "pão", ipa: "/ˈpɐ̃w/", tip: "Ditongo nasal -ão: soa como 'oun' em português.", example: "Eu gosto de pão de queijo." },
-      { word: "campo", ipa: "/ˈkɐ̃pu/", tip: "O 'am' antes de consoante é vogal nasal.", example: "O campo está verde hoje." },
-      { word: "mente", ipa: "/ˈmẽtʃi/", tip: "-ente: 'e' nasal + 'tchi' no final (Brasil).", example: "Ela é muito inteligente." },
-      { word: "limão", ipa: "/liˈmɐ̃w/", tip: "Ditongo -ão no final: sons nasalizados.", example: "Quero suco de limão." },
+      { id: "w1", word: "irmã", ipa: "/iɾˈmɐ̃/", tip: "O til nasaliza a vogal. Não pronuncie o 'n'.", example: "Minha irmã mora em São Paulo." },
+      { id: "w2", word: "pão", ipa: "/ˈpɐ̃w/", tip: "Ditongo nasal -ão: soa como 'oun' em português.", example: "Eu gosto de pão de queijo." },
+      { id: "w3", word: "campo", ipa: "/ˈkɐ̃pu/", tip: "O 'am' antes de consoante é vogal nasal.", example: "O campo está verde hoje." },
+      { id: "w4", word: "mente", ipa: "/ˈmẽtʃi/", tip: "-ente: 'e' nasal + 'tchi' no final (Brasil).", example: "Ela é muito inteligente." },
+      { id: "w5", word: "limão", ipa: "/liˈmɐ̃w/", tip: "Ditongo -ão no final: sons nasalizados.", example: "Quero suco de limão." },
     ],
   },
   {
@@ -49,11 +51,11 @@ const CATEGORIES: Category[] = [
     icon: "zap",
     color: "#1D9E75",
     words: [
-      { word: "casa", ipa: "/ˈkazɐ/", tip: "S entre vogais soa como Z em PT-BR.", example: "A casa é bonita." },
-      { word: "mesa", ipa: "/ˈmezɐ/", tip: "Mesmo que 'casa': S intervocálico = /z/.", example: "Coloque na mesa, por favor." },
-      { word: "fase", ipa: "/ˈfazɪ/", tip: "S depois de vogal = /z/ sonoro.", example: "Estamos na fase final." },
-      { word: "passe", ipa: "/ˈpasɪ/", tip: "SS entre vogais = /s/ surdo.", example: "Me dê um passe de ônibus." },
-      { word: "zero", ipa: "/ˈzeɾu/", tip: "Z inicial = /z/ sonoro, como em 'zebra'.", example: "O resultado foi zero a zero." },
+      { id: "w6", word: "casa", ipa: "/ˈkazɐ/", tip: "S entre vogais soa como Z em PT-BR.", example: "A casa é bonita." },
+      { id: "w7", word: "mesa", ipa: "/ˈmezɐ/", tip: "Mesmo que 'casa': S intervocálico = /z/.", example: "Coloque na mesa, por favor." },
+      { id: "w8", word: "fase", ipa: "/ˈfazɪ/", tip: "S depois de vogal = /z/ sonoro.", example: "Estamos na fase final." },
+      { id: "w9", word: "passe", ipa: "/ˈpasɪ/", tip: "SS entre vogais = /s/ surdo.", example: "Me dê um passe de ônibus." },
+      { id: "w10", word: "zero", ipa: "/ˈzeɾu/", tip: "Z inicial = /z/ sonoro, como em 'zebra'.", example: "O resultado foi zero a zero." },
     ],
   },
   {
@@ -62,11 +64,11 @@ const CATEGORIES: Category[] = [
     icon: "radio",
     color: "#6B21A8",
     words: [
-      { word: "rato", ipa: "/ˈhatu/", tip: "R no início = /h/ fricativo velar (como 'h' em ingl.).", example: "O rato comeu o queijo." },
-      { word: "caro", ipa: "/ˈkaɾu/", tip: "R entre vogais = /ɾ/ tap (vibração única, suave).", example: "Este carro é caro." },
-      { word: "carro", ipa: "/ˈkaʁu/", tip: "RR = /h/ fricativo, igual ao R inicial.", example: "O carro está na garagem." },
-      { word: "porta", ipa: "/ˈpɔʁtɐ/", tip: "R antes de consoante = /h/ ou /ʁ/ dependendo do dialeto.", example: "Abra a porta, por favor." },
-      { word: "mar", ipa: "/ˈmaʁ/", tip: "R no final = apagado ou /ʁ/ fraco no Brasil.", example: "O mar está calmo hoje." },
+      { id: "w11", word: "rato", ipa: "/ˈhatu/", tip: "R no início = /h/ fricativo velar (como 'h' em ingl.).", example: "O rato comeu o queijo." },
+      { id: "w12", word: "caro", ipa: "/ˈkaɾu/", tip: "R entre vogais = /ɾ/ tap (vibração única, suave).", example: "Este carro é caro." },
+      { id: "w13", word: "carro", ipa: "/ˈkaʁu/", tip: "RR = /h/ fricativo, igual ao R inicial.", example: "O carro está na garagem." },
+      { id: "w14", word: "porta", ipa: "/ˈpɔʁtɐ/", tip: "R antes de consoante = /h/ ou /ʁ/ dependendo do dialeto.", example: "Abra a porta, por favor." },
+      { id: "w15", word: "mar", ipa: "/ˈmaʁ/", tip: "R no final = apagado ou /ʁ/ fraco no Brasil.", example: "O mar está calmo hoje." },
     ],
   },
   {
@@ -75,11 +77,11 @@ const CATEGORIES: Category[] = [
     icon: "feather",
     color: "#BA7517",
     words: [
-      { word: "filha", ipa: "/ˈfiʎɐ/", tip: "LH = /ʎ/ palatal lateral. Como 'gli' em italiano.", example: "Minha filha estuda muito." },
-      { word: "folha", ipa: "/ˈfoʎɐ/", tip: "LH nunca é /lh/ separados. Sempre um som só.", example: "A folha caiu da árvore." },
-      { word: "vinha", ipa: "/ˈviɲɐ/", tip: "NH = /ɲ/ nasal palatal. Como 'gn' em francês.", example: "Ela vinha todo dia." },
-      { word: "sonho", ipa: "/ˈsoɲu/", tip: "NH soa como o 'nh' em 'manhã'.", example: "Tive um sonho estranho." },
-      { word: "julho", ipa: "/ˈʒuʎu/", tip: "Julho: J=/ʒ/ + LH=/ʎ/.", example: "Julho é um mês de festa." },
+      { id: "w16", word: "filha", ipa: "/ˈfiʎɐ/", tip: "LH = /ʎ/ palatal lateral. Como 'gli' em italiano.", example: "Minha filha estuda muito." },
+      { id: "w17", word: "folha", ipa: "/ˈfoʎɐ/", tip: "LH nunca é /lh/ separados. Sempre um som só.", example: "A folha caiu da árvore." },
+      { id: "w18", word: "vinha", ipa: "/ˈviɲɐ/", tip: "NH = /ɲ/ nasal palatal. Como 'gn' em francês.", example: "Ela vinha todo dia." },
+      { id: "w19", word: "sonho", ipa: "/ˈsoɲu/", tip: "NH soa como o 'nh' em 'manhã'.", example: "Tive um sonho estranho." },
+      { id: "w20", word: "julho", ipa: "/ˈʒuʎu/", tip: "Julho: J=/ʒ/ + LH=/ʎ/.", example: "Julho é um mês de festa." },
     ],
   },
   {
@@ -88,24 +90,39 @@ const CATEGORIES: Category[] = [
     icon: "corner-down-right",
     color: "#D85A30",
     words: [
-      { word: "fácil", ipa: "/ˈfasil/", tip: "-il no final é pronunciado /il/ ou /iw/ no Sul.", example: "O exercício é fácil." },
-      { word: "ótimo", ipa: "/ˈotimu/", tip: "Palavras proparoxítonas: acento na antepenúltima.", example: "O resultado foi ótimo!" },
-      { word: "também", ipa: "/tɐ̃ˈbẽ/", tip: "-ém final: ditongo nasal.", example: "Eu também quero ir." },
-      { word: "estudante", ipa: "/estuˈdɐ̃tʃɪ/", tip: "-te no final = /tʃɪ/ em PT-BR.", example: "Sou estudante de português." },
-      { word: "grande", ipa: "/ˈɡɾɐ̃dʒɪ/", tip: "-de no final = /dʒɪ/ em PT-BR.", example: "São Paulo é uma cidade grande." },
+      { id: "w21", word: "fácil", ipa: "/ˈfasil/", tip: "-il no final é pronunciado /il/ ou /iw/ no Sul.", example: "O exercício é fácil." },
+      { id: "w22", word: "ótimo", ipa: "/ˈotimu/", tip: "Palavras proparoxítonas: acento na antepenúltima.", example: "O resultado foi ótimo!" },
+      { id: "w23", word: "também", ipa: "/tɐ̃ˈbẽ/", tip: "-ém final: ditongo nasal.", example: "Eu também quero ir." },
+      { id: "w24", word: "estudante", ipa: "/estuˈdɐ̃tʃɪ/", tip: "-te no final = /tʃɪ/ em PT-BR.", example: "Sou estudante de português." },
+      { id: "w25", word: "grande", ipa: "/ˈɡɾɐ̃dʒɪ/", tip: "-de no final = /dʒɪ/ em PT-BR.", example: "São Paulo é uma cidade grande." },
     ],
   },
 ];
+
+function getApiUrl(path: string) {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}${path}` : path;
+}
 
 export default function PronunciationScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
+  const [categories, setCategories] = useState<Category[]>(FALLBACK_CATEGORIES);
+  const [loadingCats, setLoadingCats] = useState(true);
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [speaking, setSpeaking] = useState(false);
   const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/pronunciation"))
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data && data.length > 0) setCategories(data); })
+      .catch(() => {})
+      .finally(() => setLoadingCats(false));
+  }, []);
 
   const speak = async (text: string) => {
     if (speaking) { Speech.stop(); setSpeaking(false); return; }
@@ -136,7 +153,6 @@ export default function PronunciationScreen() {
     }
   };
 
-  // Category list
   if (!selectedCat) {
     return (
       <ScrollView
@@ -159,25 +175,31 @@ export default function PronunciationScreen() {
           </Text>
         </View>
 
-        {CATEGORIES.map((cat) => (
-          <Pressable
-            key={cat.id}
-            onPress={() => selectCat(cat)}
-            style={({ pressed }) => [
-              styles.catCard,
-              { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
-            ]}
-          >
-            <View style={[styles.catIcon, { backgroundColor: cat.color + "18" }]}>
-              <Feather name={cat.icon} size={22} color={cat.color} />
-            </View>
-            <View style={styles.catMeta}>
-              <Text style={[styles.catTitle, { color: colors.text }]}>{cat.title}</Text>
-              <Text style={[styles.catCount, { color: colors.mutedForeground }]}>{cat.words.length} palavras</Text>
-            </View>
-            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-          </Pressable>
-        ))}
+        {loadingCats ? (
+          <View style={{ alignItems: "center", paddingVertical: 32 }}>
+            <ActivityIndicator size="small" color={colors.primary} />
+          </View>
+        ) : (
+          categories.map((cat) => (
+            <Pressable
+              key={cat.id}
+              onPress={() => selectCat(cat)}
+              style={({ pressed }) => [
+                styles.catCard,
+                { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
+              ]}
+            >
+              <View style={[styles.catIcon, { backgroundColor: cat.color + "18" }]}>
+                <Feather name={cat.icon as any} size={22} color={cat.color} />
+              </View>
+              <View style={styles.catMeta}>
+                <Text style={[styles.catTitle, { color: colors.text }]}>{cat.title}</Text>
+                <Text style={[styles.catCount, { color: colors.mutedForeground }]}>{cat.words.length} palavras</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+            </Pressable>
+          ))
+        )}
       </ScrollView>
     );
   }
@@ -205,7 +227,6 @@ export default function PronunciationScreen() {
         <View style={[styles.progressFill, { width: `${progress * 100}%` as any, backgroundColor: selectedCat.color }]} />
       </View>
 
-      {/* Word Card */}
       <View style={[styles.wordCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Text style={[styles.wordText, { color: colors.text }]}>{word.word}</Text>
         <Text style={[styles.ipaText, { color: colors.mutedForeground }]}>{word.ipa}</Text>
@@ -229,7 +250,6 @@ export default function PronunciationScreen() {
         </Pressable>
       </View>
 
-      {/* Tip and Example */}
       <Pressable
         onPress={() => setRevealed(true)}
         style={[
@@ -256,10 +276,7 @@ export default function PronunciationScreen() {
         )}
       </Pressable>
 
-      <Pressable
-        style={[styles.nextBtn, { backgroundColor: selectedCat.color }]}
-        onPress={nextWord}
-      >
+      <Pressable style={[styles.nextBtn, { backgroundColor: selectedCat.color }]} onPress={nextWord}>
         <Text style={styles.nextBtnText}>
           {currentIdx < selectedCat.words.length - 1 ? "Próxima palavra" : "Concluir"}
         </Text>

@@ -26,6 +26,10 @@ import NotificationsAdminPage from "@/pages/notifications-admin";
 import LearningPathsPage from "@/pages/learning-paths";
 import CoursesAdminPage from "@/pages/courses-admin";
 import MonetizationPage from "@/pages/monetization";
+import OralTasksPage from "@/pages/oral-tasks";
+import PronunciationContentPage from "@/pages/pronunciation-content";
+import ListeningContentPage from "@/pages/listening-content";
+import ConversationScenariosPage from "@/pages/conversation-scenarios";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -102,6 +106,10 @@ function Router() {
       <Route path="/learning-paths">{() => <ProtectedRoute component={LearningPathsPage} />}</Route>
       <Route path="/courses">{() => <ProtectedRoute component={CoursesAdminPage} />}</Route>
       <Route path="/monetization">{() => <ProtectedRoute component={MonetizationPage} />}</Route>
+      <Route path="/oral-tasks">{() => <ProtectedRoute component={OralTasksPage} />}</Route>
+      <Route path="/pronunciation-content">{() => <ProtectedRoute component={PronunciationContentPage} />}</Route>
+      <Route path="/listening-content">{() => <ProtectedRoute component={ListeningContentPage} />}</Route>
+      <Route path="/conversation-scenarios">{() => <ProtectedRoute component={ConversationScenariosPage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

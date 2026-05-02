@@ -4,6 +4,7 @@ import {
   HelpCircle, Archive, Star, Shield, Megaphone, CreditCard,
   FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
   Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
+  Mic, Volume2, Headphones, MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -34,6 +35,10 @@ const NAV_SECTIONS = [
       { href: "/study-library", label: "Biblioteca de Estudo", icon: Library },
       { href: "/courses", label: "Cursos e Aulas", icon: GraduationCap },
       { href: "/learning-paths", label: "Trilhas de Aprendizado", icon: Map },
+      { href: "/oral-tasks", label: "Tarefas Orais", icon: Mic },
+      { href: "/pronunciation-content", label: "Pronúncia", icon: Volume2 },
+      { href: "/listening-content", label: "Compreensão Auditiva", icon: Headphones },
+      { href: "/conversation-scenarios", label: "Cenários de Conversa", icon: MessageCircle },
     ],
   },
   {

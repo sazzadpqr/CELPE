@@ -22,12 +22,20 @@ type Message = {
   ts: number;
 };
 
-const SCENARIOS = [
-  { id: "entrevista", label: "Entrevista de Emprego", icon: "briefcase" as const, color: "#185FA5", system: "Você é um entrevistador formal de uma empresa brasileira. Conduza uma entrevista de emprego em português brasileiro. Faça perguntas naturais, corrija erros gentilmente e forneça feedback construtivo após cada resposta do candidato." },
-  { id: "turismo", label: "Situação Turística", icon: "map-pin" as const, color: "#1D9E75", system: "Você é um guia turístico amigável em São Paulo. Ajude o turista com informações sobre a cidade em português. Corrija erros de forma natural e encorajadora." },
-  { id: "medico", label: "Consulta Médica", icon: "activity" as const, color: "#D85A30", system: "Você é um médico brasileiro em uma consulta. Converse com o paciente sobre seus sintomas em português formal mas acessível. Corrija erros sutilmente repetindo a forma correta." },
-  { id: "debate", label: "Debate de Opinião", icon: "message-square" as const, color: "#6B21A8", system: "Você é um debatedor brasileiro. Apresente argumentos contrários de forma construtiva ao ponto de vista do estudante, em português avançado. Isso treinará argumentação para o Celpe-Bras." },
-  { id: "cotidiano", label: "Conversa Cotidiana", icon: "coffee" as const, color: "#BA7517", system: "Você é um colega de trabalho brasileiro amigável. Converse naturalmente sobre tópicos do dia a dia em português. Seja encorajador e ajude o estudante a praticar fluência." },
+type Scenario = {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+  systemPrompt: string;
+};
+
+const FALLBACK_SCENARIOS: Scenario[] = [
+  { id: "entrevista", label: "Entrevista de Emprego", icon: "briefcase", color: "#185FA5", systemPrompt: "Você é um entrevistador formal de uma empresa brasileira. Conduza uma entrevista de emprego em português brasileiro. Faça perguntas naturais, corrija erros gentilmente e forneça feedback construtivo após cada resposta do candidato." },
+  { id: "turismo", label: "Situação Turística", icon: "map-pin", color: "#1D9E75", systemPrompt: "Você é um guia turístico amigável em São Paulo. Ajude o turista com informações sobre a cidade em português. Corrija erros de forma natural e encorajadora." },
+  { id: "medico", label: "Consulta Médica", icon: "activity", color: "#D85A30", systemPrompt: "Você é um médico brasileiro em uma consulta. Converse com o paciente sobre seus sintomas em português formal mas acessível. Corrija erros sutilmente repetindo a forma correta." },
+  { id: "debate", label: "Debate de Opinião", icon: "message-square", color: "#6B21A8", systemPrompt: "Você é um debatedor brasileiro. Apresente argumentos contrários de forma construtiva ao ponto de vista do estudante, em português avançado. Isso treinará argumentação para o Celpe-Bras." },
+  { id: "cotidiano", label: "Conversa Cotidiana", icon: "coffee", color: "#BA7517", systemPrompt: "Você é um colega de trabalho brasileiro amigável. Converse naturalmente sobre tópicos do dia a dia em português. Seja encorajador e ajude o estudante a praticar fluência." },
 ];
 
 function getApiUrl(path: string) {
@@ -41,11 +49,21 @@ export default function ConversationScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const listRef = useRef<FlatList>(null);
 
+  const [scenarios, setScenarios] = useState<Scenario[]>(FALLBACK_SCENARIOS);
+  const [loadingScenarios, setLoadingScenarios] = useState(true);
   const [phase, setPhase] = useState<"select" | "chat">("select");
-  const [scenario, setScenario] = useState<typeof SCENARIOS[0] | null>(null);
+  const [scenario, setScenario] = useState<Scenario | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/conversation/scenarios"))
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data && data.length > 0) setScenarios(data); })
+      .catch(() => {})
+      .finally(() => setLoadingScenarios(false));
+  }, []);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -53,7 +71,7 @@ export default function ConversationScreen() {
     }
   }, [messages]);
 
-  const startChat = (s: typeof SCENARIOS[0]) => {
+  const startChat = (s: Scenario) => {
     setScenario(s);
     const welcome: Message = {
       id: "0",
@@ -78,39 +96,18 @@ export default function ConversationScreen() {
       const r = await fetch(getApiUrl("/api/ai/chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemPrompt: scenario.system,
-          messages: history,
-        }),
+        body: JSON.stringify({ systemPrompt: scenario.systemPrompt, messages: history }),
       });
 
       if (!r.ok) {
-        const errMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          text: "Desculpe, ocorreu um erro. Tente novamente em instantes.",
-          ts: Date.now(),
-        };
-        setMessages([...newMsgs, errMsg]);
+        setMessages([...newMsgs, { id: (Date.now() + 1).toString(), role: "assistant", text: "Desculpe, ocorreu um erro. Tente novamente em instantes.", ts: Date.now() }]);
         return;
       }
 
       const data = await r.json() as { reply: string };
-      const assistantMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        text: data.reply,
-        ts: Date.now(),
-      };
-      setMessages([...newMsgs, assistantMsg]);
+      setMessages([...newMsgs, { id: (Date.now() + 1).toString(), role: "assistant", text: data.reply, ts: Date.now() }]);
     } catch {
-      const errMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        text: "Sem conexão. Verifique sua internet e tente novamente.",
-        ts: Date.now(),
-      };
-      setMessages([...newMsgs, errMsg]);
+      setMessages([...newMsgs, { id: (Date.now() + 1).toString(), role: "assistant", text: "Sem conexão. Verifique sua internet e tente novamente.", ts: Date.now() }]);
     } finally {
       setLoading(false);
     }
@@ -129,44 +126,49 @@ export default function ConversationScreen() {
           </View>
         </View>
 
-        <FlatList
-          data={SCENARIOS}
-          keyExtractor={(s) => s.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => startChat(item)}
-              style={({ pressed }) => [
-                styles.scenarioCard,
-                { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
-              ]}
-            >
-              <View style={[styles.scenarioIcon, { backgroundColor: item.color + "18" }]}>
-                <Feather name={item.icon} size={22} color={item.color} />
-              </View>
-              <View style={styles.scenarioMeta}>
-                <Text style={[styles.scenarioTitle, { color: colors.text }]}>{item.label}</Text>
-                <Text style={[styles.scenarioHint, { color: colors.mutedForeground }]}>
-                  Conversa com IA · Feedback em tempo real
+        {loadingScenarios ? (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={scenarios}
+            keyExtractor={(s) => s.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => startChat(item)}
+                style={({ pressed }) => [
+                  styles.scenarioCard,
+                  { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
+                ]}
+              >
+                <View style={[styles.scenarioIcon, { backgroundColor: item.color + "18" }]}>
+                  <Feather name={item.icon as any} size={22} color={item.color} />
+                </View>
+                <View style={styles.scenarioMeta}>
+                  <Text style={[styles.scenarioTitle, { color: colors.text }]}>{item.label}</Text>
+                  <Text style={[styles.scenarioHint, { color: colors.mutedForeground }]}>
+                    Conversa com IA · Feedback em tempo real
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+            ListHeaderComponent={
+              <View style={[styles.infoCard, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}>
+                <Feather name="zap" size={14} color={colors.primary} />
+                <Text style={[styles.infoText, { color: colors.primary }]}>
+                  Converse com uma IA que responde em português brasileiro. Ideal para treinar fluência e vocabulário antes do Celpe-Bras.
                 </Text>
               </View>
-              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-            </Pressable>
-          )}
-          ListHeaderComponent={
-            <View style={[styles.infoCard, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}>
-              <Feather name="zap" size={14} color={colors.primary} />
-              <Text style={[styles.infoText, { color: colors.primary }]}>
-                Converse com uma IA que responde em português brasileiro. Ideal para treinar fluência e vocabulário antes do Celpe-Bras.
-              </Text>
-            </View>
-          }
-        />
+            }
+          />
+        )}
       </View>
     );
   }
 
-  // Chat
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
@@ -178,13 +180,10 @@ export default function ConversationScreen() {
           <Feather name="arrow-left" size={20} color={colors.text} />
         </Pressable>
         <View style={[styles.scenarioChip, { backgroundColor: scenario!.color + "18" }]}>
-          <Feather name={scenario!.icon} size={14} color={scenario!.color} />
+          <Feather name={scenario!.icon as any} size={14} color={scenario!.color} />
           <Text style={[styles.scenarioChipText, { color: scenario!.color }]}>{scenario!.label}</Text>
         </View>
-        <Pressable
-          onPress={() => { setMessages([]); startChat(scenario!); }}
-          style={styles.resetBtn}
-        >
+        <Pressable onPress={() => { setMessages([]); startChat(scenario!); }} style={styles.resetBtn}>
           <Feather name="refresh-cw" size={16} color={colors.mutedForeground} />
         </Pressable>
       </View>
@@ -201,10 +200,7 @@ export default function ConversationScreen() {
               ? [styles.userBubble, { backgroundColor: scenario!.color }]
               : [styles.assistantBubble, { backgroundColor: colors.card, borderColor: colors.border }],
           ]}>
-            <Text style={[
-              styles.bubbleText,
-              { color: item.role === "user" ? "#fff" : colors.text },
-            ]}>
+            <Text style={[styles.bubbleText, { color: item.role === "user" ? "#fff" : colors.text }]}>
               {item.text}
             </Text>
           </View>
