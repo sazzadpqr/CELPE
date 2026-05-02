@@ -34,6 +34,107 @@ function ScoreBar({ label, value, max = 5, color }: { label: string; value: numb
   );
 }
 
+// ─── Activity Heatmap ──────────────────────────────────────────────────────────
+
+function ActivityHeatmap({ attempts }: { attempts: PracticeAttempt[] }) {
+  const colors = useColors();
+
+  const { days, weeks } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Build a Set of date strings that had at least one attempt
+    const datesWithPractice: Map<string, number> = new Map();
+    attempts.forEach((a) => {
+      const d = new Date(a.createdAt);
+      d.setHours(0, 0, 0, 0);
+      const key = d.toISOString().slice(0, 10);
+      datesWithPractice.set(key, (datesWithPractice.get(key) ?? 0) + 1);
+    });
+
+    // Go back 34 days from today (5 weeks × 7 days - 1)
+    const start = new Date(today);
+    start.setDate(start.getDate() - 34);
+
+    const allDays: { date: Date; count: number; key: string }[] = [];
+    for (let i = 0; i <= 34; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      allDays.push({ date: d, count: datesWithPractice.get(key) ?? 0, key });
+    }
+
+    // Group into weeks
+    const weeks: typeof allDays[] = [];
+    for (let w = 0; w < 5; w++) {
+      weeks.push(allDays.slice(w * 7, w * 7 + 7));
+    }
+
+    return { days: allDays, weeks };
+  }, [attempts]);
+
+  const activeDays = days.filter((d) => d.count > 0).length;
+  const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+  const cellColor = (count: number) => {
+    if (count === 0) return colors.muted;
+    if (count === 1) return "#86EFAC";
+    if (count >= 2) return "#22C55E";
+    return colors.muted;
+  };
+
+  return (
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={styles.heatmapTitleRow}>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Calendário de Atividade</Text>
+        <View style={[styles.activeBadge, { backgroundColor: colors.successBg }]}>
+          <Text style={[styles.activeBadgeText, { color: colors.success }]}>{activeDays} dias ativos</Text>
+        </View>
+      </View>
+      <Text style={[styles.cardSub, { color: colors.mutedForeground }]}>Últimas 5 semanas</Text>
+
+      {/* Day labels */}
+      <View style={styles.heatmapDayRow}>
+        {dayNames.map((d) => (
+          <Text key={d} style={[styles.heatmapDayLabel, { color: colors.mutedForeground }]}>{d}</Text>
+        ))}
+      </View>
+
+      {/* Weeks grid */}
+      <View style={{ gap: 4 }}>
+        {weeks.map((week, wi) => (
+          <View key={wi} style={styles.heatmapWeek}>
+            {week.map((day, di) => {
+              const isToday = day.date.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+              return (
+                <View
+                  key={di}
+                  style={[
+                    styles.heatmapCell,
+                    { backgroundColor: cellColor(day.count) },
+                    isToday && { borderWidth: 1.5, borderColor: colors.primary },
+                  ]}
+                />
+              );
+            })}
+          </View>
+        ))}
+      </View>
+
+      {/* Legend */}
+      <View style={styles.heatmapLegend}>
+        <Text style={[styles.heatmapLegendLabel, { color: colors.mutedForeground }]}>Menos</Text>
+        {[colors.muted, "#BBF7D0", "#86EFAC", "#22C55E"].map((c, i) => (
+          <View key={i} style={[styles.heatmapLegendCell, { backgroundColor: c }]} />
+        ))}
+        <Text style={[styles.heatmapLegendLabel, { color: colors.mutedForeground }]}>Mais</Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── Score Trend ───────────────────────────────────────────────────────────────
+
 function ScoreTrend({ attempts }: { attempts: PracticeAttempt[] }) {
   const colors = useColors();
   const recent = attempts.slice(0, 10).reverse();
@@ -76,6 +177,8 @@ function ScoreTrend({ attempts }: { attempts: PracticeAttempt[] }) {
     </View>
   );
 }
+
+// ─── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function ProgressScreen() {
   const colors = useColors();
@@ -127,38 +230,34 @@ export default function ProgressScreen() {
           <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
             Faça sua primeira prática para ver as estatísticas aqui.
           </Text>
-          <Pressable
-            style={[styles.startBtn, { backgroundColor: colors.primary }]}
-            onPress={() => router.push("/practice")}
-          >
+          <Pressable style={[styles.startBtn, { backgroundColor: colors.primary }]} onPress={() => router.push("/practice")}>
             <Text style={styles.startBtnText}>Começar a praticar</Text>
           </Pressable>
         </View>
       ) : (
         <>
-          <View style={[styles.summaryRow]}>
-            <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.summaryValue, { color: colors.primary }]}>{attempts.length}</Text>
-              <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Práticas</Text>
-            </View>
-            <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.summaryValue, { color: scoreColor(stats!.avg, colors) }]}>
-                {stats!.avg.toFixed(1)}
-              </Text>
-              <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Média</Text>
-            </View>
-            <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.summaryValue, { color: colors.success }]}>{stats!.best.toFixed(1)}</Text>
-              <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Melhor</Text>
-            </View>
-            <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.summaryValue, { color: colors.purple }]}>{stats!.thisWeek}</Text>
-              <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Esta semana</Text>
-            </View>
+          {/* Summary cards */}
+          <View style={styles.summaryRow}>
+            {[
+              { label: "Práticas", value: String(attempts.length), color: colors.primary },
+              { label: "Média", value: stats!.avg.toFixed(1), color: scoreColor(stats!.avg, colors) },
+              { label: "Melhor", value: stats!.best.toFixed(1), color: colors.success },
+              { label: "Esta semana", value: String(stats!.thisWeek), color: colors.purple },
+            ].map((item) => (
+              <View key={item.label} style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.summaryValue, { color: item.color }]}>{item.value}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>{item.label}</Text>
+              </View>
+            ))}
           </View>
 
+          {/* Heatmap */}
+          <ActivityHeatmap attempts={attempts} />
+
+          {/* Score trend */}
           <ScoreTrend attempts={attempts} />
 
+          {/* Rubric breakdown */}
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Desempenho por critério</Text>
             <Text style={[styles.cardSub, { color: colors.mutedForeground }]}>Média das últimas 10 práticas</Text>
@@ -176,17 +275,27 @@ export default function ProgressScreen() {
                 { name: "Gramática", val: stats!.avgGramatica },
               ];
               const weakest = rubrics.reduce((a, b) => (a.val < b.val ? a : b));
+              const strongest = rubrics.reduce((a, b) => (a.val > b.val ? a : b));
               return (
-                <View style={[styles.insightBadge, { backgroundColor: colors.infoBg, borderColor: colors.primary + "40" }]}>
-                  <Feather name="target" size={13} color={colors.primary} />
-                  <Text style={[styles.insightText, { color: colors.primary }]}>
-                    Foque em <Text style={{ fontFamily: "Inter_700Bold" }}>{weakest.name}</Text> — seu ponto mais fraco
-                  </Text>
+                <View style={{ gap: 8 }}>
+                  <View style={[styles.insightBadge, { backgroundColor: colors.errorBg, borderColor: colors.destructive + "30" }]}>
+                    <Feather name="target" size={13} color={colors.destructive} />
+                    <Text style={[styles.insightText, { color: colors.destructive }]}>
+                      Priorize <Text style={{ fontFamily: "Inter_700Bold" }}>{weakest.name}</Text> — {weakest.val.toFixed(1)}/5.0 · maior gap
+                    </Text>
+                  </View>
+                  <View style={[styles.insightBadge, { backgroundColor: colors.successBg, borderColor: colors.success + "30" }]}>
+                    <Feather name="star" size={13} color={colors.success} />
+                    <Text style={[styles.insightText, { color: colors.success }]}>
+                      Ponto forte: <Text style={{ fontFamily: "Inter_700Bold" }}>{strongest.name}</Text> — {strongest.val.toFixed(1)}/5.0
+                    </Text>
+                  </View>
                 </View>
               );
             })()}
           </View>
 
+          {/* Task distribution */}
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Tarefas praticadas</Text>
             <Text style={[styles.cardSub, { color: colors.mutedForeground }]}>Distribuição por tipo</Text>
@@ -208,18 +317,23 @@ export default function ProgressScreen() {
             </View>
           </View>
 
+          {/* Full history */}
           <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Histórico completo</Text>
             {attempts.map((a) => (
-              <View
-                key={a.id}
-                style={[styles.historyRow, { borderBottomColor: colors.border }]}
-              >
+              <View key={a.id} style={[styles.historyRow, { borderBottomColor: colors.border }]}>
                 <View style={styles.historyLeft}>
                   <Text style={[styles.historyTask, { color: colors.text }]}>{a.taskType}</Text>
                   <Text style={[styles.historyDate, { color: colors.mutedForeground }]}>
-                    {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                    {new Date(a.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                   </Text>
+                </View>
+                <View style={styles.historyRubrics}>
+                  {[a.rubricTema, a.rubricGenero, a.rubricCoesao, a.rubricGramatica].map((r, i) => (
+                    <View key={i} style={[styles.rubricDot, { backgroundColor: scoreColor(r, colors) + "30" }]}>
+                      <Text style={[styles.rubricDotText, { color: scoreColor(r, colors) }]}>{r.toFixed(0)}</Text>
+                    </View>
+                  ))}
                 </View>
                 <View style={[styles.scorePill, { backgroundColor: scoreColor(a.overallScore, colors) + "20" }]}>
                   <Text style={[styles.scoreText, { color: scoreColor(a.overallScore, colors) }]}>
@@ -243,11 +357,23 @@ const styles = StyleSheet.create({
   screenSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: -6 },
   summaryRow: { flexDirection: "row", gap: 10 },
   summaryCard: { flex: 1, borderRadius: 12, borderWidth: 1, padding: 12, alignItems: "center", gap: 4 },
-  summaryValue: { fontSize: 24, fontFamily: "Inter_700Bold" },
+  summaryValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
   summaryLabel: { fontSize: 10, fontFamily: "Inter_400Regular", textAlign: "center" },
   card: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
   cardTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
   cardSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: -6 },
+  // Heatmap
+  heatmapTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  activeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  activeBadgeText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  heatmapDayRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 0 },
+  heatmapDayLabel: { fontSize: 9, fontFamily: "Inter_500Medium", width: "13%", textAlign: "center" },
+  heatmapWeek: { flexDirection: "row", justifyContent: "space-between", gap: 3 },
+  heatmapCell: { flex: 1, aspectRatio: 1, borderRadius: 3 },
+  heatmapLegend: { flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "flex-end" },
+  heatmapLegendLabel: { fontSize: 10, fontFamily: "Inter_400Regular" },
+  heatmapLegendCell: { width: 12, height: 12, borderRadius: 2 },
+  // Trend
   chartWrap: { flexDirection: "row", gap: 6, height: 120, alignItems: "flex-end" },
   barCol: { flex: 1, alignItems: "center", gap: 4 },
   barScore: { fontSize: 9, fontFamily: "Inter_700Bold" },
@@ -256,6 +382,7 @@ const styles = StyleSheet.create({
   barLabel: { fontSize: 9, fontFamily: "Inter_400Regular" },
   trendBadge: { flexDirection: "row", alignItems: "center", gap: 6, padding: 8, borderRadius: 8 },
   trendText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  // Rubrics
   rubricsWrap: { gap: 10 },
   rubricRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   rubricLabel: { width: 68, fontSize: 12, fontFamily: "Inter_500Medium" },
@@ -264,18 +391,24 @@ const styles = StyleSheet.create({
   rubricValue: { width: 28, fontSize: 12, fontFamily: "Inter_700Bold", textAlign: "right" },
   insightBadge: { flexDirection: "row", alignItems: "center", gap: 6, padding: 10, borderRadius: 8, borderWidth: 1 },
   insightText: { flex: 1, fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 17 },
+  // Tasks
   taskList: { gap: 10 },
   taskRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   taskLabel: { width: 90, fontSize: 12, fontFamily: "Inter_500Medium" },
   taskTrack: { flex: 1, height: 8, borderRadius: 4, overflow: "hidden" },
   taskFill: { height: 8, borderRadius: 4 },
   taskCount: { width: 26, fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "right" },
-  historyRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1 },
-  historyLeft: { gap: 2 },
+  // History
+  historyRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, borderBottomWidth: 1 },
+  historyLeft: { flex: 1, gap: 2 },
   historyTask: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   historyDate: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  historyRubrics: { flexDirection: "row", gap: 3 },
+  rubricDot: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  rubricDotText: { fontSize: 9, fontFamily: "Inter_700Bold" },
   scorePill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 16 },
   scoreText: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  // Empty
   emptyCard: { borderRadius: 16, borderWidth: 1, padding: 28, alignItems: "center", gap: 10, marginTop: 8 },
   emptyTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
   emptyText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },

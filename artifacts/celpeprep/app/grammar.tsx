@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Platform,
   Pressable,
   ScrollView,
@@ -12,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { useColors } from "@/hooks/useColors";
 
 interface Question {
@@ -46,8 +46,7 @@ function useQuizCategories() {
       .then((r) => r.json())
       .then((data: Array<{
         id: string; title: string; icon: string; color: string;
-        description: string;
-        questions: Question[];
+        description: string; questions: Question[];
       }>) => {
         setCategories(
           data.map((c) => ({
@@ -64,230 +63,178 @@ function useQuizCategories() {
   return { categories, loading };
 }
 
-const _UNUSED_PLACEHOLDER: Category[] = [
-  {
-    id: "subjuntivo",
-    title: "Subjuntivo",
-    icon: "git-branch",
-    color: "#185FA5",
-    description: "Presente, pretérito imperfeito e futuro do subjuntivo",
-    questions: [
-      {
-        id: "s1",
-        question: "Escolha a forma correta: \"Espero que ele ___ amanhã.\"",
-        options: ["vem", "venha", "viesse", "veio"],
-        correct: 1,
-        explanation: "Após verbos de desejo como 'esperar que', usa-se o presente do subjuntivo: 'venha'.",
-      },
-      {
-        id: "s2",
-        question: "\"Se eu ___ rico, viajaria pelo mundo.\"",
-        options: ["fosse", "seria", "fui", "sou"],
-        correct: 0,
-        explanation: "Em orações condicionais contrárias à realidade, usa-se o imperfeito do subjuntivo: 'fosse'.",
-      },
-      {
-        id: "s3",
-        question: "\"Quando você ___ ao Brasil, avise-me.\"",
-        options: ["veio", "venha", "vier", "vem"],
-        correct: 2,
-        explanation: "Com 'quando' referindo-se ao futuro, usa-se o futuro do subjuntivo: 'vier'.",
-      },
-      {
-        id: "s4",
-        question: "\"É importante que todos ___ às reuniões.\"",
-        options: ["comparecem", "compareçam", "compareceram", "compareceriam"],
-        correct: 1,
-        explanation: "Após expressões impessoais como 'é importante que', usa-se o presente do subjuntivo.",
-      },
-      {
-        id: "s5",
-        question: "\"Embora ele ___ cansado, continuou trabalhando.\"",
-        options: ["está", "esteve", "esteja", "estivesse"],
-        correct: 3,
-        explanation: "Após 'embora' (concessiva), usa-se o imperfeito do subjuntivo: 'estivesse'.",
-      },
-    ],
-  },
-  {
-    id: "concordancia",
-    title: "Concordância",
-    icon: "link",
-    color: "#1D9E75",
-    description: "Nominal e verbal: regras e casos especiais",
-    questions: [
-      {
-        id: "c1",
-        question: "\"___ muita gente nas ruas ontem.\"",
-        options: ["Haviam", "Havia", "Houveram", "Tem"],
-        correct: 1,
-        explanation: "'Haver' com sentido de existir é impessoal e fica sempre no singular: 'Havia'.",
-      },
-      {
-        id: "c2",
-        question: "\"A maioria dos alunos ___ à aula.\"",
-        options: ["faltaram", "faltou", "Ambas estão corretas", "falta"],
-        correct: 2,
-        explanation: "Com 'a maioria de', o verbo pode concordar com o núcleo ('maioria' → singular) ou com o complemento ('alunos' → plural).",
-      },
-      {
-        id: "c3",
-        question: "\"Os meninos e a menina ___ muito espertos.\"",
-        options: ["é", "são", "foi", "estava"],
-        correct: 1,
-        explanation: "Sujeito composto com pessoas diferentes exige o verbo no plural.",
-      },
-      {
-        id: "c4",
-        question: "\"Vende-___ casas neste bairro.\"",
-        options: ["se", "m", "nos", "lhe"],
-        correct: 0,
-        explanation: "Com sujeito no singular ('casas' seria o sujeito, mas com voz passiva sintética usa-se 'Vendem-se casas'). Aqui, 'Vende-se' com 'casas' como objeto direto é a alternativa correta no estilo formal.",
-      },
-      {
-        id: "c5",
-        question: "\"Três quartos do bolo ___ comido.\"",
-        options: ["foi", "foram", "seja", "ser"],
-        correct: 0,
-        explanation: "Com expressão partitiva ('três quartos de'), o verbo concorda com o núcleo do sujeito: 'bolo' (singular) → 'foi'.",
-      },
-    ],
-  },
-  {
-    id: "preposicoes",
-    title: "Preposições",
-    icon: "arrow-right",
-    color: "#6B21A8",
-    description: "Regência verbal, regência nominal e crase",
-    questions: [
-      {
-        id: "p1",
-        question: "\"Ele aspira ___ uma vida melhor.\"",
-        options: ["a", "à", "de", "por"],
-        correct: 1,
-        explanation: "'Aspirar' no sentido de 'desejar' é transitivo indireto e rege a preposição 'a'. Com artigo feminino, forma-se crase: 'à'.",
-      },
-      {
-        id: "p2",
-        question: "\"Vou ___ São Paulo amanhã.\"",
-        options: ["à", "a", "para", "em"],
-        correct: 1,
-        explanation: "Nomes de cidades sem artigo não admitem crase. Portanto, usa-se 'a' sem acento.",
-      },
-      {
-        id: "p3",
-        question: "\"Ele se lembrou ___ viagem.\"",
-        options: ["de a", "da", "à", "de"],
-        correct: 1,
-        explanation: "'Lembrar-se' rege 'de' + artigo 'a' → contrai-se em 'da': 'lembrou-se da viagem'.",
-      },
-      {
-        id: "p4",
-        question: "\"Este produto é diferente ___ outros.\"",
-        options: ["de os", "dos", "a", "às"],
-        correct: 1,
-        explanation: "'Diferente de' + artigo 'os' → contração 'dos'.",
-      },
-      {
-        id: "p5",
-        question: "\"Ele insistiu ___ que eu fosse.\"",
-        options: ["a", "em", "de", "para"],
-        correct: 1,
-        explanation: "'Insistir' rege a preposição 'em': 'insistiu em que'.",
-      },
-    ],
-  },
-  {
-    id: "pronomes",
-    title: "Pronomes",
-    icon: "user",
-    color: "#BA7517",
-    description: "Colocação pronominal e uso de pronomes",
-    questions: [
-      {
-        id: "pr1",
-        question: "\"Não ___ disseram nada.\"",
-        options: ["me", "-me", "lhe", "te"],
-        correct: 0,
-        explanation: "Com palavra negativa antes do verbo, o pronome deve ficar antes (próclise): 'Não me disseram'.",
-      },
-      {
-        id: "pr2",
-        question: "\"___ telefonou ontem?\" (referindo-se a você)",
-        options: ["Lhe", "Te", "Quem", "O"],
-        correct: 0,
-        explanation: "'Lhe' é pronome oblíquo de 3ª pessoa que substitui 'a você/a ele/a ela'.",
-      },
-      {
-        id: "pr3",
-        question: "Após verbo no futuro, o pronome deve ficar:",
-        options: ["antes do verbo", "depois do verbo com hífen", "intercalado no verbo", "qualquer posição"],
-        correct: 2,
-        explanation: "No futuro do presente ou do pretérito, o pronome é intercalado: 'dar-lhe-ei', 'fá-lo-emos'.",
-      },
-      {
-        id: "pr4",
-        question: "\"Eu ___ vi ontem.\" (objeto direto de 3ª pessoa masculino)",
-        options: ["lhe", "o", "lhes", "me"],
-        correct: 1,
-        explanation: "'O/a' são os pronomes de objeto direto de 3ª pessoa. 'Lhe' é objeto indireto.",
-      },
-      {
-        id: "pr5",
-        question: "\"Quando ___ chamar, responda logo.\"",
-        options: ["te", "lhe", "o", "me"],
-        correct: 0,
-        explanation: "Com conjunção subordinativa antes do verbo, usa-se próclise: 'Quando te chamar'.",
-      },
-    ],
-  },
-  {
-    id: "ortografia",
-    title: "Ortografia",
-    icon: "type",
-    color: "#D85A30",
-    description: "Acordo ortográfico, acentuação e grafia correta",
-    questions: [
-      {
-        id: "o1",
-        question: "Qual a grafia correta após o Acordo Ortográfico de 2009?",
-        options: ["idéia", "idea", "ideia", "idêia"],
-        correct: 2,
-        explanation: "Com o Acordo Ortográfico, o acento diferencial foi eliminado de 'ideia'. A grafia correta é 'ideia'.",
-      },
-      {
-        id: "o2",
-        question: "\"O ônibus ___ as 8h.\" Qual palavra completa corretamente?",
-        options: ["chega", "chéga", "chegá", "chegà"],
-        correct: 0,
-        explanation: "'Chega' não leva acento. O acento agudo em 'e' aberto só ocorre em palavras paroxítonas ou oxítonas específicas.",
-      },
-      {
-        id: "o3",
-        question: "Qual dessas palavras está grafada corretamente?",
-        options: ["excessão", "exceção", "exeção", "excessão"],
-        correct: 1,
-        explanation: "A grafia correta é 'exceção' — com 'c' cedilhado antes de 'o'.",
-      },
-      {
-        id: "o4",
-        question: "\"___ obrigado.\" Como se escreve corretamente?",
-        options: ["Muito", "Muinto", "Muinto", "Muyto"],
-        correct: 0,
-        explanation: "A grafia correta é 'Muito obrigado'. Não há 'n' antes do 't'.",
-      },
-      {
-        id: "o5",
-        question: "Qual palavra leva acento circunflexo?",
-        options: ["voce", "vocé", "você", "vocè"],
-        correct: 2,
-        explanation: "'Você' leva acento circunflexo no 'e'. É uma oxítona terminada em 'e', portanto acentuada.",
-      },
-    ],
-  },
-];
+// ─── Lesson Content ────────────────────────────────────────────────────────────
 
-type Phase = "select" | "quiz" | "result";
+type LessonContent = {
+  rule: string;
+  examples: { sentence: string; note: string; highlight: string }[];
+  mistake: { wrong: string; right: string; reason: string };
+  tip: string;
+};
+
+const LESSON_CONTENT: Record<string, LessonContent> = {
+  subjuntivo: {
+    rule: "O subjuntivo expressa dúvida, desejo, hipótese ou sentimento. Aparece após verbos como querer, esperar, duvidar, temer + 'que'; expressões impessoais (é importante que, é necessário que); conjunções como embora, caso, quando (futuro), se (hipótese irreal).",
+    examples: [
+      { sentence: "Espero que ele venha amanhã.", highlight: "venha", note: "Presente do subjuntivo após 'esperar que'" },
+      { sentence: "Se eu fosse rico, viajaria pelo mundo.", highlight: "fosse", note: "Imperfeito do subj. em hipótese contrária à realidade" },
+      { sentence: "Quando você chegar, me avise.", highlight: "chegar", note: "Futuro do subj. com 'quando' referindo ao futuro" },
+    ],
+    mistake: { wrong: "Espero que ele vem amanhã.", right: "Espero que ele venha amanhã.", reason: "Após verbos de desejo + 'que', sempre subjuntivo." },
+    tip: "💡 Gatilho: verbo de desejo/dúvida/sentimento + 'que' → subjuntivo. 'Quando' + futuro → futuro do subjuntivo.",
+  },
+  concordancia: {
+    rule: "O verbo concorda com o sujeito em número e pessoa. Atenção: 'haver' no sentido de existir é impessoal (singular); 'fazer' indicando tempo também. Expressões partitivas (a maioria de, parte de) admitem concordância com o núcleo ou com o complemento.",
+    examples: [
+      { sentence: "Havia muitas pessoas na festa.", highlight: "Havia", note: "Haver impessoal = sempre singular" },
+      { sentence: "A maioria dos alunos foi aprovada.", highlight: "foi", note: "Partitiva: concorda com 'maioria' (sing.) ou 'alunos' (pl.)" },
+      { sentence: "Pedro e Maria chegaram cedo.", highlight: "chegaram", note: "Sujeito composto = plural" },
+    ],
+    mistake: { wrong: "Haviam muitas pessoas aqui.", right: "Havia muitas pessoas aqui.", reason: "'Haver' como existir é sempre impessoal — singular." },
+    tip: "💡 Teste: 'ter' e 'haver' com sentido de existir = singular. 'Fazer' no sentido de tempo = singular.",
+  },
+  preposicoes: {
+    rule: "Regência verbal: cada verbo exige uma preposição específica. Crase (à): fusão de preposição 'a' + artigo 'a' (feminino). Não há crase antes de pronomes, verbos, palavras masculinas ou nomes de cidades sem artigo.",
+    examples: [
+      { sentence: "Aspiro à vida tranquila.", highlight: "à", note: "Aspirar (desejar) + 'a' + fem. = crase" },
+      { sentence: "Vou a São Paulo amanhã.", highlight: "a", note: "Cidade sem artigo = sem crase" },
+      { sentence: "Lembrei-me da viagem.", highlight: "da", note: "Lembrar-se de + 'a' → contração 'da'" },
+    ],
+    mistake: { wrong: "Vou à São Paulo amanhã.", right: "Vou a São Paulo amanhã.", reason: "Nomes de cidades sem artigo não admitem crase." },
+    tip: "💡 Teste da crase: substitua por palavra masculina. Se usar 'ao' → há crase. Se usar 'a' → sem crase.",
+  },
+  pronomes: {
+    rule: "Próclise (pronome antes): após negação, conjunção subordinativa, pronome relativo. Ênclise (pronome depois com hífen): início de oração, após vírgula, com imperativo afirmativo. Mesóclise (intercalado): futuro do presente e futuro do pretérito.",
+    examples: [
+      { sentence: "Não me diga isso.", highlight: "me", note: "Próclise obrigatória após negação" },
+      { sentence: "Diga-me a verdade.", highlight: "-me", note: "Ênclise com imperativo afirmativo" },
+      { sentence: "Dir-lhe-ei a resposta amanhã.", highlight: "-lhe-", note: "Mesóclise no futuro do presente" },
+    ],
+    mistake: { wrong: "Me ligue quando chegar.", right: "Ligue-me quando chegar.", reason: "Em início de oração, o pronome átono não pode aparecer antes do verbo (norma culta)." },
+    tip: "💡 Início de frase = nunca pronome átono antes do verbo em português formal. 'Me ligue' é coloquial.",
+  },
+  ortografia: {
+    rule: "Acordo Ortográfico de 2009: eliminou o trema em palavras nativas; suprimiu acentos diferenciais em palavras como 'para', 'pelo', 'polo'; aboliu o hífen em compostos com prefixos terminados em vogal + base começada em vogal diferente.",
+    examples: [
+      { sentence: "ideia, assembleia, europeu", highlight: "ideia", note: "Ditongos abertos não recebem mais acento" },
+      { sentence: "autoescola, contraindicado", highlight: "autoescola", note: "Prefixo + vogal diferente = sem hífen" },
+      { sentence: "frequente, tranquilo, linguiça", highlight: "frequente", note: "Trema eliminado em palavras nativas" },
+    ],
+    mistake: { wrong: "idéia, heróico, tranqüilo", right: "ideia, heroico, tranquilo", reason: "O Acordo Ortográfico de 2009 eliminou esses acentos e o trema." },
+    tip: "💡 Trema só sobrou em nomes estrangeiros: Müller, Büchs. Em português nativo: sem trema.",
+  },
+};
+
+// ─── Lesson Phase ──────────────────────────────────────────────────────────────
+
+function LessonPhase({ category, onStart, onBack }: { category: Category; onStart: () => void; onBack: () => void }) {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const lesson = LESSON_CONTENT[category.id];
+
+  if (!lesson) {
+    onStart();
+    return null;
+  }
+
+  const highlightSentence = (sentence: string, highlight: string, color: string) => {
+    const idx = sentence.indexOf(highlight);
+    if (idx === -1) return <Text style={[styles.exampleSentence, { color: colors.text }]}>{sentence}</Text>;
+    return (
+      <Text style={[styles.exampleSentence, { color: colors.text }]}>
+        {sentence.slice(0, idx)}
+        <Text style={{ color, fontFamily: "Inter_700Bold" }}>{highlight}</Text>
+        {sentence.slice(idx + highlight.length)}
+      </Text>
+    );
+  };
+
+  return (
+    <ScrollView
+      style={[styles.root, { backgroundColor: colors.background }]}
+      contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: 48 }]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.lessonHeader}>
+        <Pressable onPress={onBack} style={styles.backBtn}>
+          <Feather name="arrow-left" size={20} color={colors.text} />
+        </Pressable>
+        <View style={[styles.lessonIconWrap, { backgroundColor: category.color + "18" }]}>
+          <Feather name={category.icon} size={20} color={category.color} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.lessonTitle, { color: colors.text }]}>{category.title}</Text>
+          <Text style={[styles.lessonSubtitle, { color: colors.mutedForeground }]}>Aula rápida antes dos exercícios</Text>
+        </View>
+      </View>
+
+      {/* Rule */}
+      <View style={[styles.lessonSection, { backgroundColor: category.color + "0f", borderColor: category.color + "30" }]}>
+        <View style={styles.lessonSectionHeader}>
+          <Feather name="book-open" size={13} color={category.color} />
+          <Text style={[styles.lessonSectionLabel, { color: category.color }]}>REGRA PRINCIPAL</Text>
+        </View>
+        <Text style={[styles.ruleText, { color: colors.text }]}>{lesson.rule}</Text>
+      </View>
+
+      {/* Examples */}
+      <View style={[styles.lessonSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={styles.lessonSectionHeader}>
+          <Feather name="check-square" size={13} color={colors.primary} />
+          <Text style={[styles.lessonSectionLabel, { color: colors.primary }]}>EXEMPLOS</Text>
+        </View>
+        <View style={{ gap: 14 }}>
+          {lesson.examples.map((ex, i) => (
+            <View key={i} style={styles.exampleItem}>
+              <View style={[styles.exampleNum, { backgroundColor: category.color + "20" }]}>
+                <Text style={[styles.exampleNumText, { color: category.color }]}>{i + 1}</Text>
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
+                {highlightSentence(ex.sentence, ex.highlight, category.color)}
+                <Text style={[styles.exampleNote, { color: colors.mutedForeground }]}>{ex.note}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Common mistake */}
+      <View style={[styles.lessonSection, { backgroundColor: colors.errorBg, borderColor: colors.destructive + "40" }]}>
+        <View style={styles.lessonSectionHeader}>
+          <Feather name="alert-triangle" size={13} color={colors.destructive} />
+          <Text style={[styles.lessonSectionLabel, { color: colors.destructive }]}>ERRO COMUM</Text>
+        </View>
+        <View style={styles.mistakeRow}>
+          <Text style={[styles.mistakeWrong, { color: colors.destructive }]}>✗ {lesson.mistake.wrong}</Text>
+          <Text style={[styles.mistakeRight, { color: colors.success }]}>✓ {lesson.mistake.right}</Text>
+          <Text style={[styles.mistakeReason, { color: colors.mutedForeground }]}>{lesson.mistake.reason}</Text>
+        </View>
+      </View>
+
+      {/* Tip */}
+      <View style={[styles.lessonSection, { backgroundColor: colors.infoBg, borderColor: colors.primary + "30" }]}>
+        <Text style={[styles.tipText, { color: colors.primary }]}>{lesson.tip}</Text>
+      </View>
+
+      {/* Start button */}
+      <Pressable
+        style={[styles.startQuizBtn, { backgroundColor: category.color }]}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onStart();
+        }}
+      >
+        <Feather name="play" size={18} color="#fff" />
+        <Text style={styles.startQuizBtnText}>Iniciar exercícios ({category.questions.length} questões)</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
+// ─── Quiz Phase ────────────────────────────────────────────────────────────────
+
+type Phase = "select" | "lesson" | "quiz" | "result";
 
 export default function GrammarScreen() {
   const colors = useColors();
@@ -302,9 +249,13 @@ export default function GrammarScreen() {
   const [selected, setSelected] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
 
-  const startQuiz = (cat: Category) => {
+  const startLesson = (cat: Category) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedCategory(cat);
+    setPhase("lesson");
+  };
+
+  const startQuiz = () => {
     setCurrentIndex(0);
     setAnswers([]);
     setSelected(null);
@@ -342,6 +293,8 @@ export default function GrammarScreen() {
     setShowExplanation(false);
   };
 
+  // ─── Select Phase ─────────────────────────────────────────────────────────────
+
   if (phase === "select") {
     return (
       <ScrollView
@@ -354,8 +307,9 @@ export default function GrammarScreen() {
         </Pressable>
         <Text style={[styles.screenTitle, { color: colors.text }]}>Exercícios de Gramática</Text>
         <Text style={[styles.screenSub, { color: colors.mutedForeground }]}>
-          Escolha um tópico para praticar
+          Escolha um tópico — aprenda a regra primeiro, depois pratique
         </Text>
+
         {loading ? (
           <View style={{ alignItems: "center", paddingVertical: 32 }}>
             <ActivityIndicator color={colors.primary} />
@@ -367,13 +321,21 @@ export default function GrammarScreen() {
               styles.catCard,
               { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
             ]}
-            onPress={() => startQuiz(cat)}
+            onPress={() => startLesson(cat)}
           >
             <View style={[styles.catIcon, { backgroundColor: cat.color + "18" }]}>
               <Feather name={cat.icon} size={22} color={cat.color} />
             </View>
             <View style={styles.catMeta}>
-              <Text style={[styles.catTitle, { color: colors.text }]}>{cat.title}</Text>
+              <View style={styles.catTitleRow}>
+                <Text style={[styles.catTitle, { color: colors.text }]}>{cat.title}</Text>
+                {LESSON_CONTENT[cat.id] && (
+                  <View style={[styles.lessonBadge, { backgroundColor: colors.primary + "18" }]}>
+                    <Feather name="book-open" size={9} color={colors.primary} />
+                    <Text style={[styles.lessonBadgeText, { color: colors.primary }]}>Aula</Text>
+                  </View>
+                )}
+              </View>
               <Text style={[styles.catDesc, { color: colors.mutedForeground }]}>{cat.description}</Text>
             </View>
             <View style={[styles.questBadge, { backgroundColor: cat.color + "18" }]}>
@@ -384,6 +346,20 @@ export default function GrammarScreen() {
       </ScrollView>
     );
   }
+
+  // ─── Lesson Phase ─────────────────────────────────────────────────────────────
+
+  if (phase === "lesson" && selectedCategory) {
+    return (
+      <LessonPhase
+        category={selectedCategory}
+        onStart={startQuiz}
+        onBack={reset}
+      />
+    );
+  }
+
+  // ─── Quiz Phase ───────────────────────────────────────────────────────────────
 
   if (phase === "quiz" && selectedCategory) {
     const q = selectedCategory.questions[currentIndex];
@@ -407,12 +383,7 @@ export default function GrammarScreen() {
         </View>
 
         <View style={[styles.progressBar, { backgroundColor: colors.muted }]}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${progress * 100}%` as any, backgroundColor: selectedCategory.color },
-            ]}
-          />
+          <View style={[styles.progressFill, { width: `${progress * 100}%` as any, backgroundColor: selectedCategory.color }]} />
         </View>
 
         <View style={[styles.questionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -425,55 +396,26 @@ export default function GrammarScreen() {
             let border = colors.border;
             let textColor = colors.text;
             if (selected !== null) {
-              if (i === q.correct) {
-                bg = colors.successBg;
-                border = colors.success;
-                textColor = colors.success;
-              } else if (i === selected && selected !== q.correct) {
-                bg = colors.errorBg;
-                border = colors.destructive;
-                textColor = colors.destructive;
-              }
+              if (i === q.correct) { bg = colors.successBg; border = colors.success; textColor = colors.success; }
+              else if (i === selected && selected !== q.correct) { bg = colors.errorBg; border = colors.destructive; textColor = colors.destructive; }
             }
             return (
-              <Pressable
-                key={i}
-                style={[styles.option, { backgroundColor: bg, borderColor: border }]}
-                onPress={() => handleAnswer(i)}
-              >
+              <Pressable key={i} style={[styles.option, { backgroundColor: bg, borderColor: border }]} onPress={() => handleAnswer(i)}>
                 <View style={[styles.optionLetter, { backgroundColor: border + "30" }]}>
-                  <Text style={[styles.optionLetterText, { color: textColor }]}>
-                    {["A", "B", "C", "D"][i]}
-                  </Text>
+                  <Text style={[styles.optionLetterText, { color: textColor }]}>{["A", "B", "C", "D"][i]}</Text>
                 </View>
                 <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {selected !== null && i === q.correct && (
-                  <Feather name="check-circle" size={18} color={colors.success} style={{ marginLeft: "auto" as any }} />
-                )}
-                {selected !== null && i === selected && i !== q.correct && (
-                  <Feather name="x-circle" size={18} color={colors.destructive} style={{ marginLeft: "auto" as any }} />
-                )}
+                {selected !== null && i === q.correct && <Feather name="check-circle" size={18} color={colors.success} style={{ marginLeft: "auto" as any }} />}
+                {selected !== null && i === selected && i !== q.correct && <Feather name="x-circle" size={18} color={colors.destructive} style={{ marginLeft: "auto" as any }} />}
               </Pressable>
             );
           })}
         </View>
 
         {showExplanation && (
-          <View
-            style={[
-              styles.explanationCard,
-              {
-                backgroundColor: isCorrect ? colors.successBg : colors.errorBg,
-                borderColor: isCorrect ? colors.success : colors.destructive,
-              },
-            ]}
-          >
+          <View style={[styles.explanationCard, { backgroundColor: isCorrect ? colors.successBg : colors.errorBg, borderColor: isCorrect ? colors.success : colors.destructive }]}>
             <View style={styles.explanationHeader}>
-              <Feather
-                name={isCorrect ? "check-circle" : "x-circle"}
-                size={16}
-                color={isCorrect ? colors.success : colors.destructive}
-              />
+              <Feather name={isCorrect ? "check-circle" : "x-circle"} size={16} color={isCorrect ? colors.success : colors.destructive} />
               <Text style={[styles.explanationTitle, { color: isCorrect ? colors.success : colors.destructive }]}>
                 {isCorrect ? "Correto!" : "Incorreto"}
               </Text>
@@ -483,10 +425,7 @@ export default function GrammarScreen() {
         )}
 
         {selected !== null && (
-          <Pressable
-            style={[styles.nextBtn, { backgroundColor: selectedCategory.color }]}
-            onPress={handleNext}
-          >
+          <Pressable style={[styles.nextBtn, { backgroundColor: selectedCategory.color }]} onPress={handleNext}>
             <Text style={styles.nextBtnText}>
               {currentIndex < selectedCategory.questions.length - 1 ? "Próxima" : "Ver resultado"}
             </Text>
@@ -497,8 +436,10 @@ export default function GrammarScreen() {
     );
   }
 
+  // ─── Result Phase ─────────────────────────────────────────────────────────────
+
   if (phase === "result" && selectedCategory) {
-    const correct = answers.filter((a, i) => a === selectedCategory.questions[i].correct).length;
+    const correct = answers.filter((a, i) => a === selectedCategory.questions[i]?.correct).length;
     const total = selectedCategory.questions.length;
     const pct = Math.round((correct / total) * 100);
     const color = pct >= 80 ? colors.success : pct >= 60 ? colors.warning : colors.destructive;
@@ -506,7 +447,7 @@ export default function GrammarScreen() {
     return (
       <ScrollView
         style={[styles.root, { backgroundColor: colors.background }]}
-        contentContainerStyle={[styles.content, { paddingTop: topPad + 24, paddingBottom: 40, alignItems: "center" }]}
+        contentContainerStyle={[styles.content, { paddingTop: topPad + 24, paddingBottom: 48, alignItems: "center" }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.resultCircle, { borderColor: color }]}>
@@ -520,18 +461,23 @@ export default function GrammarScreen() {
           {selectedCategory.title} — {correct} de {total} acertos
         </Text>
 
-        <View style={styles.resultActions}>
+        {pct < 80 && LESSON_CONTENT[selectedCategory.id] && (
           <Pressable
-            style={[styles.retryBtn, { borderColor: selectedCategory.color }]}
-            onPress={() => startQuiz(selectedCategory)}
+            style={[styles.reviewLessonBtn, { backgroundColor: colors.infoBg, borderColor: colors.primary + "40" }]}
+            onPress={() => { setPhase("lesson"); }}
           >
+            <Feather name="book-open" size={14} color={colors.primary} />
+            <Text style={[styles.reviewLessonText, { color: colors.primary }]}>Revisar a aula antes de refazer</Text>
+            <Feather name="arrow-right" size={14} color={colors.primary} />
+          </Pressable>
+        )}
+
+        <View style={styles.resultActions}>
+          <Pressable style={[styles.retryBtn, { borderColor: selectedCategory.color }]} onPress={startQuiz}>
             <Feather name="refresh-cw" size={15} color={selectedCategory.color} />
             <Text style={[styles.retryBtnText, { color: selectedCategory.color }]}>Refazer</Text>
           </Pressable>
-          <Pressable
-            style={[styles.doneBtn, { backgroundColor: selectedCategory.color }]}
-            onPress={reset}
-          >
+          <Pressable style={[styles.doneBtn, { backgroundColor: selectedCategory.color }]} onPress={reset}>
             <Text style={styles.doneBtnText}>Outros tópicos</Text>
           </Pressable>
         </View>
@@ -540,26 +486,13 @@ export default function GrammarScreen() {
         {selectedCategory.questions.map((q, i) => {
           const wasCorrect = answers[i] === q.correct;
           return (
-            <View
-              key={q.id}
-              style={[
-                styles.reviewCard,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: wasCorrect ? colors.success : colors.destructive,
-                },
-              ]}
-            >
+            <View key={q.id} style={[styles.reviewCard, { backgroundColor: colors.card, borderColor: wasCorrect ? colors.success : colors.destructive }]}>
               <View style={styles.reviewTop}>
-                <Feather
-                  name={wasCorrect ? "check-circle" : "x-circle"}
-                  size={16}
-                  color={wasCorrect ? colors.success : colors.destructive}
-                />
+                <Feather name={wasCorrect ? "check-circle" : "x-circle"} size={16} color={wasCorrect ? colors.success : colors.destructive} />
                 <Text style={[styles.reviewQ, { color: colors.text }]}>{q.question}</Text>
               </View>
               <Text style={[styles.reviewAnswer, { color: wasCorrect ? colors.success : colors.destructive }]}>
-                Resposta correta: {q.options[q.correct]}
+                ✓ {q.options[q.correct]}
               </Text>
               <Text style={[styles.reviewExp, { color: colors.mutedForeground }]}>{q.explanation}</Text>
             </View>
@@ -577,21 +510,39 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, gap: 14 },
   backBtn: { padding: 4, alignSelf: "flex-start", marginBottom: 8 },
   screenTitle: { fontSize: 22, fontFamily: "Inter_700Bold" },
-  screenSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: -6 },
-  catCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 16,
-  },
+  screenSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: -6, lineHeight: 18 },
+  catCard: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 14, borderWidth: 1, padding: 16 },
   catIcon: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   catMeta: { flex: 1, gap: 3 },
+  catTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   catTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
   catDesc: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
+  lessonBadge: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  lessonBadgeText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
   questBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   questCount: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  // Lesson
+  lessonHeader: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 6 },
+  lessonIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  lessonTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  lessonSubtitle: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  lessonSection: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
+  lessonSectionHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  lessonSectionLabel: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.8 },
+  ruleText: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21 },
+  exampleItem: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  exampleNum: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 },
+  exampleNumText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  exampleSentence: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  exampleNote: { fontSize: 11, fontFamily: "Inter_400Regular", lineHeight: 16 },
+  mistakeRow: { gap: 6 },
+  mistakeWrong: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  mistakeRight: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  mistakeReason: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17, marginTop: 2 },
+  tipText: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 19 },
+  startQuizBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, padding: 16, borderRadius: 14, marginTop: 4 },
+  startQuizBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_700Bold" },
+  // Quiz
   quizHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   quizCategory: { fontSize: 14, fontFamily: "Inter_700Bold" },
   quizProgress: { fontSize: 13, fontFamily: "Inter_400Regular" },
@@ -600,61 +551,33 @@ const styles = StyleSheet.create({
   questionCard: { borderRadius: 14, borderWidth: 1, padding: 18 },
   questionText: { fontSize: 16, fontFamily: "Inter_600SemiBold", lineHeight: 23 },
   optionsWrap: { gap: 10 },
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    padding: 14,
-  },
+  option: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1.5, padding: 14 },
   optionLetter: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
   optionLetterText: { fontSize: 13, fontFamily: "Inter_700Bold" },
   optionText: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", lineHeight: 19 },
-  explanationCard: { borderRadius: 12, borderWidth: 1, padding: 14, gap: 8 },
+  explanationCard: { borderRadius: 12, borderWidth: 1, padding: 14, gap: 6 },
   explanationHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
   explanationTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  explanationText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
-  nextBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
+  explanationText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  nextBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 15, borderRadius: 12 },
   nextBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  resultCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-  resultPct: { fontSize: 36, fontFamily: "Inter_700Bold" },
-  resultFraction: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  // Result
+  resultCircle: { width: 120, height: 120, borderRadius: 60, borderWidth: 4, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  resultPct: { fontSize: 32, fontFamily: "Inter_700Bold" },
+  resultFraction: { fontSize: 14, fontFamily: "Inter_400Regular" },
   resultTitle: { fontSize: 22, fontFamily: "Inter_700Bold" },
-  resultSub: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  resultActions: { flexDirection: "row", gap: 12, width: "100%" },
-  retryBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderWidth: 1.5,
-    borderRadius: 12,
-    paddingVertical: 13,
-  },
+  resultSub: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  reviewLessonBtn: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderRadius: 10, padding: 12, alignSelf: "stretch" },
+  reviewLessonText: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium" },
+  resultActions: { flexDirection: "row", gap: 12, marginTop: 4, alignSelf: "stretch" },
+  retryBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderWidth: 1.5, borderRadius: 12, padding: 12 },
   retryBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  doneBtn: { flex: 1, alignItems: "center", justifyContent: "center", borderRadius: 12, paddingVertical: 13 },
+  doneBtn: { flex: 1, alignItems: "center", justifyContent: "center", borderRadius: 12, padding: 12 },
   doneBtnText: { color: "#fff", fontSize: 14, fontFamily: "Inter_600SemiBold" },
   reviewTitle: { fontSize: 16, fontFamily: "Inter_700Bold", alignSelf: "flex-start", marginTop: 8 },
-  reviewCard: { borderRadius: 12, borderWidth: 1.5, padding: 14, gap: 6, width: "100%" },
-  reviewTop: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
-  reviewQ: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
-  reviewAnswer: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  reviewCard: { borderRadius: 12, borderWidth: 1.5, padding: 14, gap: 6, alignSelf: "stretch" },
+  reviewTop: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  reviewQ: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 19 },
+  reviewAnswer: { fontSize: 13, fontFamily: "Inter_700Bold" },
   reviewExp: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
 });

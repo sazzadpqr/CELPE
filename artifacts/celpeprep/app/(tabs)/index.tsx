@@ -1,8 +1,11 @@
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Platform,
   Pressable,
   ScrollView,
@@ -39,24 +42,20 @@ const QUICK_ACTIONS = [
   { label: "Plano", icon: "calendar" as const, route: "/study", color: "#1D9E75" },
 ];
 
-interface WotdWord {
-  word: string;
-  pos: string;
-  definition: string;
-  example: string;
-}
+interface WotdWord { word: string; pos: string; definition: string; example: string; }
 
 function getDayOfYear() {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now.getTime() - start.getTime();
-  return Math.floor(diff / 86400000);
+  return Math.floor((now.getTime() - start.getTime()) / 86400000);
 }
+
+// ─── Word of the Day ──────────────────────────────────────────────────────────
 
 function WordOfTheDay() {
   const colors = useColors();
   const [wordData, setWordData] = useState<WotdWord | null>(null);
-  const [wotdLoading, setWotdLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(getApiUrl("/api/content/wotd"))
@@ -64,24 +63,20 @@ function WordOfTheDay() {
       .then((data: Array<{ word: string; pos: string; definition: string; example: string }>) => {
         if (data.length > 0) {
           const idx = getDayOfYear() % data.length;
-          const w = data[idx];
+          const w = data[idx]!;
           setWordData({ word: w.word, pos: w.pos, definition: w.definition, example: w.example });
         }
       })
       .catch(() => {})
-      .finally(() => setWotdLoading(false));
+      .finally(() => setLoading(false));
   }, []);
 
-  if (wotdLoading) {
-    return (
-      <View style={[styles.wotdCard, { backgroundColor: colors.card, borderColor: colors.border, alignItems: "center", justifyContent: "center", minHeight: 80 }]}>
-        <ActivityIndicator color={colors.primary} size="small" />
-      </View>
-    );
-  }
-
+  if (loading) return (
+    <View style={[styles.wotdCard, { backgroundColor: colors.card, borderColor: colors.border, alignItems: "center", justifyContent: "center", minHeight: 80 }]}>
+      <ActivityIndicator color={colors.primary} size="small" />
+    </View>
+  );
   if (!wordData) return null;
-  const word = { word: wordData.word, pos: wordData.pos, def: wordData.definition, example: wordData.example };
 
   return (
     <View style={[styles.wotdCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -95,22 +90,167 @@ function WordOfTheDay() {
         </Pressable>
       </View>
       <View style={styles.wotdBody}>
-        <Text style={[styles.wotdWord, { color: colors.text }]}>{word.word}</Text>
+        <Text style={[styles.wotdWord, { color: colors.text }]}>{wordData.word}</Text>
         <View style={[styles.wotdPosBadge, { backgroundColor: "#BA751718" }]}>
-          <Text style={[styles.wotdPos, { color: "#BA7517" }]}>{word.pos}</Text>
+          <Text style={[styles.wotdPos, { color: "#BA7517" }]}>{wordData.pos}</Text>
         </View>
       </View>
-      <Text style={[styles.wotdDef, { color: colors.text }]}>{word.def}</Text>
+      <Text style={[styles.wotdDef, { color: colors.text }]}>{wordData.definition}</Text>
       <View style={[styles.wotdExampleWrap, { borderLeftColor: colors.primary, backgroundColor: colors.infoBg }]}>
         <Text style={[styles.wotdExample, { color: colors.mutedForeground }]}>
           <Text style={{ fontFamily: "Inter_600SemiBold", color: colors.text }}>"</Text>
-          {word.example}
+          {wordData.example}
           <Text style={{ fontFamily: "Inter_600SemiBold", color: colors.text }}>"</Text>
         </Text>
       </View>
     </View>
   );
 }
+
+// ─── Daily Challenge ───────────────────────────────────────────────────────────
+
+interface ChallengeQuestion {
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  category: string;
+  color: string;
+}
+
+const TODAY_KEY = `daily_challenge_${new Date().toISOString().slice(0, 10)}`;
+
+function DailyChallenge() {
+  const colors = useColors();
+  const [question, setQuestion] = useState<ChallengeQuestion | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [done, setDone] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const load = async () => {
+      // Check if already done today
+      const stored = await AsyncStorage.getItem(TODAY_KEY);
+      if (stored) { setDone(true); setLoading(false); return; }
+
+      // Fetch quiz categories
+      try {
+        const res = await fetch(getApiUrl("/api/content/quiz"));
+        const cats = await res.json() as Array<{
+          id: string; title: string; color: string;
+          questions: Array<{ question: string; options: string[]; correct: number; explanation: string }>;
+        }>;
+
+        // Pick category and question of the day
+        const allQs: ChallengeQuestion[] = [];
+        for (const cat of cats) {
+          for (const q of cat.questions ?? []) {
+            allQs.push({ ...q, category: cat.title, color: cat.color ?? "#185FA5" });
+          }
+        }
+
+        if (allQs.length > 0) {
+          const dayIdx = getDayOfYear() % allQs.length;
+          setQuestion(allQs[dayIdx]!);
+        }
+      } catch { /* no questions available */ }
+      setLoading(false);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    };
+    load();
+  }, []);
+
+  const handleSelect = async (idx: number) => {
+    if (selected !== null) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelected(idx);
+    // Mark done after a short delay
+    setTimeout(async () => {
+      await AsyncStorage.setItem(TODAY_KEY, "done");
+    }, 1500);
+  };
+
+  if (loading || (!question && !done)) return null;
+
+  if (done && !question) {
+    return (
+      <View style={[styles.challengeCard, { backgroundColor: colors.successBg, borderColor: colors.success + "40" }]}>
+        <View style={styles.challengeHeader}>
+          <Feather name="zap" size={14} color={colors.success} />
+          <Text style={[styles.challengeLabel, { color: colors.success }]}>Desafio do Dia</Text>
+          <View style={[styles.doneBadge, { backgroundColor: colors.success }]}>
+            <Text style={styles.doneBadgeText}>✓ Concluído</Text>
+          </View>
+        </View>
+        <Text style={[styles.challengeDoneText, { color: colors.success }]}>
+          Você já completou o desafio de hoje! Volte amanhã para o próximo.
+        </Text>
+      </View>
+    );
+  }
+
+  if (!question) return null;
+
+  const isAnswered = selected !== null;
+  const isCorrect = selected === question.correct;
+
+  return (
+    <Animated.View style={{ opacity: fadeAnim }}>
+      <View style={[styles.challengeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={styles.challengeHeader}>
+          <Feather name="zap" size={14} color="#BA7517" />
+          <Text style={[styles.challengeLabel, { color: "#BA7517" }]}>Desafio do Dia</Text>
+          <View style={[styles.challengeCatBadge, { backgroundColor: question.color + "18" }]}>
+            <Text style={[styles.challengeCatText, { color: question.color }]}>{question.category}</Text>
+          </View>
+        </View>
+
+        <Text style={[styles.challengeQuestion, { color: colors.text }]}>{question.question}</Text>
+
+        <View style={styles.challengeOptions}>
+          {question.options.map((opt, i) => {
+            let bg = colors.muted + "60";
+            let border = "transparent";
+            let textColor = colors.text;
+            if (isAnswered) {
+              if (i === question.correct) { bg = colors.successBg; border = colors.success; textColor = colors.success; }
+              else if (i === selected && !isCorrect) { bg = colors.errorBg; border = colors.destructive; textColor = colors.destructive; }
+            } else if (selected === i) {
+              bg = colors.primary + "20"; border = colors.primary;
+            }
+            return (
+              <Pressable
+                key={i}
+                onPress={() => handleSelect(i)}
+                style={[styles.challengeOption, { backgroundColor: bg, borderColor: border, borderWidth: border !== "transparent" ? 1.5 : 0 }]}
+              >
+                <Text style={[styles.challengeOptionLetter, { color: textColor + "80" }]}>{["A", "B", "C", "D"][i]}</Text>
+                <Text style={[styles.challengeOptionText, { color: textColor }]}>{opt}</Text>
+                {isAnswered && i === question.correct && <Feather name="check-circle" size={14} color={colors.success} />}
+                {isAnswered && i === selected && !isCorrect && <Feather name="x-circle" size={14} color={colors.destructive} />}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {isAnswered && (
+          <View style={[styles.challengeExplanation, {
+            backgroundColor: isCorrect ? colors.successBg : colors.errorBg,
+            borderColor: isCorrect ? colors.success + "40" : colors.destructive + "40",
+          }]}>
+            <Text style={[styles.challengeExplTitle, { color: isCorrect ? colors.success : colors.destructive }]}>
+              {isCorrect ? "✓ Correto!" : "✗ Incorreto"}
+            </Text>
+            <Text style={[styles.challengeExplText, { color: colors.text }]}>{question.explanation}</Text>
+          </View>
+        )}
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Supporting components ─────────────────────────────────────────────────────
 
 function DaysUntilExam({ examDate }: { examDate: string | null }) {
   const colors = useColors();
@@ -199,6 +339,8 @@ function DiagnosticBanner() {
   );
 }
 
+// ─── Home Screen ───────────────────────────────────────────────────────────────
+
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -218,23 +360,15 @@ export default function HomeScreen() {
       contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: Platform.OS === "web" ? 34 : 100 }]}
       showsVerticalScrollIndicator={false}
     >
+      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Olá,</Text>
-          <Text style={[styles.userName, { color: colors.text }]}>
-            {profile.name || "Estudante"}
-          </Text>
-          <Text style={[styles.level, { color: colors.primary }]}>
-            {LEVEL_LABELS[profile.level]}
-          </Text>
+          <Text style={[styles.userName, { color: colors.text }]}>{profile.name || "Estudante"}</Text>
+          <Text style={[styles.level, { color: colors.primary }]}>{LEVEL_LABELS[profile.level]}</Text>
         </View>
-        <Pressable
-          onPress={() => router.push("/profile")}
-          style={[styles.avatar, { backgroundColor: colors.primary }]}
-        >
-          <Text style={styles.avatarText}>
-            {(profile.name || "E")[0].toUpperCase()}
-          </Text>
+        <Pressable onPress={() => router.push("/profile")} style={[styles.avatar, { backgroundColor: colors.primary }]}>
+          <Text style={styles.avatarText}>{(profile.name || "E")[0]!.toUpperCase()}</Text>
         </Pressable>
       </View>
 
@@ -243,8 +377,14 @@ export default function HomeScreen() {
       <AICreditsBar used={profile.aiCreditsUsed} total={profile.aiCreditsTotal} />
       {!profile.diagnosticDone && <DiagnosticBanner />}
 
+      {/* Daily Challenge */}
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Desafio do Dia</Text>
+      <DailyChallenge />
+
+      {/* Word of the Day */}
       <WordOfTheDay />
 
+      {/* Quick Actions */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Acesso rápido</Text>
       <View style={styles.quickGrid}>
         {QUICK_ACTIONS.map((a) => (
@@ -264,6 +404,7 @@ export default function HomeScreen() {
         ))}
       </View>
 
+      {/* Progress summary */}
       {avgScore && (
         <Pressable
           style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
@@ -295,6 +436,7 @@ export default function HomeScreen() {
         </Pressable>
       )}
 
+      {/* Recent attempts */}
       {recentAttempts.length > 0 && (
         <>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Práticas recentes</Text>
@@ -305,6 +447,16 @@ export default function HomeScreen() {
                 <Text style={[styles.attemptDate, { color: colors.mutedForeground }]}>
                   {new Date(a.createdAt).toLocaleDateString("pt-BR")}
                 </Text>
+              </View>
+              <View style={styles.attemptRubrics}>
+                {[a.rubricTema, a.rubricGenero, a.rubricCoesao, a.rubricGramatica].map((r, i) => {
+                  const rc = r >= 3.5 ? "#1D9E75" : r >= 2.5 ? "#BA7517" : "#D85A30";
+                  return (
+                    <View key={i} style={[styles.rubricDot, { backgroundColor: rc + "25" }]}>
+                      <Text style={[styles.rubricDotText, { color: rc }]}>{r.toFixed(0)}</Text>
+                    </View>
+                  );
+                })}
               </View>
               <View style={[styles.scorePill, {
                 backgroundColor: a.overallScore >= 3 ? colors.successBg : a.overallScore >= 2 ? colors.warningBg : colors.errorBg
@@ -327,10 +479,7 @@ export default function HomeScreen() {
           <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
             Faça sua primeira prática e receba avaliação da IA
           </Text>
-          <Pressable
-            style={[styles.startBtn, { backgroundColor: colors.primary }]}
-            onPress={() => router.push("/practice")}
-          >
+          <Pressable style={[styles.startBtn, { backgroundColor: colors.primary }]} onPress={() => router.push("/practice")}>
             <Text style={styles.startBtnText}>Começar agora</Text>
           </Pressable>
         </View>
@@ -366,6 +515,29 @@ const styles = StyleSheet.create({
   creditsFill: { height: 6, borderRadius: 3 },
   upgradeBtn: { paddingTop: 4 },
   upgradeText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  diagBanner: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, borderWidth: 1, padding: 14 },
+  diagIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  diagMeta: { flex: 1 },
+  diagTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  diagSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2, lineHeight: 17 },
+  // Daily Challenge
+  challengeCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
+  challengeHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  challengeLabel: { fontSize: 12, fontFamily: "Inter_700Bold", textTransform: "uppercase", letterSpacing: 0.5, flex: 1 },
+  challengeCatBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  challengeCatText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
+  doneBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  doneBadgeText: { color: "#fff", fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  challengeQuestion: { fontSize: 15, fontFamily: "Inter_600SemiBold", lineHeight: 22 },
+  challengeOptions: { gap: 8 },
+  challengeOption: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 10, padding: 12 },
+  challengeOptionLetter: { fontSize: 12, fontFamily: "Inter_700Bold", width: 16 },
+  challengeOptionText: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", lineHeight: 19 },
+  challengeExplanation: { borderRadius: 10, borderWidth: 1, padding: 12, gap: 4 },
+  challengeExplTitle: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  challengeExplText: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  challengeDoneText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  // WOTD
   wotdCard: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
   wotdHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   wotdHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -384,11 +556,6 @@ const styles = StyleSheet.create({
   quickCard: { width: "30%", flexGrow: 1, borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
   quickIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   quickLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  diagBanner: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, borderWidth: 1, padding: 14 },
-  diagIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  diagMeta: { flex: 1 },
-  diagTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  diagSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2, lineHeight: 17 },
   statsCard: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 12 },
   statsTitleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   statsTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
@@ -399,11 +566,14 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 26, fontFamily: "Inter_700Bold" },
   statLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
   statDivider: { width: 1, height: 36 },
-  attemptCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 12, borderWidth: 1, padding: 14 },
-  attemptLeft: { gap: 2 },
-  attemptTask: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  attemptDate: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  scorePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  attemptCard: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, padding: 14 },
+  attemptLeft: { flex: 1, gap: 2 },
+  attemptTask: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  attemptDate: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  attemptRubrics: { flexDirection: "row", gap: 3 },
+  rubricDot: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  rubricDotText: { fontSize: 9, fontFamily: "Inter_700Bold" },
+  scorePill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
   scoreText: { fontSize: 14, fontFamily: "Inter_700Bold" },
   emptyCard: { borderRadius: 16, borderWidth: 1, padding: 28, alignItems: "center", gap: 10, marginTop: 8 },
   emptyTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
