@@ -105,3 +105,95 @@ export interface AdminConfig {
   promptGenerationSystemPrompt: string;
   adminPasswordHash?: string;
 }
+
+export interface QuizCategory {
+  id: string;
+  title: string;
+  description: string;
+  color: string;
+  icon: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface QuizCategoryBody {
+  title: string;
+  description: string;
+  color: string;
+  icon: string;
+  active: boolean;
+}
+
+export interface QuizQuestion {
+  id: string;
+  categoryId: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  order: number;
+  createdAt: string;
+}
+
+export interface QuizQuestionBody {
+  categoryId: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  order: number;
+}
+
+export interface ExamTask {
+  id: string;
+  type: string;
+  title: string;
+  genre: string;
+  description: string;
+  linkUrl?: string;
+  order: number;
+}
+
+export interface ExamEdition {
+  id: string;
+  year: number;
+  edition: string;
+  title: string;
+  description: string;
+  tasks: ExamTask[];
+  active: boolean;
+  order: number;
+  createdAt: string;
+}
+
+export interface ExamEditionBody {
+  year: number;
+  edition: string;
+  title: string;
+  description: string;
+  tasks: ExamTask[];
+  active: boolean;
+  order: number;
+}
+
+export interface WotdEntry {
+  id: string;
+  word: string;
+  pos: string;
+  definition: string;
+  example: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface WotdEntryBody {
+  word: string;
+  pos: string;
+  definition: string;
+  example: string;
+  active: boolean;
+}
+
+export type ListAdminQuizQuestionsParams = {
+  categoryId?: string;
+};

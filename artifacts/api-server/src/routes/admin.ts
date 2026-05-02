@@ -13,8 +13,21 @@ import {
   savePasswordHash,
   getSecurityEvents,
   recordSecurityEvent,
+  getQuizCategories,
+  saveQuizCategories,
+  getQuizQuestions,
+  saveQuizQuestions,
+  getExams,
+  saveExams,
+  getWotdEntries,
+  saveWotdEntries,
   type PracticePrompt,
   type GrammarTopic,
+  type QuizCategory,
+  type QuizQuestion,
+  type ExamEdition,
+  type ExamTask,
+  type WotdEntry,
 } from "../lib/adminStore.js";
 
 const router = Router();
@@ -291,6 +304,210 @@ router.put("/admin/config", (req, res) => {
   };
   saveConfig(updated);
   res.json(updated);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUIZ CATEGORIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+router.get("/admin/quiz/categories", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  res.json(getQuizCategories());
+});
+
+router.post("/admin/quiz/categories", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const body = req.body as Omit<QuizCategory, "id" | "createdAt">;
+  const cats = getQuizCategories();
+  const newCat: QuizCategory = {
+    id: crypto.randomUUID(),
+    title: body.title ?? "",
+    description: body.description ?? "",
+    color: body.color ?? "#185FA5",
+    icon: body.icon ?? "book",
+    active: body.active ?? true,
+    createdAt: new Date().toISOString(),
+  };
+  cats.push(newCat);
+  saveQuizCategories(cats);
+  res.status(201).json(newCat);
+});
+
+router.put("/admin/quiz/categories/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const body = req.body as Partial<QuizCategory>;
+  const cats = getQuizCategories();
+  const idx = cats.findIndex((c) => c.id === id);
+  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
+  cats[idx] = { ...cats[idx]!, ...body, id, createdAt: cats[idx]!.createdAt };
+  saveQuizCategories(cats);
+  res.json(cats[idx]);
+});
+
+router.delete("/admin/quiz/categories/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const cats = getQuizCategories();
+  const filtered = cats.filter((c) => c.id !== id);
+  if (filtered.length === cats.length) { res.status(404).json({ error: "Not found" }); return; }
+  saveQuizCategories(filtered);
+  // Also remove associated questions
+  const qs = getQuizQuestions().filter((q) => q.categoryId !== id);
+  saveQuizQuestions(qs);
+  res.status(204).send();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUIZ QUESTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+router.get("/admin/quiz/questions", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { categoryId } = req.query as { categoryId?: string };
+  const qs = getQuizQuestions();
+  res.json(categoryId ? qs.filter((q) => q.categoryId === categoryId) : qs);
+});
+
+router.post("/admin/quiz/questions", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const body = req.body as Omit<QuizQuestion, "id" | "createdAt">;
+  const qs = getQuizQuestions();
+  const newQ: QuizQuestion = {
+    id: crypto.randomUUID(),
+    categoryId: body.categoryId ?? "",
+    question: body.question ?? "",
+    options: Array.isArray(body.options) ? body.options : ["", "", "", ""],
+    correct: typeof body.correct === "number" ? body.correct : 0,
+    explanation: body.explanation ?? "",
+    order: body.order ?? qs.filter((q) => q.categoryId === body.categoryId).length + 1,
+    createdAt: new Date().toISOString(),
+  };
+  qs.push(newQ);
+  saveQuizQuestions(qs);
+  res.status(201).json(newQ);
+});
+
+router.put("/admin/quiz/questions/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const body = req.body as Partial<QuizQuestion>;
+  const qs = getQuizQuestions();
+  const idx = qs.findIndex((q) => q.id === id);
+  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
+  qs[idx] = { ...qs[idx]!, ...body, id, createdAt: qs[idx]!.createdAt };
+  saveQuizQuestions(qs);
+  res.json(qs[idx]);
+});
+
+router.delete("/admin/quiz/questions/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const qs = getQuizQuestions();
+  const filtered = qs.filter((q) => q.id !== id);
+  if (filtered.length === qs.length) { res.status(404).json({ error: "Not found" }); return; }
+  saveQuizQuestions(filtered);
+  res.status(204).send();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXAM EDITIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+router.get("/admin/exams", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  res.json(getExams());
+});
+
+router.post("/admin/exams", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const body = req.body as Omit<ExamEdition, "id" | "createdAt">;
+  const exams = getExams();
+  const newExam: ExamEdition = {
+    id: crypto.randomUUID(),
+    year: body.year ?? 0,
+    edition: body.edition ?? "",
+    title: body.title ?? "",
+    description: body.description ?? "",
+    tasks: Array.isArray(body.tasks) ? body.tasks : [],
+    active: body.active ?? true,
+    order: body.order ?? exams.length + 1,
+    createdAt: new Date().toISOString(),
+  };
+  exams.push(newExam);
+  saveExams(exams);
+  res.status(201).json(newExam);
+});
+
+router.put("/admin/exams/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const body = req.body as Partial<ExamEdition>;
+  const exams = getExams();
+  const idx = exams.findIndex((e) => e.id === id);
+  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
+  exams[idx] = { ...exams[idx]!, ...body, id, createdAt: exams[idx]!.createdAt };
+  saveExams(exams);
+  res.json(exams[idx]);
+});
+
+router.delete("/admin/exams/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const exams = getExams();
+  const filtered = exams.filter((e) => e.id !== id);
+  if (filtered.length === exams.length) { res.status(404).json({ error: "Not found" }); return; }
+  saveExams(filtered);
+  res.status(204).send();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WORD OF THE DAY BANK
+// ═══════════════════════════════════════════════════════════════════════════════
+
+router.get("/admin/wotd", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  res.json(getWotdEntries());
+});
+
+router.post("/admin/wotd", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const body = req.body as Omit<WotdEntry, "id" | "createdAt">;
+  const entries = getWotdEntries();
+  const newEntry: WotdEntry = {
+    id: crypto.randomUUID(),
+    word: body.word ?? "",
+    pos: body.pos ?? "",
+    definition: body.definition ?? "",
+    example: body.example ?? "",
+    active: body.active ?? true,
+    createdAt: new Date().toISOString(),
+  };
+  entries.push(newEntry);
+  saveWotdEntries(entries);
+  res.status(201).json(newEntry);
+});
+
+router.put("/admin/wotd/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const body = req.body as Partial<WotdEntry>;
+  const entries = getWotdEntries();
+  const idx = entries.findIndex((e) => e.id === id);
+  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
+  entries[idx] = { ...entries[idx]!, ...body, id, createdAt: entries[idx]!.createdAt };
+  saveWotdEntries(entries);
+  res.json(entries[idx]);
+});
+
+router.delete("/admin/wotd/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { id } = req.params;
+  const entries = getWotdEntries();
+  const filtered = entries.filter((e) => e.id !== id);
+  if (filtered.length === entries.length) { res.status(404).json({ error: "Not found" }); return; }
+  saveWotdEntries(filtered);
+  res.status(204).send();
 });
 
 export default router;

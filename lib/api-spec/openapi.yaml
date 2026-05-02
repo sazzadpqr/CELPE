@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: admin
     description: Admin operations
+  - name: content
+    description: Public content for mobile app
 paths:
   /healthz:
     get:
@@ -277,6 +279,368 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SecurityEvent"
+
+  /admin/quiz/categories:
+    get:
+      operationId: listAdminQuizCategories
+      tags: [admin]
+      summary: List quiz categories
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of quiz categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizCategory"
+    post:
+      operationId: createAdminQuizCategory
+      tags: [admin]
+      summary: Create quiz category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizCategoryBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizCategory"
+
+  /admin/quiz/categories/{id}:
+    put:
+      operationId: updateAdminQuizCategory
+      tags: [admin]
+      summary: Update quiz category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizCategoryBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizCategory"
+    delete:
+      operationId: deleteAdminQuizCategory
+      tags: [admin]
+      summary: Delete quiz category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/quiz/questions:
+    get:
+      operationId: listAdminQuizQuestions
+      tags: [admin]
+      summary: List quiz questions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of quiz questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizQuestion"
+    post:
+      operationId: createAdminQuizQuestion
+      tags: [admin]
+      summary: Create quiz question
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizQuestionBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizQuestion"
+
+  /admin/quiz/questions/{id}:
+    put:
+      operationId: updateAdminQuizQuestion
+      tags: [admin]
+      summary: Update quiz question
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizQuestionBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizQuestion"
+    delete:
+      operationId: deleteAdminQuizQuestion
+      tags: [admin]
+      summary: Delete quiz question
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/exams:
+    get:
+      operationId: listAdminExams
+      tags: [admin]
+      summary: List exam editions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of exam editions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExamEdition"
+    post:
+      operationId: createAdminExam
+      tags: [admin]
+      summary: Create exam edition
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExamEditionBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamEdition"
+
+  /admin/exams/{id}:
+    put:
+      operationId: updateAdminExam
+      tags: [admin]
+      summary: Update exam edition
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExamEditionBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamEdition"
+    delete:
+      operationId: deleteAdminExam
+      tags: [admin]
+      summary: Delete exam edition
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/wotd:
+    get:
+      operationId: listAdminWotd
+      tags: [admin]
+      summary: List word of the day entries
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of WOTD entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WotdEntry"
+    post:
+      operationId: createAdminWotd
+      tags: [admin]
+      summary: Create WOTD entry
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WotdEntryBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WotdEntry"
+
+  /admin/wotd/{id}:
+    put:
+      operationId: updateAdminWotd
+      tags: [admin]
+      summary: Update WOTD entry
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WotdEntryBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WotdEntry"
+    delete:
+      operationId: deleteAdminWotd
+      tags: [admin]
+      summary: Delete WOTD entry
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /content/quiz:
+    get:
+      operationId: getContentQuiz
+      tags: [content]
+      summary: Get quiz categories with questions (public)
+      responses:
+        "200":
+          description: Quiz categories with questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizCategory"
+
+  /content/exams:
+    get:
+      operationId: getContentExams
+      tags: [content]
+      summary: Get exam editions (public)
+      responses:
+        "200":
+          description: Exam editions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExamEdition"
+
+  /content/wotd:
+    get:
+      operationId: getContentWotd
+      tags: [content]
+      summary: Get active WOTD entries (public)
+      responses:
+        "200":
+          description: WOTD entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WotdEntry"
 
   /admin/config:
     get:
@@ -573,3 +937,238 @@ components:
       required:
         - feedbackSystemPrompt
         - promptGenerationSystemPrompt
+
+    QuizCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+        icon:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - color
+        - icon
+        - active
+        - createdAt
+
+    QuizCategoryBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+        icon:
+          type: string
+        active:
+          type: boolean
+      required:
+        - title
+        - description
+        - color
+        - icon
+        - active
+
+    QuizQuestion:
+      type: object
+      properties:
+        id:
+          type: string
+        categoryId:
+          type: string
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correct:
+          type: number
+        explanation:
+          type: string
+        order:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - categoryId
+        - question
+        - options
+        - correct
+        - explanation
+        - order
+        - createdAt
+
+    QuizQuestionBody:
+      type: object
+      properties:
+        categoryId:
+          type: string
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correct:
+          type: number
+        explanation:
+          type: string
+        order:
+          type: number
+      required:
+        - categoryId
+        - question
+        - options
+        - correct
+        - explanation
+        - order
+
+    ExamTask:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        genre:
+          type: string
+        description:
+          type: string
+        linkUrl:
+          type: string
+        order:
+          type: number
+      required:
+        - id
+        - type
+        - title
+        - genre
+        - description
+        - order
+
+    ExamEdition:
+      type: object
+      properties:
+        id:
+          type: string
+        year:
+          type: number
+        edition:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExamTask"
+        active:
+          type: boolean
+        order:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - year
+        - edition
+        - title
+        - description
+        - tasks
+        - active
+        - order
+        - createdAt
+
+    ExamEditionBody:
+      type: object
+      properties:
+        year:
+          type: number
+        edition:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExamTask"
+        active:
+          type: boolean
+        order:
+          type: number
+      required:
+        - year
+        - edition
+        - title
+        - description
+        - tasks
+        - active
+        - order
+
+    WotdEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        word:
+          type: string
+        pos:
+          type: string
+        definition:
+          type: string
+        example:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - word
+        - pos
+        - definition
+        - example
+        - active
+        - createdAt
+
+    WotdEntryBody:
+      type: object
+      properties:
+        word:
+          type: string
+        pos:
+          type: string
+        definition:
+          type: string
+        example:
+          type: string
+        active:
+          type: boolean
+      required:
+        - word
+        - pos
+        - definition
+        - example
+        - active

@@ -10,6 +10,9 @@ import Login from "@/pages/login";
 import Prompts from "@/pages/prompts";
 import Grammar from "@/pages/grammar";
 import Config from "@/pages/config";
+import Quiz from "@/pages/quiz";
+import Exams from "@/pages/exams";
+import Wotd from "@/pages/wotd";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -65,6 +68,15 @@ function Router() {
       </Route>
       <Route path="/grammar">
         {() => <ProtectedRoute component={Grammar} />}
+      </Route>
+      <Route path="/quiz">
+        {() => <ProtectedRoute component={Quiz} />}
+      </Route>
+      <Route path="/exams">
+        {() => <ProtectedRoute component={Exams} />}
+      </Route>
+      <Route path="/wotd">
+        {() => <ProtectedRoute component={Wotd} />}
       </Route>
       <Route path="/config">
         {() => <ProtectedRoute component={Config} />}

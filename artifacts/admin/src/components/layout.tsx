@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, LayoutDashboard, MessageSquare, BookOpen, Settings } from "lucide-react";
+import { LogOut, LayoutDashboard, MessageSquare, BookOpen, Settings, HelpCircle, Archive, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -18,6 +18,9 @@ export function Layout({ children }: LayoutProps) {
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/prompts", label: "Prompts", icon: MessageSquare },
     { href: "/grammar", label: "Grammar", icon: BookOpen },
+    { href: "/quiz", label: "Quiz", icon: HelpCircle },
+    { href: "/exams", label: "Exams", icon: Archive },
+    { href: "/wotd", label: "Word Bank", icon: Star },
     { href: "/config", label: "Config", icon: Settings },
   ];
 

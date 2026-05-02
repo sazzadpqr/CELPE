@@ -1,8 +1,9 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -31,7 +32,39 @@ interface Category {
   questions: Question[];
 }
 
-const CATEGORIES: Category[] = [
+function getApiUrl(path: string) {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}${path}` : path;
+}
+
+function useQuizCategories() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/quiz"))
+      .then((r) => r.json())
+      .then((data: Array<{
+        id: string; title: string; icon: string; color: string;
+        description: string;
+        questions: Question[];
+      }>) => {
+        setCategories(
+          data.map((c) => ({
+            ...c,
+            icon: (c.icon || "book") as keyof typeof Feather.glyphMap,
+            questions: (c.questions || []),
+          }))
+        );
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { categories, loading };
+}
+
+const _UNUSED_PLACEHOLDER: Category[] = [
   {
     id: "subjuntivo",
     title: "Subjuntivo",
@@ -260,6 +293,7 @@ export default function GrammarScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const { categories, loading } = useQuizCategories();
 
   const [phase, setPhase] = useState<Phase>("select");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -322,7 +356,11 @@ export default function GrammarScreen() {
         <Text style={[styles.screenSub, { color: colors.mutedForeground }]}>
           Escolha um tópico para praticar
         </Text>
-        {CATEGORIES.map((cat) => (
+        {loading ? (
+          <View style={{ alignItems: "center", paddingVertical: 32 }}>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : categories.map((cat) => (
           <Pressable
             key={cat.id}
             style={({ pressed }) => [

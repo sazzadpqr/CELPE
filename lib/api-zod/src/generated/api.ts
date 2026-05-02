@@ -209,6 +209,348 @@ export const ListAdminSecurityEventsResponse = zod.array(
 );
 
 /**
+ * @summary List quiz categories
+ */
+export const ListAdminQuizCategoriesResponseItem = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  icon: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const ListAdminQuizCategoriesResponse = zod.array(
+  ListAdminQuizCategoriesResponseItem,
+);
+
+/**
+ * @summary Create quiz category
+ */
+export const CreateAdminQuizCategoryBody = zod.object({
+  title: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  icon: zod.string(),
+  active: zod.boolean(),
+});
+
+/**
+ * @summary Update quiz category
+ */
+export const UpdateAdminQuizCategoryParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateAdminQuizCategoryBody = zod.object({
+  title: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  icon: zod.string(),
+  active: zod.boolean(),
+});
+
+export const UpdateAdminQuizCategoryResponse = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  icon: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete quiz category
+ */
+export const DeleteAdminQuizCategoryParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary List quiz questions
+ */
+export const ListAdminQuizQuestionsQueryParams = zod.object({
+  categoryId: zod.coerce.string().optional(),
+});
+
+export const ListAdminQuizQuestionsResponseItem = zod.object({
+  id: zod.string(),
+  categoryId: zod.string(),
+  question: zod.string(),
+  options: zod.array(zod.string()),
+  correct: zod.number(),
+  explanation: zod.string(),
+  order: zod.number(),
+  createdAt: zod.string(),
+});
+export const ListAdminQuizQuestionsResponse = zod.array(
+  ListAdminQuizQuestionsResponseItem,
+);
+
+/**
+ * @summary Create quiz question
+ */
+export const CreateAdminQuizQuestionBody = zod.object({
+  categoryId: zod.string(),
+  question: zod.string(),
+  options: zod.array(zod.string()),
+  correct: zod.number(),
+  explanation: zod.string(),
+  order: zod.number(),
+});
+
+/**
+ * @summary Update quiz question
+ */
+export const UpdateAdminQuizQuestionParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateAdminQuizQuestionBody = zod.object({
+  categoryId: zod.string(),
+  question: zod.string(),
+  options: zod.array(zod.string()),
+  correct: zod.number(),
+  explanation: zod.string(),
+  order: zod.number(),
+});
+
+export const UpdateAdminQuizQuestionResponse = zod.object({
+  id: zod.string(),
+  categoryId: zod.string(),
+  question: zod.string(),
+  options: zod.array(zod.string()),
+  correct: zod.number(),
+  explanation: zod.string(),
+  order: zod.number(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete quiz question
+ */
+export const DeleteAdminQuizQuestionParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary List exam editions
+ */
+export const ListAdminExamsResponseItem = zod.object({
+  id: zod.string(),
+  year: zod.number(),
+  edition: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  tasks: zod.array(
+    zod.object({
+      id: zod.string(),
+      type: zod.string(),
+      title: zod.string(),
+      genre: zod.string(),
+      description: zod.string(),
+      linkUrl: zod.string().optional(),
+      order: zod.number(),
+    }),
+  ),
+  active: zod.boolean(),
+  order: zod.number(),
+  createdAt: zod.string(),
+});
+export const ListAdminExamsResponse = zod.array(ListAdminExamsResponseItem);
+
+/**
+ * @summary Create exam edition
+ */
+export const CreateAdminExamBody = zod.object({
+  year: zod.number(),
+  edition: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  tasks: zod.array(
+    zod.object({
+      id: zod.string(),
+      type: zod.string(),
+      title: zod.string(),
+      genre: zod.string(),
+      description: zod.string(),
+      linkUrl: zod.string().optional(),
+      order: zod.number(),
+    }),
+  ),
+  active: zod.boolean(),
+  order: zod.number(),
+});
+
+/**
+ * @summary Update exam edition
+ */
+export const UpdateAdminExamParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateAdminExamBody = zod.object({
+  year: zod.number(),
+  edition: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  tasks: zod.array(
+    zod.object({
+      id: zod.string(),
+      type: zod.string(),
+      title: zod.string(),
+      genre: zod.string(),
+      description: zod.string(),
+      linkUrl: zod.string().optional(),
+      order: zod.number(),
+    }),
+  ),
+  active: zod.boolean(),
+  order: zod.number(),
+});
+
+export const UpdateAdminExamResponse = zod.object({
+  id: zod.string(),
+  year: zod.number(),
+  edition: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  tasks: zod.array(
+    zod.object({
+      id: zod.string(),
+      type: zod.string(),
+      title: zod.string(),
+      genre: zod.string(),
+      description: zod.string(),
+      linkUrl: zod.string().optional(),
+      order: zod.number(),
+    }),
+  ),
+  active: zod.boolean(),
+  order: zod.number(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete exam edition
+ */
+export const DeleteAdminExamParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary List word of the day entries
+ */
+export const ListAdminWotdResponseItem = zod.object({
+  id: zod.string(),
+  word: zod.string(),
+  pos: zod.string(),
+  definition: zod.string(),
+  example: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const ListAdminWotdResponse = zod.array(ListAdminWotdResponseItem);
+
+/**
+ * @summary Create WOTD entry
+ */
+export const CreateAdminWotdBody = zod.object({
+  word: zod.string(),
+  pos: zod.string(),
+  definition: zod.string(),
+  example: zod.string(),
+  active: zod.boolean(),
+});
+
+/**
+ * @summary Update WOTD entry
+ */
+export const UpdateAdminWotdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateAdminWotdBody = zod.object({
+  word: zod.string(),
+  pos: zod.string(),
+  definition: zod.string(),
+  example: zod.string(),
+  active: zod.boolean(),
+});
+
+export const UpdateAdminWotdResponse = zod.object({
+  id: zod.string(),
+  word: zod.string(),
+  pos: zod.string(),
+  definition: zod.string(),
+  example: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete WOTD entry
+ */
+export const DeleteAdminWotdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary Get quiz categories with questions (public)
+ */
+export const GetContentQuizResponseItem = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  color: zod.string(),
+  icon: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const GetContentQuizResponse = zod.array(GetContentQuizResponseItem);
+
+/**
+ * @summary Get exam editions (public)
+ */
+export const GetContentExamsResponseItem = zod.object({
+  id: zod.string(),
+  year: zod.number(),
+  edition: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  tasks: zod.array(
+    zod.object({
+      id: zod.string(),
+      type: zod.string(),
+      title: zod.string(),
+      genre: zod.string(),
+      description: zod.string(),
+      linkUrl: zod.string().optional(),
+      order: zod.number(),
+    }),
+  ),
+  active: zod.boolean(),
+  order: zod.number(),
+  createdAt: zod.string(),
+});
+export const GetContentExamsResponse = zod.array(GetContentExamsResponseItem);
+
+/**
+ * @summary Get active WOTD entries (public)
+ */
+export const GetContentWotdResponseItem = zod.object({
+  id: zod.string(),
+  word: zod.string(),
+  pos: zod.string(),
+  definition: zod.string(),
+  example: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const GetContentWotdResponse = zod.array(GetContentWotdResponseItem);
+
+/**
  * @summary Get AI config
  */
 export const GetAdminConfigResponse = zod.object({

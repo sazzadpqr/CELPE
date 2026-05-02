@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Linking,
   Platform,
@@ -32,7 +33,27 @@ interface ExamTask {
   linkUrl?: string;
 }
 
-const EXAMS: ExamEdition[] = [
+function getApiUrl(path: string) {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}${path}` : path;
+}
+
+function useExams() {
+  const [exams, setExams] = useState<ExamEdition[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/exams"))
+      .then((r) => r.json())
+      .then((data: ExamEdition[]) => setExams(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { exams, loading };
+}
+
+const _UNUSED_PLACEHOLDER: ExamEdition[] = [
   {
     id: "2023-2",
     year: 2023,
@@ -110,6 +131,7 @@ export default function ExamsScreen() {
   const insets = useSafeAreaInsets();
   const [expanded, setExpanded] = useState<string | null>(null);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const { exams, loading } = useExams();
 
   const handleTaskPress = async (task: ExamTask) => {
     if (task.linkUrl) {
@@ -130,9 +152,14 @@ export default function ExamsScreen() {
           <Text style={[styles.screenSubtitle, { color: colors.mutedForeground }]}>
             Acesse questões, temas e materiais de edições anteriores do Celpe-Bras.
           </Text>
+          {loading && (
+            <View style={{ alignItems: "center", paddingVertical: 32 }}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          )}
         </>
       }
-      data={EXAMS}
+      data={exams}
       keyExtractor={(e) => e.id}
       renderItem={({ item: exam }) => (
         <View style={[styles.examCard, { backgroundColor: colors.card, borderColor: expanded === exam.id ? colors.primary : colors.border }]}>

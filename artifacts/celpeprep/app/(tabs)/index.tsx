@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -13,6 +14,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+
+function getApiUrl(path: string) {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}${path}` : path;
+}
 
 const LEVEL_LABELS: Record<string, string> = {
   A2: "A2 — Básico",
@@ -30,38 +36,12 @@ const QUICK_ACTIONS = [
   { label: "Plano", icon: "calendar" as const, route: "/study", color: "#1D9E75" },
 ];
 
-const WORD_OF_THE_DAY = [
-  { word: "reivindicar", pos: "verbo", def: "Reclamar como direito próprio; exigir algo a que se tem direito.", example: "Os trabalhadores reivindicaram melhores condições." },
-  { word: "suscitar", pos: "verbo", def: "Provocar, causar, originar (sentimento, reação ou questão).", example: "O discurso suscitou grande debate." },
-  { word: "ponderar", pos: "verbo", def: "Considerar atentamente; avaliar com cuidado antes de decidir.", example: "É preciso ponderar todas as consequências." },
-  { word: "elucidar", pos: "verbo", def: "Esclarecer, tornar mais claro; explicar com detalhes.", example: "O relatório elucidou os fatos do caso." },
-  { word: "equívoco", pos: "substantivo", def: "Erro resultante de má compreensão; engano, mal-entendido.", example: "O equívoco causou confusão entre os participantes." },
-  { word: "paradoxo", pos: "substantivo", def: "Situação ou afirmação que parece contraditória mas pode ser verdadeira.", example: "É um paradoxo que a tecnologia una e isole as pessoas." },
-  { word: "eminente", pos: "adjetivo", def: "De grande destaque; notável, ilustre.", example: "Um eminente cientista recebeu o prêmio." },
-  { word: "iminente", pos: "adjetivo", def: "Que está prestes a acontecer; muito próximo.", example: "O perigo era iminente e todos evacuaram." },
-  { word: "cotidiano", pos: "adjetivo/subst.", def: "Relativo ao dia a dia; o conjunto de atividades diárias.", example: "As redes sociais fazem parte do cotidiano moderno." },
-  { word: "precário", pos: "adjetivo", def: "De má qualidade; instável, insuficiente, deficiente.", example: "A infraestrutura precária prejudica os moradores." },
-  { word: "imprescindível", pos: "adjetivo", def: "Absolutamente necessário; indispensável.", example: "A educação é imprescindível para o desenvolvimento." },
-  { word: "averiguar", pos: "verbo", def: "Investigar para descobrir a verdade; apurar.", example: "A polícia vai averiguar as circunstâncias do acidente." },
-  { word: "almejar", pos: "verbo", def: "Desejar muito; aspirar a algo.", example: "Muitos jovens almejam uma carreira internacional." },
-  { word: "discrepância", pos: "substantivo", def: "Diferença notável; divergência entre dados ou opiniões.", example: "Há uma discrepância entre os resultados esperados e os obtidos." },
-  { word: "efêmero", pos: "adjetivo", def: "Que dura pouco tempo; passageiro, transitório.", example: "A fama nas redes sociais pode ser efêmera." },
-  { word: "incumbir", pos: "verbo", def: "Atribuir uma tarefa ou responsabilidade a alguém.", example: "Incumbiram-no de coordenar o projeto." },
-  { word: "tônica", pos: "substantivo", def: "Elemento principal; o ponto central de algo.", example: "A sustentabilidade é a tônica das discussões atuais." },
-  { word: "respaldar", pos: "verbo", def: "Apoiar, amparar; dar respaldo a algo ou alguém.", example: "Os dados científicos respaldaram a teoria." },
-  { word: "emblemático", pos: "adjetivo", def: "Que serve como símbolo ou exemplo representativo.", example: "Aquele caso foi emblemático para a legislação brasileira." },
-  { word: "lacuna", pos: "substantivo", def: "Espaço vazio; ausência de algo necessário; falha.", example: "Há uma lacuna na legislação sobre esse tema." },
-  { word: "mitigar", pos: "verbo", def: "Diminuir a intensidade de; amenizar, suavizar.", example: "Medidas foram tomadas para mitigar os efeitos da crise." },
-  { word: "propício", pos: "adjetivo", def: "Favorável; que oferece boas condições.", example: "O momento é propício para investimentos." },
-  { word: "vicioso", pos: "adjetivo", def: "Relativo a vício; que tem defeito; perverso.", example: "O ciclo vicioso da pobreza é difícil de romper." },
-  { word: "abordar", pos: "verbo", def: "Tratar de um assunto; aproximar-se para falar.", example: "O texto aborda questões ambientais urgentes." },
-  { word: "remeter", pos: "verbo", def: "Enviar; fazer referência a; encaminhar.", example: "O autor remete o leitor a obras anteriores." },
-  { word: "depreender", pos: "verbo", def: "Concluir por meio de raciocínio; deduzir, inferir.", example: "Depreende-se do texto que o autor é favorável à mudança." },
-  { word: "corroborar", pos: "verbo", def: "Confirmar, reforçar (argumento, tese ou afirmação).", example: "Os estudos corroboram a hipótese apresentada." },
-  { word: "enfatizar", pos: "verbo", def: "Dar ênfase a; destacar, ressaltar.", example: "O relatório enfatiza a importância da prevenção." },
-  { word: "contrapor", pos: "verbo", def: "Colocar em oposição; apresentar como contrário.", example: "O debate contrapôs dois pontos de vista opostos." },
-  { word: "prerrogativa", pos: "substantivo", def: "Direito exclusivo ou privilégio ligado a uma função.", example: "É prerrogativa do juiz decidir sobre o caso." },
-];
+interface WotdWord {
+  word: string;
+  pos: string;
+  definition: string;
+  example: string;
+}
 
 function getDayOfYear() {
   const now = new Date();
@@ -72,7 +52,33 @@ function getDayOfYear() {
 
 function WordOfTheDay() {
   const colors = useColors();
-  const word = WORD_OF_THE_DAY[getDayOfYear() % WORD_OF_THE_DAY.length];
+  const [wordData, setWordData] = useState<WotdWord | null>(null);
+  const [wotdLoading, setWotdLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/wotd"))
+      .then((r) => r.json())
+      .then((data: Array<{ word: string; pos: string; definition: string; example: string }>) => {
+        if (data.length > 0) {
+          const idx = getDayOfYear() % data.length;
+          const w = data[idx];
+          setWordData({ word: w.word, pos: w.pos, definition: w.definition, example: w.example });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setWotdLoading(false));
+  }, []);
+
+  if (wotdLoading) {
+    return (
+      <View style={[styles.wotdCard, { backgroundColor: colors.card, borderColor: colors.border, alignItems: "center", justifyContent: "center", minHeight: 80 }]}>
+        <ActivityIndicator color={colors.primary} size="small" />
+      </View>
+    );
+  }
+
+  if (!wordData) return null;
+  const word = { word: wordData.word, pos: wordData.pos, def: wordData.definition, example: wordData.example };
 
   return (
     <View style={[styles.wotdCard, { backgroundColor: colors.card, borderColor: colors.border }]}>

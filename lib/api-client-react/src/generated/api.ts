@@ -21,14 +21,23 @@ import type {
   AdminLoginBody,
   AdminLoginResponse,
   AdminStats,
+  ExamEdition,
+  ExamEditionBody,
   GrammarTopic,
   GrammarTopicBody,
   HealthStatus,
+  ListAdminQuizQuestionsParams,
   PracticePrompt,
   PracticePromptBody,
+  QuizCategory,
+  QuizCategoryBody,
+  QuizQuestion,
+  QuizQuestionBody,
   RequestLog,
   RotatePasswordBody,
   SecurityEvent,
+  WotdEntry,
+  WotdEntryBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -1170,6 +1179,1585 @@ export function useListAdminSecurityEvents<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getListAdminSecurityEventsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List quiz categories
+ */
+export const getListAdminQuizCategoriesUrl = () => {
+  return `/api/admin/quiz/categories`;
+};
+
+export const listAdminQuizCategories = async (
+  options?: RequestInit,
+): Promise<QuizCategory[]> => {
+  return customFetch<QuizCategory[]>(getListAdminQuizCategoriesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminQuizCategoriesQueryKey = () => {
+  return [`/api/admin/quiz/categories`] as const;
+};
+
+export const getListAdminQuizCategoriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminQuizCategories>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminQuizCategories>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminQuizCategoriesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminQuizCategories>>
+  > = ({ signal }) => listAdminQuizCategories({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminQuizCategories>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminQuizCategoriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminQuizCategories>>
+>;
+export type ListAdminQuizCategoriesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List quiz categories
+ */
+
+export function useListAdminQuizCategories<
+  TData = Awaited<ReturnType<typeof listAdminQuizCategories>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminQuizCategories>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminQuizCategoriesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create quiz category
+ */
+export const getCreateAdminQuizCategoryUrl = () => {
+  return `/api/admin/quiz/categories`;
+};
+
+export const createAdminQuizCategory = async (
+  quizCategoryBody: QuizCategoryBody,
+  options?: RequestInit,
+): Promise<QuizCategory> => {
+  return customFetch<QuizCategory>(getCreateAdminQuizCategoryUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(quizCategoryBody),
+  });
+};
+
+export const getCreateAdminQuizCategoryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminQuizCategory>>,
+    TError,
+    { data: BodyType<QuizCategoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminQuizCategory>>,
+  TError,
+  { data: BodyType<QuizCategoryBody> },
+  TContext
+> => {
+  const mutationKey = ["createAdminQuizCategory"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminQuizCategory>>,
+    { data: BodyType<QuizCategoryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminQuizCategory(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminQuizCategoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminQuizCategory>>
+>;
+export type CreateAdminQuizCategoryMutationBody = BodyType<QuizCategoryBody>;
+export type CreateAdminQuizCategoryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create quiz category
+ */
+export const useCreateAdminQuizCategory = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminQuizCategory>>,
+    TError,
+    { data: BodyType<QuizCategoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminQuizCategory>>,
+  TError,
+  { data: BodyType<QuizCategoryBody> },
+  TContext
+> => {
+  return useMutation(getCreateAdminQuizCategoryMutationOptions(options));
+};
+
+/**
+ * @summary Update quiz category
+ */
+export const getUpdateAdminQuizCategoryUrl = (id: string) => {
+  return `/api/admin/quiz/categories/${id}`;
+};
+
+export const updateAdminQuizCategory = async (
+  id: string,
+  quizCategoryBody: QuizCategoryBody,
+  options?: RequestInit,
+): Promise<QuizCategory> => {
+  return customFetch<QuizCategory>(getUpdateAdminQuizCategoryUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(quizCategoryBody),
+  });
+};
+
+export const getUpdateAdminQuizCategoryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminQuizCategory>>,
+    TError,
+    { id: string; data: BodyType<QuizCategoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminQuizCategory>>,
+  TError,
+  { id: string; data: BodyType<QuizCategoryBody> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminQuizCategory"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminQuizCategory>>,
+    { id: string; data: BodyType<QuizCategoryBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdminQuizCategory(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminQuizCategoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminQuizCategory>>
+>;
+export type UpdateAdminQuizCategoryMutationBody = BodyType<QuizCategoryBody>;
+export type UpdateAdminQuizCategoryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update quiz category
+ */
+export const useUpdateAdminQuizCategory = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminQuizCategory>>,
+    TError,
+    { id: string; data: BodyType<QuizCategoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminQuizCategory>>,
+  TError,
+  { id: string; data: BodyType<QuizCategoryBody> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminQuizCategoryMutationOptions(options));
+};
+
+/**
+ * @summary Delete quiz category
+ */
+export const getDeleteAdminQuizCategoryUrl = (id: string) => {
+  return `/api/admin/quiz/categories/${id}`;
+};
+
+export const deleteAdminQuizCategory = async (
+  id: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteAdminQuizCategoryUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAdminQuizCategoryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminQuizCategory>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminQuizCategory>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminQuizCategory"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminQuizCategory>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteAdminQuizCategory(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminQuizCategoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminQuizCategory>>
+>;
+
+export type DeleteAdminQuizCategoryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete quiz category
+ */
+export const useDeleteAdminQuizCategory = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminQuizCategory>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminQuizCategory>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminQuizCategoryMutationOptions(options));
+};
+
+/**
+ * @summary List quiz questions
+ */
+export const getListAdminQuizQuestionsUrl = (
+  params?: ListAdminQuizQuestionsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/quiz/questions?${stringifiedParams}`
+    : `/api/admin/quiz/questions`;
+};
+
+export const listAdminQuizQuestions = async (
+  params?: ListAdminQuizQuestionsParams,
+  options?: RequestInit,
+): Promise<QuizQuestion[]> => {
+  return customFetch<QuizQuestion[]>(getListAdminQuizQuestionsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminQuizQuestionsQueryKey = (
+  params?: ListAdminQuizQuestionsParams,
+) => {
+  return [`/api/admin/quiz/questions`, ...(params ? [params] : [])] as const;
+};
+
+export const getListAdminQuizQuestionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminQuizQuestions>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminQuizQuestionsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminQuizQuestions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminQuizQuestionsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminQuizQuestions>>
+  > = ({ signal }) =>
+    listAdminQuizQuestions(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminQuizQuestions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminQuizQuestionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminQuizQuestions>>
+>;
+export type ListAdminQuizQuestionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List quiz questions
+ */
+
+export function useListAdminQuizQuestions<
+  TData = Awaited<ReturnType<typeof listAdminQuizQuestions>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminQuizQuestionsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminQuizQuestions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminQuizQuestionsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create quiz question
+ */
+export const getCreateAdminQuizQuestionUrl = () => {
+  return `/api/admin/quiz/questions`;
+};
+
+export const createAdminQuizQuestion = async (
+  quizQuestionBody: QuizQuestionBody,
+  options?: RequestInit,
+): Promise<QuizQuestion> => {
+  return customFetch<QuizQuestion>(getCreateAdminQuizQuestionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(quizQuestionBody),
+  });
+};
+
+export const getCreateAdminQuizQuestionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminQuizQuestion>>,
+    TError,
+    { data: BodyType<QuizQuestionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminQuizQuestion>>,
+  TError,
+  { data: BodyType<QuizQuestionBody> },
+  TContext
+> => {
+  const mutationKey = ["createAdminQuizQuestion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminQuizQuestion>>,
+    { data: BodyType<QuizQuestionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminQuizQuestion(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminQuizQuestionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminQuizQuestion>>
+>;
+export type CreateAdminQuizQuestionMutationBody = BodyType<QuizQuestionBody>;
+export type CreateAdminQuizQuestionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create quiz question
+ */
+export const useCreateAdminQuizQuestion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminQuizQuestion>>,
+    TError,
+    { data: BodyType<QuizQuestionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminQuizQuestion>>,
+  TError,
+  { data: BodyType<QuizQuestionBody> },
+  TContext
+> => {
+  return useMutation(getCreateAdminQuizQuestionMutationOptions(options));
+};
+
+/**
+ * @summary Update quiz question
+ */
+export const getUpdateAdminQuizQuestionUrl = (id: string) => {
+  return `/api/admin/quiz/questions/${id}`;
+};
+
+export const updateAdminQuizQuestion = async (
+  id: string,
+  quizQuestionBody: QuizQuestionBody,
+  options?: RequestInit,
+): Promise<QuizQuestion> => {
+  return customFetch<QuizQuestion>(getUpdateAdminQuizQuestionUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(quizQuestionBody),
+  });
+};
+
+export const getUpdateAdminQuizQuestionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminQuizQuestion>>,
+    TError,
+    { id: string; data: BodyType<QuizQuestionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminQuizQuestion>>,
+  TError,
+  { id: string; data: BodyType<QuizQuestionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminQuizQuestion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminQuizQuestion>>,
+    { id: string; data: BodyType<QuizQuestionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdminQuizQuestion(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminQuizQuestionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminQuizQuestion>>
+>;
+export type UpdateAdminQuizQuestionMutationBody = BodyType<QuizQuestionBody>;
+export type UpdateAdminQuizQuestionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update quiz question
+ */
+export const useUpdateAdminQuizQuestion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminQuizQuestion>>,
+    TError,
+    { id: string; data: BodyType<QuizQuestionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminQuizQuestion>>,
+  TError,
+  { id: string; data: BodyType<QuizQuestionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminQuizQuestionMutationOptions(options));
+};
+
+/**
+ * @summary Delete quiz question
+ */
+export const getDeleteAdminQuizQuestionUrl = (id: string) => {
+  return `/api/admin/quiz/questions/${id}`;
+};
+
+export const deleteAdminQuizQuestion = async (
+  id: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteAdminQuizQuestionUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAdminQuizQuestionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminQuizQuestion>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminQuizQuestion>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminQuizQuestion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminQuizQuestion>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteAdminQuizQuestion(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminQuizQuestionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminQuizQuestion>>
+>;
+
+export type DeleteAdminQuizQuestionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete quiz question
+ */
+export const useDeleteAdminQuizQuestion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminQuizQuestion>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminQuizQuestion>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminQuizQuestionMutationOptions(options));
+};
+
+/**
+ * @summary List exam editions
+ */
+export const getListAdminExamsUrl = () => {
+  return `/api/admin/exams`;
+};
+
+export const listAdminExams = async (
+  options?: RequestInit,
+): Promise<ExamEdition[]> => {
+  return customFetch<ExamEdition[]>(getListAdminExamsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminExamsQueryKey = () => {
+  return [`/api/admin/exams`] as const;
+};
+
+export const getListAdminExamsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminExams>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminExams>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAdminExamsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminExams>>> = ({
+    signal,
+  }) => listAdminExams({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminExams>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminExamsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminExams>>
+>;
+export type ListAdminExamsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List exam editions
+ */
+
+export function useListAdminExams<
+  TData = Awaited<ReturnType<typeof listAdminExams>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminExams>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminExamsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create exam edition
+ */
+export const getCreateAdminExamUrl = () => {
+  return `/api/admin/exams`;
+};
+
+export const createAdminExam = async (
+  examEditionBody: ExamEditionBody,
+  options?: RequestInit,
+): Promise<ExamEdition> => {
+  return customFetch<ExamEdition>(getCreateAdminExamUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(examEditionBody),
+  });
+};
+
+export const getCreateAdminExamMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminExam>>,
+    TError,
+    { data: BodyType<ExamEditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminExam>>,
+  TError,
+  { data: BodyType<ExamEditionBody> },
+  TContext
+> => {
+  const mutationKey = ["createAdminExam"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminExam>>,
+    { data: BodyType<ExamEditionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminExam(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminExamMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminExam>>
+>;
+export type CreateAdminExamMutationBody = BodyType<ExamEditionBody>;
+export type CreateAdminExamMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create exam edition
+ */
+export const useCreateAdminExam = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminExam>>,
+    TError,
+    { data: BodyType<ExamEditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminExam>>,
+  TError,
+  { data: BodyType<ExamEditionBody> },
+  TContext
+> => {
+  return useMutation(getCreateAdminExamMutationOptions(options));
+};
+
+/**
+ * @summary Update exam edition
+ */
+export const getUpdateAdminExamUrl = (id: string) => {
+  return `/api/admin/exams/${id}`;
+};
+
+export const updateAdminExam = async (
+  id: string,
+  examEditionBody: ExamEditionBody,
+  options?: RequestInit,
+): Promise<ExamEdition> => {
+  return customFetch<ExamEdition>(getUpdateAdminExamUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(examEditionBody),
+  });
+};
+
+export const getUpdateAdminExamMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminExam>>,
+    TError,
+    { id: string; data: BodyType<ExamEditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminExam>>,
+  TError,
+  { id: string; data: BodyType<ExamEditionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminExam"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminExam>>,
+    { id: string; data: BodyType<ExamEditionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdminExam(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminExamMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminExam>>
+>;
+export type UpdateAdminExamMutationBody = BodyType<ExamEditionBody>;
+export type UpdateAdminExamMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update exam edition
+ */
+export const useUpdateAdminExam = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminExam>>,
+    TError,
+    { id: string; data: BodyType<ExamEditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminExam>>,
+  TError,
+  { id: string; data: BodyType<ExamEditionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminExamMutationOptions(options));
+};
+
+/**
+ * @summary Delete exam edition
+ */
+export const getDeleteAdminExamUrl = (id: string) => {
+  return `/api/admin/exams/${id}`;
+};
+
+export const deleteAdminExam = async (
+  id: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteAdminExamUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAdminExamMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminExam>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminExam>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminExam"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminExam>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteAdminExam(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminExamMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminExam>>
+>;
+
+export type DeleteAdminExamMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete exam edition
+ */
+export const useDeleteAdminExam = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminExam>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminExam>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminExamMutationOptions(options));
+};
+
+/**
+ * @summary List word of the day entries
+ */
+export const getListAdminWotdUrl = () => {
+  return `/api/admin/wotd`;
+};
+
+export const listAdminWotd = async (
+  options?: RequestInit,
+): Promise<WotdEntry[]> => {
+  return customFetch<WotdEntry[]>(getListAdminWotdUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminWotdQueryKey = () => {
+  return [`/api/admin/wotd`] as const;
+};
+
+export const getListAdminWotdQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminWotd>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminWotd>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAdminWotdQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminWotd>>> = ({
+    signal,
+  }) => listAdminWotd({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminWotd>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminWotdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminWotd>>
+>;
+export type ListAdminWotdQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List word of the day entries
+ */
+
+export function useListAdminWotd<
+  TData = Awaited<ReturnType<typeof listAdminWotd>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminWotd>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminWotdQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create WOTD entry
+ */
+export const getCreateAdminWotdUrl = () => {
+  return `/api/admin/wotd`;
+};
+
+export const createAdminWotd = async (
+  wotdEntryBody: WotdEntryBody,
+  options?: RequestInit,
+): Promise<WotdEntry> => {
+  return customFetch<WotdEntry>(getCreateAdminWotdUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(wotdEntryBody),
+  });
+};
+
+export const getCreateAdminWotdMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminWotd>>,
+    TError,
+    { data: BodyType<WotdEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminWotd>>,
+  TError,
+  { data: BodyType<WotdEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["createAdminWotd"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminWotd>>,
+    { data: BodyType<WotdEntryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminWotd(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminWotdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminWotd>>
+>;
+export type CreateAdminWotdMutationBody = BodyType<WotdEntryBody>;
+export type CreateAdminWotdMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create WOTD entry
+ */
+export const useCreateAdminWotd = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminWotd>>,
+    TError,
+    { data: BodyType<WotdEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminWotd>>,
+  TError,
+  { data: BodyType<WotdEntryBody> },
+  TContext
+> => {
+  return useMutation(getCreateAdminWotdMutationOptions(options));
+};
+
+/**
+ * @summary Update WOTD entry
+ */
+export const getUpdateAdminWotdUrl = (id: string) => {
+  return `/api/admin/wotd/${id}`;
+};
+
+export const updateAdminWotd = async (
+  id: string,
+  wotdEntryBody: WotdEntryBody,
+  options?: RequestInit,
+): Promise<WotdEntry> => {
+  return customFetch<WotdEntry>(getUpdateAdminWotdUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(wotdEntryBody),
+  });
+};
+
+export const getUpdateAdminWotdMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminWotd>>,
+    TError,
+    { id: string; data: BodyType<WotdEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminWotd>>,
+  TError,
+  { id: string; data: BodyType<WotdEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminWotd"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminWotd>>,
+    { id: string; data: BodyType<WotdEntryBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdminWotd(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminWotdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminWotd>>
+>;
+export type UpdateAdminWotdMutationBody = BodyType<WotdEntryBody>;
+export type UpdateAdminWotdMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update WOTD entry
+ */
+export const useUpdateAdminWotd = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminWotd>>,
+    TError,
+    { id: string; data: BodyType<WotdEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminWotd>>,
+  TError,
+  { id: string; data: BodyType<WotdEntryBody> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminWotdMutationOptions(options));
+};
+
+/**
+ * @summary Delete WOTD entry
+ */
+export const getDeleteAdminWotdUrl = (id: string) => {
+  return `/api/admin/wotd/${id}`;
+};
+
+export const deleteAdminWotd = async (
+  id: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteAdminWotdUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAdminWotdMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminWotd>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAdminWotd>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteAdminWotd"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAdminWotd>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteAdminWotd(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAdminWotdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAdminWotd>>
+>;
+
+export type DeleteAdminWotdMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete WOTD entry
+ */
+export const useDeleteAdminWotd = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAdminWotd>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAdminWotd>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteAdminWotdMutationOptions(options));
+};
+
+/**
+ * @summary Get quiz categories with questions (public)
+ */
+export const getGetContentQuizUrl = () => {
+  return `/api/content/quiz`;
+};
+
+export const getContentQuiz = async (
+  options?: RequestInit,
+): Promise<QuizCategory[]> => {
+  return customFetch<QuizCategory[]>(getGetContentQuizUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetContentQuizQueryKey = () => {
+  return [`/api/content/quiz`] as const;
+};
+
+export const getGetContentQuizQueryOptions = <
+  TData = Awaited<ReturnType<typeof getContentQuiz>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getContentQuiz>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetContentQuizQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getContentQuiz>>> = ({
+    signal,
+  }) => getContentQuiz({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getContentQuiz>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetContentQuizQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getContentQuiz>>
+>;
+export type GetContentQuizQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get quiz categories with questions (public)
+ */
+
+export function useGetContentQuiz<
+  TData = Awaited<ReturnType<typeof getContentQuiz>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getContentQuiz>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetContentQuizQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get exam editions (public)
+ */
+export const getGetContentExamsUrl = () => {
+  return `/api/content/exams`;
+};
+
+export const getContentExams = async (
+  options?: RequestInit,
+): Promise<ExamEdition[]> => {
+  return customFetch<ExamEdition[]>(getGetContentExamsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetContentExamsQueryKey = () => {
+  return [`/api/content/exams`] as const;
+};
+
+export const getGetContentExamsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getContentExams>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getContentExams>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetContentExamsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getContentExams>>> = ({
+    signal,
+  }) => getContentExams({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getContentExams>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetContentExamsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getContentExams>>
+>;
+export type GetContentExamsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get exam editions (public)
+ */
+
+export function useGetContentExams<
+  TData = Awaited<ReturnType<typeof getContentExams>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getContentExams>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetContentExamsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get active WOTD entries (public)
+ */
+export const getGetContentWotdUrl = () => {
+  return `/api/content/wotd`;
+};
+
+export const getContentWotd = async (
+  options?: RequestInit,
+): Promise<WotdEntry[]> => {
+  return customFetch<WotdEntry[]>(getGetContentWotdUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetContentWotdQueryKey = () => {
+  return [`/api/content/wotd`] as const;
+};
+
+export const getGetContentWotdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getContentWotd>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getContentWotd>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetContentWotdQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getContentWotd>>> = ({
+    signal,
+  }) => getContentWotd({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getContentWotd>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetContentWotdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getContentWotd>>
+>;
+export type GetContentWotdQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get active WOTD entries (public)
+ */
+
+export function useGetContentWotd<
+  TData = Awaited<ReturnType<typeof getContentWotd>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getContentWotd>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetContentWotdQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

@@ -258,3 +258,150 @@ export function recordSecurityEvent(type: string, description: string) {
   if (events.length > 50) events.pop();
   writeJson("security-events.json", events);
 }
+
+// ─── Quiz ─────────────────────────────────────────────────────────────────────
+
+export type QuizCategory = {
+  id: string;
+  title: string;
+  description: string;
+  color: string;
+  icon: string;
+  active: boolean;
+  createdAt: string;
+};
+
+export type QuizQuestion = {
+  id: string;
+  categoryId: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  order: number;
+  createdAt: string;
+};
+
+const DEFAULT_QUIZ_CATEGORIES: QuizCategory[] = [
+  { id: "subjuntivo", title: "Subjuntivo", description: "Presente, pretérito imperfeito e futuro do subjuntivo", color: "#185FA5", icon: "git-branch", active: true, createdAt: new Date().toISOString() },
+  { id: "concordancia", title: "Concordância", description: "Nominal e verbal: regras e casos especiais", color: "#1D9E75", icon: "link", active: true, createdAt: new Date().toISOString() },
+  { id: "preposicoes", title: "Preposições", description: "Regência verbal, regência nominal e crase", color: "#6B21A8", icon: "arrow-right", active: true, createdAt: new Date().toISOString() },
+  { id: "pronomes", title: "Pronomes", description: "Colocação pronominal e uso de pronomes", color: "#BA7517", icon: "user", active: true, createdAt: new Date().toISOString() },
+  { id: "ortografia", title: "Ortografia", description: "Acordo ortográfico, acentuação e grafia correta", color: "#D85A30", icon: "type", active: true, createdAt: new Date().toISOString() },
+];
+
+const DEFAULT_QUIZ_QUESTIONS: QuizQuestion[] = [
+  { id: "s1", categoryId: "subjuntivo", question: "Escolha a forma correta: \"Espero que ele ___ amanhã.\"", options: ["vem", "venha", "viesse", "veio"], correct: 1, explanation: "Após verbos de desejo como 'esperar que', usa-se o presente do subjuntivo: 'venha'.", order: 1, createdAt: new Date().toISOString() },
+  { id: "s2", categoryId: "subjuntivo", question: "\"Se eu ___ rico, viajaria pelo mundo.\"", options: ["fosse", "seria", "fui", "sou"], correct: 0, explanation: "Em orações condicionais contrárias à realidade, usa-se o imperfeito do subjuntivo: 'fosse'.", order: 2, createdAt: new Date().toISOString() },
+  { id: "s3", categoryId: "subjuntivo", question: "\"Quando você ___ ao Brasil, avise-me.\"", options: ["veio", "venha", "vier", "vem"], correct: 2, explanation: "Com 'quando' referindo-se ao futuro, usa-se o futuro do subjuntivo: 'vier'.", order: 3, createdAt: new Date().toISOString() },
+  { id: "s4", categoryId: "subjuntivo", question: "\"É importante que todos ___ às reuniões.\"", options: ["comparecem", "compareçam", "compareceram", "compareceriam"], correct: 1, explanation: "Após expressões impessoais como 'é importante que', usa-se o presente do subjuntivo.", order: 4, createdAt: new Date().toISOString() },
+  { id: "s5", categoryId: "subjuntivo", question: "\"Embora ele ___ cansado, continuou trabalhando.\"", options: ["está", "esteve", "esteja", "estivesse"], correct: 3, explanation: "Após 'embora' (concessiva), usa-se o imperfeito do subjuntivo: 'estivesse'.", order: 5, createdAt: new Date().toISOString() },
+  { id: "c1", categoryId: "concordancia", question: "\"___ muita gente nas ruas ontem.\"", options: ["Haviam", "Havia", "Houveram", "Tem"], correct: 1, explanation: "'Haver' com sentido de existir é impessoal e fica sempre no singular: 'Havia'.", order: 1, createdAt: new Date().toISOString() },
+  { id: "c2", categoryId: "concordancia", question: "\"A maioria dos alunos ___ à aula.\"", options: ["faltaram", "faltou", "Ambas estão corretas", "falta"], correct: 2, explanation: "Com 'a maioria de', o verbo pode concordar com o núcleo ('maioria' → singular) ou com o complemento ('alunos' → plural).", order: 2, createdAt: new Date().toISOString() },
+  { id: "c3", categoryId: "concordancia", question: "\"Os meninos e a menina ___ muito espertos.\"", options: ["é", "são", "foi", "estava"], correct: 1, explanation: "Sujeito composto com pessoas diferentes exige o verbo no plural.", order: 3, createdAt: new Date().toISOString() },
+  { id: "p1", categoryId: "preposicoes", question: "\"Ele aspira ___ uma vida melhor.\"", options: ["a", "à", "de", "por"], correct: 1, explanation: "'Aspirar' no sentido de 'desejar' rege 'a'. Com artigo feminino, forma-se crase: 'à'.", order: 1, createdAt: new Date().toISOString() },
+  { id: "p2", categoryId: "preposicoes", question: "\"Vou ___ São Paulo amanhã.\"", options: ["à", "a", "para", "em"], correct: 1, explanation: "Nomes de cidades sem artigo não admitem crase. Portanto, usa-se 'a' sem acento.", order: 2, createdAt: new Date().toISOString() },
+  { id: "pr1", categoryId: "pronomes", question: "\"Não ___ disseram nada.\"", options: ["me", "-me", "lhe", "te"], correct: 0, explanation: "Com palavra negativa antes do verbo, o pronome deve ficar antes (próclise): 'Não me disseram'.", order: 1, createdAt: new Date().toISOString() },
+  { id: "pr2", categoryId: "pronomes", question: "\"___ telefonou ontem?\" (referindo-se a você)", options: ["Lhe", "Te", "Quem", "O"], correct: 0, explanation: "'Lhe' é pronome oblíquo de 3ª pessoa que substitui 'a você/a ele/a ela'.", order: 2, createdAt: new Date().toISOString() },
+  { id: "o1", categoryId: "ortografia", question: "Qual a grafia correta após o Acordo Ortográfico de 2009?", options: ["idéia", "idea", "ideia", "idêia"], correct: 2, explanation: "Com o Acordo Ortográfico, o acento diferencial foi eliminado de 'ideia'. A grafia correta é 'ideia'.", order: 1, createdAt: new Date().toISOString() },
+  { id: "o2", categoryId: "ortografia", question: "Qual palavra leva acento circunflexo?", options: ["voce", "vocé", "você", "vocè"], correct: 2, explanation: "'Você' leva acento circunflexo no 'e'. É uma oxítona terminada em 'e', portanto acentuada.", order: 2, createdAt: new Date().toISOString() },
+];
+
+export function getQuizCategories(): QuizCategory[] {
+  return readJson<QuizCategory[]>("quiz-categories.json", DEFAULT_QUIZ_CATEGORIES);
+}
+export function saveQuizCategories(cats: QuizCategory[]) { writeJson("quiz-categories.json", cats); }
+
+export function getQuizQuestions(): QuizQuestion[] {
+  return readJson<QuizQuestion[]>("quiz-questions.json", DEFAULT_QUIZ_QUESTIONS);
+}
+export function saveQuizQuestions(qs: QuizQuestion[]) { writeJson("quiz-questions.json", qs); }
+
+// ─── Exams Archive ─────────────────────────────────────────────────────────────
+
+export type ExamTask = {
+  id: string;
+  type: string;
+  title: string;
+  genre: string;
+  description: string;
+  linkUrl?: string;
+  order: number;
+};
+
+export type ExamEdition = {
+  id: string;
+  year: number;
+  edition: string;
+  title: string;
+  description: string;
+  tasks: ExamTask[];
+  active: boolean;
+  order: number;
+  createdAt: string;
+};
+
+const DEFAULT_EXAMS: ExamEdition[] = [
+  { id: "2023-2", year: 2023, edition: "2023/2", title: "Celpe-Bras Novembro 2023", description: "Segunda edição de 2023. Provas aplicadas em novembro.", active: true, order: 1, createdAt: new Date().toISOString(), tasks: [
+    { id: "2023-2-t1", type: "Tarefa 1", title: "Tarefa 1 — Vídeo", genre: "Carta", description: "Baseada em vídeo sobre tecnologia e sociedade.", order: 1 },
+    { id: "2023-2-t2", type: "Tarefa 2", title: "Tarefa 2 — Áudio", genre: "Resenha", description: "Texto baseado em áudio sobre questões ambientais.", order: 2 },
+    { id: "2023-2-t3", type: "Tarefa 3", title: "Tarefa 3 — Texto", genre: "Artigo", description: "Produção textual sobre impactos do trabalho remoto.", order: 3 },
+    { id: "2023-2-t4", type: "Tarefa 4", title: "Tarefa 4 — Gráfico", genre: "Análise", description: "Análise de dados sobre o mercado de trabalho no Brasil.", order: 4 },
+  ]},
+  { id: "2023-1", year: 2023, edition: "2023/1", title: "Celpe-Bras Abril 2023", description: "Primeira edição de 2023. Provas aplicadas em abril.", active: true, order: 2, createdAt: new Date().toISOString(), tasks: [
+    { id: "2023-1-t1", type: "Tarefa 1", title: "Tarefa 1 — Vídeo", genre: "E-mail", description: "Baseada em vídeo sobre alimentação saudável.", order: 1 },
+    { id: "2023-1-t2", type: "Tarefa 2", title: "Tarefa 2 — Áudio", genre: "Relatório", description: "Baseada em áudio sobre migração no Brasil.", order: 2 },
+    { id: "2023-1-t3", type: "Tarefa 3", title: "Tarefa 3 — Texto", genre: "Crônica", description: "Tema: memória e identidade cultural.", order: 3 },
+    { id: "2023-1-t4", type: "Tarefa 4", title: "Tarefa 4 — Tabela", genre: "Proposta", description: "Dados sobre uso de redes sociais por faixa etária.", order: 4 },
+  ]},
+  { id: "2022-2", year: 2022, edition: "2022/2", title: "Celpe-Bras Novembro 2022", description: "Segunda edição de 2022.", active: true, order: 3, createdAt: new Date().toISOString(), tasks: [
+    { id: "2022-2-t1", type: "Tarefa 1", title: "Tarefa 1 — Vídeo", genre: "Carta", description: "Vídeo sobre desigualdade social urbana.", order: 1 },
+    { id: "2022-2-t2", type: "Tarefa 2", title: "Tarefa 2 — Áudio", genre: "Resumo", description: "Debate sobre saúde mental e trabalho.", order: 2 },
+    { id: "2022-2-t3", type: "Tarefa 3", title: "Tarefa 3 — Texto", genre: "Artigo", description: "Texto sobre impacto da pandemia na educação.", order: 3 },
+    { id: "2022-2-t4", type: "Tarefa 4", title: "Tarefa 4 — Gráfico", genre: "Análise", description: "Índices de vacinação no Brasil por região.", order: 4 },
+  ]},
+  { id: "2022-1", year: 2022, edition: "2022/1", title: "Celpe-Bras Abril 2022", description: "Primeira edição de 2022.", active: true, order: 4, createdAt: new Date().toISOString(), tasks: [
+    { id: "2022-1-t1", type: "Tarefa 1", title: "Tarefa 1 — Vídeo", genre: "Carta Aberta", description: "Baseada em vídeo sobre sustentabilidade.", order: 1 },
+    { id: "2022-1-t2", type: "Tarefa 2", title: "Tarefa 2 — Áudio", genre: "Resenha", description: "Podcast sobre empreendedorismo feminino.", order: 2 },
+    { id: "2022-1-t3", type: "Tarefa 3", title: "Tarefa 3 — Texto", genre: "Conto", description: "Texto literário sobre identidade e pertencimento.", order: 3 },
+    { id: "2022-1-t4", type: "Tarefa 4", title: "Tarefa 4 — Infográfico", genre: "Análise", description: "Dados sobre desmatamento no cerrado.", order: 4 },
+  ]},
+  { id: "inep", year: 0, edition: "INEP Oficial", title: "Materiais Oficiais — INEP", description: "Acesse provas, gabaritos e materiais oficiais do Celpe-Bras no site do INEP.", active: true, order: 5, createdAt: new Date().toISOString(), tasks: [
+    { id: "inep-link", type: "Link Externo", title: "Site oficial INEP — Celpe-Bras", genre: "Portal", description: "Provas anteriores, edital e informações oficiais.", linkUrl: "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/celpe-bras", order: 1 },
+  ]},
+];
+
+export function getExams(): ExamEdition[] {
+  return readJson<ExamEdition[]>("exams.json", DEFAULT_EXAMS);
+}
+export function saveExams(exams: ExamEdition[]) { writeJson("exams.json", exams); }
+
+// ─── Word of the Day Bank ──────────────────────────────────────────────────────
+
+export type WotdEntry = {
+  id: string;
+  word: string;
+  pos: string;
+  definition: string;
+  example: string;
+  active: boolean;
+  createdAt: string;
+};
+
+const DEFAULT_WOTD: WotdEntry[] = [
+  { id: "w1", word: "reivindicar", pos: "verbo", definition: "Reclamar como direito próprio; exigir algo a que se tem direito.", example: "Os trabalhadores reivindicaram melhores condições.", active: true, createdAt: new Date().toISOString() },
+  { id: "w2", word: "suscitar", pos: "verbo", definition: "Provocar, causar, originar (sentimento, reação ou questão).", example: "O discurso suscitou grande debate.", active: true, createdAt: new Date().toISOString() },
+  { id: "w3", word: "ponderar", pos: "verbo", definition: "Considerar atentamente; avaliar com cuidado antes de decidir.", example: "É preciso ponderar todas as consequências.", active: true, createdAt: new Date().toISOString() },
+  { id: "w4", word: "elucidar", pos: "verbo", definition: "Esclarecer, tornar mais claro; explicar com detalhes.", example: "O relatório elucidou os fatos do caso.", active: true, createdAt: new Date().toISOString() },
+  { id: "w5", word: "equívoco", pos: "substantivo", definition: "Erro resultante de má compreensão; engano, mal-entendido.", example: "O equívoco causou confusão entre os participantes.", active: true, createdAt: new Date().toISOString() },
+  { id: "w6", word: "paradoxo", pos: "substantivo", definition: "Situação ou afirmação que parece contraditória mas pode ser verdadeira.", example: "É um paradoxo que a tecnologia una e isole as pessoas.", active: true, createdAt: new Date().toISOString() },
+  { id: "w7", word: "eminente", pos: "adjetivo", definition: "De grande destaque; notável, ilustre.", example: "Um eminente cientista recebeu o prêmio.", active: true, createdAt: new Date().toISOString() },
+  { id: "w8", word: "lacuna", pos: "substantivo", definition: "Espaço vazio; ausência de algo necessário; falha.", example: "Há uma lacuna na legislação sobre esse tema.", active: true, createdAt: new Date().toISOString() },
+  { id: "w9", word: "mitigar", pos: "verbo", definition: "Diminuir a intensidade de; amenizar, suavizar.", example: "Medidas foram tomadas para mitigar os efeitos da crise.", active: true, createdAt: new Date().toISOString() },
+  { id: "w10", word: "corroborar", pos: "verbo", definition: "Confirmar, reforçar (argumento, tese ou afirmação).", example: "Os estudos corroboram a hipótese apresentada.", active: true, createdAt: new Date().toISOString() },
+];
+
+export function getWotdEntries(): WotdEntry[] {
+  return readJson<WotdEntry[]>("wotd.json", DEFAULT_WOTD);
+}
+export function saveWotdEntries(entries: WotdEntry[]) { writeJson("wotd.json", entries); }
