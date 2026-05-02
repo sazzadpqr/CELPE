@@ -159,10 +159,7 @@ export default function CourseDetailScreen() {
                 <Pressable
                   key={lesson.id}
                   onPress={() =>
-                    router.push({
-                      pathname: "/course/[id]/lesson/[lessonId]",
-                      params: { id: course.id, lessonId: lesson.id },
-                    })
+                    router.push(`/course/${course.id}/lesson/${lesson.id}` as any)
                   }
                   style={({ pressed }) => [
                     styles.lessonRow,

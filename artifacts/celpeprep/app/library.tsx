@@ -147,7 +147,7 @@ const SECTIONS: LibrarySection[] = [
         id: "diagnostic",
         title: "Diagnóstico de Nível",
         description: "Teste adaptativo para identificar seu nível atual (A2–C1).",
-        icon: "flask",
+        icon: "activity",
         color: "#1D9E75",
         route: "/diagnostic",
       },

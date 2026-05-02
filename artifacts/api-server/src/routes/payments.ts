@@ -2,6 +2,9 @@ import { Router } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { db } from "@workspace/db";
+import { monetizationPlans } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../../data");
@@ -40,18 +43,49 @@ const PADDLE_BASE =
 const router = Router();
 
 router.post("/payments/checkout", async (req, res) => {
-  const { plan, deviceToken } = req.body as {
-    plan: "monthly" | "yearly";
+  const body = req.body as {
+    planKey?: string;
+    priceId?: string;
+    plan?: "monthly" | "yearly";
     deviceToken: string;
   };
 
-  if (!PADDLE_API_KEY || !PADDLE_MONTHLY_PRICE_ID || !PADDLE_YEARLY_PRICE_ID) {
+  const { deviceToken } = body;
+
+  if (!PADDLE_API_KEY) {
     res.status(503).json({ error: "Pagamentos não configurados." });
     return;
   }
 
-  const priceId =
-    plan === "yearly" ? PADDLE_YEARLY_PRICE_ID : PADDLE_MONTHLY_PRICE_ID;
+  // Resolve Paddle price ID:
+  // 1. Use priceId sent directly from the app (loaded from admin plans)
+  // 2. Look up by planKey in DB
+  // 3. Fall back to env var mapping for legacy "monthly"/"yearly" values
+  let priceId = body.priceId ?? "";
+
+  if (!priceId && body.planKey) {
+    try {
+      const [plan] = await db
+        .select({ paddlePriceId: monetizationPlans.paddlePriceId })
+        .from(monetizationPlans)
+        .where(eq(monetizationPlans.planKey, body.planKey))
+        .limit(1);
+      if (plan?.paddlePriceId) priceId = plan.paddlePriceId;
+    } catch {
+      // fall through to legacy mapping
+    }
+  }
+
+  if (!priceId && body.plan) {
+    priceId = body.plan === "yearly"
+      ? (PADDLE_YEARLY_PRICE_ID ?? "")
+      : (PADDLE_MONTHLY_PRICE_ID ?? "");
+  }
+
+  if (!priceId) {
+    res.status(503).json({ error: "Pagamentos não configurados." });
+    return;
+  }
 
   try {
     const r = await fetch(`${PADDLE_BASE}/transactions`, {
@@ -68,9 +102,13 @@ router.post("/payments/checkout", async (req, res) => {
 
     const data = (await r.json()) as {
       data?: { checkout?: { url?: string } };
+      error?: { detail?: string };
     };
     const url = data.data?.checkout?.url;
-    if (!url) throw new Error("No checkout URL from Paddle");
+    if (!url) {
+      const detail = data.error?.detail ?? "No checkout URL from Paddle";
+      throw new Error(detail);
+    }
     res.json({ url });
   } catch (e) {
     req.log.error({ err: e }, "Paddle checkout error");
@@ -111,8 +149,8 @@ router.post("/webhooks/paddle", (req, res) => {
     }
   } else if (event.event_type === "subscription.canceled") {
     if (deviceToken && subs[deviceToken]) {
-      subs[deviceToken].isPremium = false;
-      subs[deviceToken].canceledAt = new Date().toISOString();
+      subs[deviceToken]!.isPremium = false;
+      subs[deviceToken]!.canceledAt = new Date().toISOString();
       writeData("subscriptions.json", subs);
     }
   }

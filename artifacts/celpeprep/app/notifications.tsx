@@ -140,7 +140,7 @@ export default function NotificationsScreen() {
     },
     backBtn: {
       width: 36, height: 36, borderRadius: 18,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.card,
       alignItems: "center", justifyContent: "center",
     },
     headerTitle: {
@@ -152,12 +152,12 @@ export default function NotificationsScreen() {
     emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 },
     emptyIcon: {
       width: 64, height: 64, borderRadius: 32,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.card,
       alignItems: "center", justifyContent: "center",
       marginBottom: 16,
     },
     emptyTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: colors.text, textAlign: "center", marginBottom: 8 },
-    emptyBody: { fontSize: 14, fontFamily: "Inter_400Regular", color: colors.textSecondary, textAlign: "center" },
+    emptyBody: { fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, textAlign: "center" },
     notifItem: {
       flexDirection: "row",
       paddingHorizontal: 20, paddingVertical: 16,
@@ -173,8 +173,8 @@ export default function NotificationsScreen() {
     notifContent: { flex: 1 },
     notifRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
     notifTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: colors.text, flex: 1 },
-    notifTime: { fontSize: 11, fontFamily: "Inter_400Regular", color: colors.textSecondary, marginTop: 1, flexShrink: 0 },
-    notifBody: { fontSize: 13, fontFamily: "Inter_400Regular", color: colors.textSecondary, marginTop: 4, lineHeight: 18 },
+    notifTime: { fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 1, flexShrink: 0 },
+    notifBody: { fontSize: 13, fontFamily: "Inter_400Regular", color: colors.mutedForeground, marginTop: 4, lineHeight: 18 },
     unreadDot: {
       width: 8, height: 8, borderRadius: 4,
       backgroundColor: colors.primary,
@@ -184,9 +184,9 @@ export default function NotificationsScreen() {
     loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
     sectionHeader: {
       paddingHorizontal: 20, paddingVertical: 8,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.card,
     },
-    sectionText: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 },
+    sectionText: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: colors.mutedForeground, textTransform: "uppercase", letterSpacing: 1 },
   });
 
   return (
@@ -214,7 +214,7 @@ export default function NotificationsScreen() {
       ) : notifications.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIcon}>
-            <Feather name="bell-off" size={28} color={colors.textSecondary} />
+            <Feather name="bell-off" size={28} color={colors.mutedForeground} />
           </View>
           <Text style={styles.emptyTitle}>Sem notificações</Text>
           <Text style={styles.emptyBody}>Quando você receber notificações elas aparecerão aqui.</Text>

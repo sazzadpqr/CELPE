@@ -464,7 +464,7 @@ export default function DiagnosticScreen() {
     const categories = ["verbos", "concordancia", "subjuntivo", "pronomes", "conectivos", "preposicoes"];
     return (
       <View style={[S.root, { backgroundColor: colors.background, alignItems: "center", justifyContent: "center", padding: 32 }]}>
-        <View style={[S.genCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[S.genCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Animated.View style={{ opacity: pulseAnim }}>
             <View style={[S.genIconWrap, { backgroundColor: colors.primary + "18" }]}>
               <Feather name="cpu" size={38} color={colors.primary} />
@@ -481,7 +481,7 @@ export default function DiagnosticScreen() {
               </View>
             ))}
           </View>
-          <Text style={[S.genNote, { color: colors.textSecondary }]}>
+          <Text style={[S.genNote, { color: colors.mutedForeground }]}>
             A IA está a criar questões únicas para você,{"\n"}com situações reais do cotidiano brasileiro.
           </Text>
         </View>
@@ -502,7 +502,7 @@ export default function DiagnosticScreen() {
           <Feather name="activity" size={36} color={colors.primary} />
         </View>
         <Text style={[S.introTitle, { color: colors.text }]}>Teste Diagnóstico</Text>
-        <Text style={[S.introDesc, { color: colors.textSecondary }]}>
+        <Text style={[S.introDesc, { color: colors.mutedForeground }]}>
           A IA vai gerar um conjunto único de questões do cotidiano real para identificar seu nível e personalizar seu plano de estudo.
         </Text>
 
@@ -510,13 +510,13 @@ export default function DiagnosticScreen() {
           <Feather name="cpu" size={16} color={colors.primary} />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={[S.aiHighlightTitle, { color: colors.primary }]}>Diagnóstico gerado por IA</Text>
-            <Text style={[S.aiHighlightSub, { color: colors.textSecondary }]}>
+            <Text style={[S.aiHighlightSub, { color: colors.mutedForeground }]}>
               Questões únicas com situações reais · Análise personalizada dos seus resultados
             </Text>
           </View>
         </View>
 
-        <View style={[S.infoGrid, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[S.infoGrid, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {[
             { icon: "clock" as const, label: "Duração estimada", value: "~20 minutos" },
             { icon: "bar-chart-2" as const, label: "Questões", value: "20 de gramática" },
@@ -525,7 +525,7 @@ export default function DiagnosticScreen() {
           ].map(item => (
             <View key={item.label} style={[S.infoCell, { borderColor: colors.border }]}>
               <Feather name={item.icon} size={18} color={colors.primary} />
-              <Text style={[S.infoCellLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+              <Text style={[S.infoCellLabel, { color: colors.mutedForeground }]}>{item.label}</Text>
               <Text style={[S.infoCellValue, { color: colors.text }]}>{item.value}</Text>
             </View>
           ))}
@@ -541,13 +541,13 @@ export default function DiagnosticScreen() {
           ))}
         </View>
 
-        <View style={[S.levelLegend, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[S.levelLegend, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[S.legendTitle, { color: colors.text }]}>Escala de referência</Text>
           {(["A2", "B1", "B2", "C1"] as Level[]).map(lvl => (
             <View key={lvl} style={S.legendRow}>
               <View style={[S.legendDot, { backgroundColor: LEVEL_COLOR[lvl] }]} />
               <Text style={[S.legendLevel, { color: LEVEL_COLOR[lvl] }]}>{lvl}</Text>
-              <Text style={[S.legendDesc, { color: colors.textSecondary }]}>{LEVEL_DESC[lvl].short}</Text>
+              <Text style={[S.legendDesc, { color: colors.mutedForeground }]}>{LEVEL_DESC[lvl].short}</Text>
             </View>
           ))}
         </View>
@@ -585,26 +585,26 @@ export default function DiagnosticScreen() {
           <Text style={[S.resultBadgeSub, { color: levelColor + "CC" }]}>{LEVEL_DESC[resultLevel].short}</Text>
         </View>
 
-        <View style={[S.scoreRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[S.scoreRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={S.scoreCell}>
             <Text style={[S.scoreVal, { color: colors.text }]}>{correct}/{questions.length}</Text>
-            <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Acertos</Text>
+            <Text style={[S.scoreLabel, { color: colors.mutedForeground }]}>Acertos</Text>
           </View>
           <View style={[S.scoreDivider, { backgroundColor: colors.border }]} />
           <View style={S.scoreCell}>
             <Text style={[S.scoreVal, { color: colors.text }]}>{pct}%</Text>
-            <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Aproveitamento</Text>
+            <Text style={[S.scoreLabel, { color: colors.mutedForeground }]}>Aproveitamento</Text>
           </View>
           <View style={[S.scoreDivider, { backgroundColor: colors.border }]} />
           <View style={S.scoreCell}>
             <Text style={[S.scoreVal, { color: colors.text }]}>{formatTime(elapsed)}</Text>
-            <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Tempo</Text>
+            <Text style={[S.scoreLabel, { color: colors.mutedForeground }]}>Tempo</Text>
           </View>
         </View>
 
         {/* AI Analysis Card */}
         {(analyzing || aiAnalysis) ? (
-          <View style={[S.aiCard, { backgroundColor: colors.surface, borderColor: colors.primary + "40" }]}>
+          <View style={[S.aiCard, { backgroundColor: colors.card, borderColor: colors.primary + "40" }]}>
             <View style={S.aiCardHeader}>
               <View style={[S.aiCardIconWrap, { backgroundColor: colors.primary + "18" }]}>
                 <Feather name="cpu" size={16} color={colors.primary} />
@@ -623,7 +623,7 @@ export default function DiagnosticScreen() {
                 <View style={[S.aiSkeleton, { backgroundColor: colors.border, width: "100%" }]} />
                 <View style={[S.aiSkeleton, { backgroundColor: colors.border, width: "85%" }]} />
                 <View style={[S.aiSkeleton, { backgroundColor: colors.border, width: "92%" }]} />
-                <Text style={[S.aiLoadingText, { color: colors.textSecondary }]}>Analisando seu desempenho...</Text>
+                <Text style={[S.aiLoadingText, { color: colors.mutedForeground }]}>Analisando seu desempenho...</Text>
               </View>
             ) : aiAnalysis ? (
               <View style={{ gap: 14 }}>
@@ -643,7 +643,7 @@ export default function DiagnosticScreen() {
                         </View>
                         <View style={{ flex: 1, gap: 2 }}>
                           <Text style={[S.aiRecArea, { color: colors.text }]}>{rec.area}</Text>
-                          <Text style={[S.aiRecTip, { color: colors.textSecondary }]}>{rec.tip}</Text>
+                          <Text style={[S.aiRecTip, { color: colors.mutedForeground }]}>{rec.tip}</Text>
                         </View>
                       </View>
                     ))}
@@ -679,7 +679,7 @@ export default function DiagnosticScreen() {
               <View style={[S.levelTrack, { backgroundColor: colors.border }]}>
                 <View style={[S.levelFill, { width: `${p}%` as any, backgroundColor: LEVEL_COLOR[lvl] }]} />
               </View>
-              <Text style={[S.levelCount, { color: colors.textSecondary }]}>{c}/{qs.length}</Text>
+              <Text style={[S.levelCount, { color: colors.mutedForeground }]}>{c}/{qs.length}</Text>
             </View>
           );
         })}
@@ -689,7 +689,7 @@ export default function DiagnosticScreen() {
           const p = v.total > 0 ? (v.correct / v.total) * 100 : 0;
           const catColor = p >= 67 ? "#1D9E75" : p >= 50 ? "#185FA5" : "#D85A30";
           return (
-            <View key={cat} style={[S.catRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View key={cat} style={[S.catRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[S.catRowIcon, { backgroundColor: catColor + "20" }]}>
                 <Feather name={CATEGORY_ICONS[cat] ?? "book"} size={14} color={catColor} />
               </View>
@@ -701,14 +701,14 @@ export default function DiagnosticScreen() {
                 <View style={[S.catTrack, { backgroundColor: colors.border }]}>
                   <View style={[S.catFill, { width: `${p}%` as any, backgroundColor: catColor }]} />
                 </View>
-                <Text style={[S.catRowSub, { color: colors.textSecondary }]}>{v.correct} de {v.total} corretas</Text>
+                <Text style={[S.catRowSub, { color: colors.mutedForeground }]}>{v.correct} de {v.total} corretas</Text>
               </View>
             </View>
           );
         })}
 
         {(strengths.length > 0 || weaknesses.length > 0) && (
-          <View style={[S.swBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[S.swBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {strengths.length > 0 && (
               <View style={S.swSection}>
                 <View style={S.swHeader}>
@@ -716,7 +716,7 @@ export default function DiagnosticScreen() {
                   <Text style={[S.swTitle, { color: "#1D9E75" }]}>Pontos fortes</Text>
                 </View>
                 {strengths.map(([cat]) => (
-                  <Text key={cat} style={[S.swItem, { color: colors.textSecondary }]}>
+                  <Text key={cat} style={[S.swItem, { color: colors.mutedForeground }]}>
                     · {CATEGORY_LABELS[cat] ?? cat}
                   </Text>
                 ))}
@@ -729,7 +729,7 @@ export default function DiagnosticScreen() {
                   <Text style={[S.swTitle, { color: "#D85A30" }]}>Áreas a reforçar</Text>
                 </View>
                 {weaknesses.map(([cat]) => (
-                  <Text key={cat} style={[S.swItem, { color: colors.textSecondary }]}>
+                  <Text key={cat} style={[S.swItem, { color: colors.mutedForeground }]}>
                     · {CATEGORY_LABELS[cat] ?? cat}
                   </Text>
                 ))}
@@ -738,9 +738,9 @@ export default function DiagnosticScreen() {
           </View>
         )}
 
-        <Pressable style={[S.reviewToggle, { borderColor: colors.border, backgroundColor: colors.surface }]}
+        <Pressable style={[S.reviewToggle, { borderColor: colors.border, backgroundColor: colors.card }]}
           onPress={() => setShowReview(r => !r)}>
-          <Feather name={showReview ? "chevron-up" : "chevron-down"} size={16} color={colors.textSecondary} />
+          <Feather name={showReview ? "chevron-up" : "chevron-down"} size={16} color={colors.mutedForeground} />
           <Text style={[S.reviewToggleText, { color: colors.text }]}>
             {showReview ? "Esconder" : "Ver"} gabarito completo
           </Text>
@@ -753,7 +753,7 @@ export default function DiagnosticScreen() {
               const isCorrect = userAnswer === question.correct;
               return (
                 <Pressable key={question.id}
-                  style={[S.reviewCard, { backgroundColor: colors.surface, borderColor: isCorrect ? "#1D9E7540" : "#D85A3040" }]}
+                  style={[S.reviewCard, { backgroundColor: colors.card, borderColor: isCorrect ? "#1D9E7540" : "#D85A3040" }]}
                   onPress={() => setExpandedQ(expandedQ === i ? null : i)}>
                   <View style={S.reviewCardHeader}>
                     <View style={[S.reviewIcon, { backgroundColor: isCorrect ? "#1D9E7520" : "#D85A3020" }]}>
@@ -762,20 +762,20 @@ export default function DiagnosticScreen() {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: "row", gap: 6, marginBottom: 2 }}>
                         <Text style={[S.reviewQLevel, { color: LEVEL_COLOR[question.level] }]}>{question.level}</Text>
-                        <Text style={[S.reviewQCat, { color: colors.textSecondary }]}>{CATEGORY_LABELS[question.category] ?? question.category}</Text>
+                        <Text style={[S.reviewQCat, { color: colors.mutedForeground }]}>{CATEGORY_LABELS[question.category] ?? question.category}</Text>
                       </View>
                       <Text style={[S.reviewQText, { color: colors.text }]} numberOfLines={expandedQ === i ? undefined : 2}>
                         {question.question}
                       </Text>
                     </View>
-                    <Feather name={expandedQ === i ? "chevron-up" : "chevron-down"} size={14} color={colors.textSecondary} />
+                    <Feather name={expandedQ === i ? "chevron-up" : "chevron-down"} size={14} color={colors.mutedForeground} />
                   </View>
                   {expandedQ === i && (
                     <View style={[S.reviewExpanded, { borderTopColor: colors.border }]}>
                       {question.options.map((opt, oi) => {
                         const isOpt = userAnswer === oi;
                         const isCorr = question.correct === oi;
-                        const c = isCorr ? "#1D9E75" : isOpt ? "#D85A30" : colors.textSecondary;
+                        const c = isCorr ? "#1D9E75" : isOpt ? "#D85A30" : colors.mutedForeground;
                         return (
                           <View key={oi} style={S.reviewOpt}>
                             <Feather name={isCorr ? "check-circle" : isOpt ? "x-circle" : "circle"} size={13} color={c} />
@@ -788,7 +788,7 @@ export default function DiagnosticScreen() {
                         <Text style={[S.reviewExplanationText, { color: colors.text }]}>{question.explanation}</Text>
                       </View>
                       {question.grammarRule && (
-                        <Text style={[S.reviewRule, { color: colors.textSecondary }]}>Regra: {question.grammarRule}</Text>
+                        <Text style={[S.reviewRule, { color: colors.mutedForeground }]}>Regra: {question.grammarRule}</Text>
                       )}
                     </View>
                   )}
@@ -804,8 +804,8 @@ export default function DiagnosticScreen() {
           <Feather name="arrow-right" size={18} color="#fff" />
         </Pressable>
         <Pressable style={[S.retakeBtn, { borderColor: colors.border }]} onPress={handleRetake}>
-          <Feather name="refresh-cw" size={14} color={colors.textSecondary} />
-          <Text style={[S.retakeBtnText, { color: colors.textSecondary }]}>Refazer diagnóstico</Text>
+          <Feather name="refresh-cw" size={14} color={colors.mutedForeground} />
+          <Text style={[S.retakeBtnText, { color: colors.mutedForeground }]}>Refazer diagnóstico</Text>
         </Pressable>
       </ScrollView>
     );
@@ -826,10 +826,10 @@ export default function DiagnosticScreen() {
             <View style={[S.quizFill, { width: `${progress}%` as any, backgroundColor: colors.primary }]} />
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Text style={[S.quizProgressText, { color: colors.textSecondary }]}>
+            <Text style={[S.quizProgressText, { color: colors.mutedForeground }]}>
               {currentIdx + 1} / {questions.length}
             </Text>
-            <Text style={[S.quizProgressText, { color: colors.textSecondary }]}>
+            <Text style={[S.quizProgressText, { color: colors.mutedForeground }]}>
               {formatTime(elapsed)}
             </Text>
           </View>
@@ -843,9 +843,9 @@ export default function DiagnosticScreen() {
         <ScrollView style={S.quizBody} contentContainerStyle={S.quizContent}
           showsVerticalScrollIndicator={false}>
 
-          <View style={[S.catTag, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Feather name={CATEGORY_ICONS[q.category] ?? "book"} size={11} color={colors.textSecondary} />
-            <Text style={[S.catTagText, { color: colors.textSecondary }]}>{CATEGORY_LABELS[q.category] ?? q.category}</Text>
+          <View style={[S.catTag, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Feather name={CATEGORY_ICONS[q.category] ?? "book"} size={11} color={colors.mutedForeground} />
+            <Text style={[S.catTagText, { color: colors.mutedForeground }]}>{CATEGORY_LABELS[q.category] ?? q.category}</Text>
           </View>
 
           <Text style={[S.questionText, { color: colors.text }]}>{q.question}</Text>
@@ -880,7 +880,7 @@ export default function DiagnosticScreen() {
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={[S.explanationText, { color: colors.text }]}>{q.explanation}</Text>
                 {q.grammarRule && (
-                  <Text style={[S.grammarRuleText, { color: colors.textSecondary }]}>Regra: {q.grammarRule}</Text>
+                  <Text style={[S.grammarRuleText, { color: colors.mutedForeground }]}>Regra: {q.grammarRule}</Text>
                 )}
               </View>
             </View>

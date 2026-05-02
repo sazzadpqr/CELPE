@@ -213,10 +213,7 @@ export default function LessonPlayerScreen() {
           {prevLesson ? (
             <Pressable
               onPress={() =>
-                router.replace({
-                  pathname: "/course/[id]/lesson/[lessonId]",
-                  params: { id: courseId!, lessonId: prevLesson.id },
-                })
+                router.replace(`/course/${courseId}/lesson/${prevLesson.id}` as any)
               }
               style={[styles.navBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
@@ -231,10 +228,7 @@ export default function LessonPlayerScreen() {
           {nextLesson ? (
             <Pressable
               onPress={() =>
-                router.replace({
-                  pathname: "/course/[id]/lesson/[lessonId]",
-                  params: { id: courseId!, lessonId: nextLesson.id },
-                })
+                router.replace(`/course/${courseId}/lesson/${nextLesson.id}` as any)
               }
               style={[styles.navBtn, { backgroundColor: colors.card, borderColor: colors.border, alignItems: "flex-end" }]}
             >
