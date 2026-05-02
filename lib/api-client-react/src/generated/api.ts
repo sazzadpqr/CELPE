@@ -27,6 +27,7 @@ import type {
   PracticePrompt,
   PracticePromptBody,
   RequestLog,
+  RotatePasswordBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -198,6 +199,92 @@ export const useAdminLogin = <
   TContext
 > => {
   return useMutation(getAdminLoginMutationOptions(options));
+};
+
+/**
+ * @summary Rotate admin password
+ */
+export const getRotateAdminPasswordUrl = () => {
+  return `/api/admin/auth/rotate`;
+};
+
+export const rotateAdminPassword = async (
+  rotatePasswordBody: RotatePasswordBody,
+  options?: RequestInit,
+): Promise<AdminLoginResponse> => {
+  return customFetch<AdminLoginResponse>(getRotateAdminPasswordUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(rotatePasswordBody),
+  });
+};
+
+export const getRotateAdminPasswordMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rotateAdminPassword>>,
+    TError,
+    { data: BodyType<RotatePasswordBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof rotateAdminPassword>>,
+  TError,
+  { data: BodyType<RotatePasswordBody> },
+  TContext
+> => {
+  const mutationKey = ["rotateAdminPassword"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof rotateAdminPassword>>,
+    { data: BodyType<RotatePasswordBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return rotateAdminPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RotateAdminPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof rotateAdminPassword>>
+>;
+export type RotateAdminPasswordMutationBody = BodyType<RotatePasswordBody>;
+export type RotateAdminPasswordMutationError = ErrorType<void>;
+
+/**
+ * @summary Rotate admin password
+ */
+export const useRotateAdminPassword = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rotateAdminPassword>>,
+    TError,
+    { data: BodyType<RotatePasswordBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof rotateAdminPassword>>,
+  TError,
+  { data: BodyType<RotatePasswordBody> },
+  TContext
+> => {
+  return useMutation(getRotateAdminPasswordMutationOptions(options));
 };
 
 /**

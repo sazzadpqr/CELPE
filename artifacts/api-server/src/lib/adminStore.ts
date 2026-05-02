@@ -223,3 +223,14 @@ export function getConfig(): AdminConfig {
 export function saveConfig(config: AdminConfig) {
   writeJson("config.json", config);
 }
+
+type PasswordStore = { hash: string };
+
+export function getStoredPasswordHash(): string | null {
+  const stored = readJson<PasswordStore | null>("password.json", null);
+  return stored?.hash ?? null;
+}
+
+export function savePasswordHash(hash: string) {
+  writeJson("password.json", { hash });
+}

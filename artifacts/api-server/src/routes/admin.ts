@@ -9,14 +9,29 @@ import {
   saveGrammarTopics,
   getConfig,
   saveConfig,
+  getStoredPasswordHash,
+  savePasswordHash,
   type PracticePrompt,
   type GrammarTopic,
 } from "../lib/adminStore.js";
 
 const router = Router();
 
-function getAdminPassword(): string {
-  return process.env["SESSION_SECRET"] ?? "admin";
+function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password).digest("hex");
+}
+
+function verifyPassword(password: string): boolean {
+  const storedHash = getStoredPasswordHash();
+  if (storedHash) {
+    return hashPassword(password) === storedHash;
+  }
+  const envPassword = process.env["SESSION_SECRET"] ?? "admin";
+  return password === envPassword;
+}
+
+function makeToken(password: string): string {
+  return Buffer.from(password).toString("base64");
 }
 
 function checkAuth(req: import("express").Request, res: import("express").Response): boolean {
@@ -26,10 +41,20 @@ function checkAuth(req: import("express").Request, res: import("express").Respon
     return false;
   }
   const token = authHeader.slice(7);
-  const expected = Buffer.from(getAdminPassword()).toString("base64");
-  if (token !== expected) {
-    res.status(401).json({ error: "Unauthorized" });
-    return false;
+  const storedHash = getStoredPasswordHash();
+  if (storedHash) {
+    const expectedToken = Buffer.from(storedHash).toString("base64");
+    if (token !== expectedToken) {
+      res.status(401).json({ error: "Unauthorized" });
+      return false;
+    }
+  } else {
+    const envPassword = process.env["SESSION_SECRET"] ?? "admin";
+    const expectedToken = Buffer.from(envPassword).toString("base64");
+    if (token !== expectedToken) {
+      res.status(401).json({ error: "Unauthorized" });
+      return false;
+    }
   }
   return true;
 }
@@ -37,12 +62,37 @@ function checkAuth(req: import("express").Request, res: import("express").Respon
 // ─── POST /admin/auth ─────────────────────────────────────────────────────────
 router.post("/admin/auth", (req, res) => {
   const { password } = req.body as { password?: string };
-  if (!password || password !== getAdminPassword()) {
+  if (!password || !verifyPassword(password)) {
     res.status(401).json({ ok: false, token: "" });
     return;
   }
-  const token = Buffer.from(getAdminPassword()).toString("base64");
-  res.json({ ok: true, token });
+  const storedHash = getStoredPasswordHash();
+  const tokenSource = storedHash ?? (process.env["SESSION_SECRET"] ?? "admin");
+  res.json({ ok: true, token: makeToken(tokenSource) });
+});
+
+// ─── POST /admin/auth/rotate ──────────────────────────────────────────────────
+router.post("/admin/auth/rotate", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const { currentPassword, newPassword } = req.body as {
+    currentPassword?: string;
+    newPassword?: string;
+  };
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: "currentPassword and newPassword are required" });
+    return;
+  }
+  if (!verifyPassword(currentPassword)) {
+    res.status(401).json({ error: "Current password is incorrect" });
+    return;
+  }
+  if (newPassword.length < 8) {
+    res.status(400).json({ error: "New password must be at least 8 characters" });
+    return;
+  }
+  const newHash = hashPassword(newPassword);
+  savePasswordHash(newHash);
+  res.json({ ok: true, token: makeToken(newHash) });
 });
 
 // ─── GET /admin/stats ─────────────────────────────────────────────────────────

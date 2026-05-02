@@ -13,6 +13,11 @@ export interface AdminLoginBody {
   password: string;
 }
 
+export interface RotatePasswordBody {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface AdminLoginResponse {
   token: string;
   ok: boolean;

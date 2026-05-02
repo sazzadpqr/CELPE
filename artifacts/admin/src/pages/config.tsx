@@ -2,13 +2,15 @@ import {
   useGetAdminConfig, 
   getGetAdminConfigQueryKey, 
   useUpdateAdminConfig,
+  useRotateAdminPassword,
   AdminConfig
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { Save, History } from "lucide-react";
+import { Save, History, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -23,11 +25,16 @@ export default function Config() {
   });
   
   const updateConfig = useUpdateAdminConfig();
+  const rotatePassword = useRotateAdminPassword();
 
   const [formData, setFormData] = useState<AdminConfig>({
     feedbackSystemPrompt: "",
     promptGenerationSystemPrompt: ""
   });
+
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
 
   useEffect(() => {
     if (config) {
@@ -61,10 +68,39 @@ export default function Config() {
     }
   };
 
+  const handleRotate = () => {
+    if (pwForm.next !== pwForm.confirm) {
+      toast({ title: "New passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (pwForm.next.length < 8) {
+      toast({ title: "New password must be at least 8 characters", variant: "destructive" });
+      return;
+    }
+    rotatePassword.mutate(
+      { data: { currentPassword: pwForm.current, newPassword: pwForm.next } },
+      {
+        onSuccess: (data) => {
+          if (data.token) {
+            localStorage.setItem("admin_token", data.token);
+          }
+          setPwForm({ current: "", next: "", confirm: "" });
+          toast({ title: "Password changed successfully. You have been re-authenticated." });
+        },
+        onError: (err: any) => {
+          const msg = err?.response?.data?.error ?? "Failed to change password";
+          toast({ title: msg, variant: "destructive" });
+        }
+      }
+    );
+  };
+
   const isDirty = config && (
     formData.feedbackSystemPrompt !== config.feedbackSystemPrompt ||
     formData.promptGenerationSystemPrompt !== config.promptGenerationSystemPrompt
   );
+
+  const pwValid = pwForm.current && pwForm.next && pwForm.confirm && pwForm.next === pwForm.confirm && pwForm.next.length >= 8;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -85,6 +121,84 @@ export default function Config() {
       </div>
 
       <div className="space-y-6">
+        <Card className="border-yellow-900/40">
+          <CardHeader>
+            <CardTitle className="font-mono flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-yellow-500" />
+              Change Admin Password
+            </CardTitle>
+            <CardDescription>
+              Rotate the admin login password. The new password is stored securely as a hash and will override the <code className="text-xs bg-muted px-1 rounded">SESSION_SECRET</code> environment variable. Minimum 8 characters.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-mono text-muted-foreground">Current Password</Label>
+              <div className="relative">
+                <Input
+                  type={showCurrent ? "text" : "password"}
+                  placeholder="Enter current password"
+                  value={pwForm.current}
+                  onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                  className="pr-10 font-mono bg-muted/50 border-muted-foreground/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-mono text-muted-foreground">New Password</Label>
+              <div className="relative">
+                <Input
+                  type={showNew ? "text" : "password"}
+                  placeholder="Minimum 8 characters"
+                  value={pwForm.next}
+                  onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
+                  className="pr-10 font-mono bg-muted/50 border-muted-foreground/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-mono text-muted-foreground">Confirm New Password</Label>
+              <Input
+                type="password"
+                placeholder="Repeat new password"
+                value={pwForm.confirm}
+                onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
+                className={`font-mono bg-muted/50 border-muted-foreground/20 ${
+                  pwForm.confirm && pwForm.next !== pwForm.confirm ? "border-destructive" : ""
+                }`}
+              />
+              {pwForm.confirm && pwForm.next !== pwForm.confirm && (
+                <p className="text-xs text-destructive font-mono">Passwords do not match</p>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={handleRotate}
+              disabled={!pwValid || rotatePassword.isPending}
+              variant="outline"
+              className="border-yellow-700/50 text-yellow-500 hover:bg-yellow-950/30"
+            >
+              <KeyRound className="mr-2 h-4 w-4" />
+              {rotatePassword.isPending ? "Changing..." : "Change Password"}
+            </Button>
+          </CardFooter>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="font-mono">Feedback System Prompt</CardTitle>

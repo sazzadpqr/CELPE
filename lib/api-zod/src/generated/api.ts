@@ -28,6 +28,19 @@ export const AdminLoginResponse = zod.object({
 });
 
 /**
+ * @summary Rotate admin password
+ */
+export const RotateAdminPasswordBody = zod.object({
+  currentPassword: zod.string(),
+  newPassword: zod.string(),
+});
+
+export const RotateAdminPasswordResponse = zod.object({
+  token: zod.string(),
+  ok: zod.boolean(),
+});
+
+/**
  * @summary Get usage stats
  */
 export const GetAdminStatsResponse = zod.object({

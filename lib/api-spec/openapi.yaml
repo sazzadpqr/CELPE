@@ -48,6 +48,31 @@ paths:
         "401":
           description: Unauthorized
 
+  /admin/auth/rotate:
+    post:
+      operationId: rotateAdminPassword
+      tags: [admin]
+      summary: Rotate admin password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RotatePasswordBody"
+      responses:
+        "200":
+          description: Password rotated, returns new token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResponse"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
   /admin/stats:
     get:
       operationId: getAdminStats
@@ -291,6 +316,17 @@ components:
           type: string
       required:
         - password
+
+    RotatePasswordBody:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - currentPassword
+        - newPassword
 
     AdminLoginResponse:
       type: object
