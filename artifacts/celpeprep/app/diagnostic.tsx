@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Animated,
   Platform,
@@ -21,186 +21,300 @@ type Level = "A2" | "B1" | "B2" | "C1";
 interface Question {
   id: string;
   level: Level;
+  category: string;
   question: string;
   options: string[];
   correct: number;
   explanation: string;
+  grammarRule?: string;
+}
+
+function getApiUrl(path: string) {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}${path}` : path;
 }
 
 const QUESTIONS: Question[] = [
+  // ── A2 – Verbos ────────────────────────────────────────────────────────────
   {
-    id: "q1",
-    level: "A2",
+    id: "a2-v1", level: "A2", category: "verbos",
     question: "Como estudante dedicada, ela ___ sempre pontual.",
     options: ["está", "é", "estava", "seja"],
     correct: 1,
-    explanation: "'Ser' expressa característica permanente. 'Estar' é para estados temporários.",
+    explanation: "'Ser' exprime característica permanente; 'estar' é para estados temporários.",
+    grammarRule: "Ser vs. Estar",
   },
   {
-    id: "q2",
-    level: "A2",
+    id: "a2-v2", level: "A2", category: "verbos",
     question: "Quando eu era criança, ___ muito nas ruas.",
     options: ["brinquei", "brincava", "brinco", "brinque"],
     correct: 1,
-    explanation: "O imperfeito ('brincava') indica ação habitual no passado.",
+    explanation: "O pretérito imperfeito ('brincava') indica ação habitual no passado.",
+    grammarRule: "Pretérito Imperfeito",
   },
+  // ── A2 – Concordância ──────────────────────────────────────────────────────
   {
-    id: "q3",
-    level: "A2",
+    id: "a2-c1", level: "A2", category: "concordancia",
     question: "A carta que você escreveu está muito bem ___.",
     options: ["escrito", "escritas", "escrita", "escritos"],
     correct: 2,
-    explanation: "Concordância com 'carta' (feminino singular): bem escrita.",
+    explanation: "O particípio concorda com 'carta' (feminino singular): 'bem escrita'.",
+    grammarRule: "Concordância nominal",
   },
   {
-    id: "q4",
-    level: "B1",
+    id: "a2-c2", level: "A2", category: "concordancia",
+    question: "Os alunos ___ muito esforçados neste semestre.",
+    options: ["tem sido", "têm sido", "tem sidos", "têm sidos"],
+    correct: 1,
+    explanation: "'Alunos' é plural → verbo no plural: 'têm sido'. 'Sidos' não existe.",
+    grammarRule: "Concordância verbal",
+  },
+  // ── B1 – Subjuntivo ────────────────────────────────────────────────────────
+  {
+    id: "b1-s1", level: "B1", category: "subjuntivo",
     question: "O professor pediu que os alunos ___ o texto com atenção.",
     options: ["leram", "lerem", "lerão", "leiam"],
     correct: 3,
-    explanation: "Após 'pedir que', usa-se o subjuntivo presente: leiam.",
+    explanation: "Após 'pedir que' (verbo de volição), usa-se o subjuntivo presente: 'leiam'.",
+    grammarRule: "Subjuntivo presente após verbos de volição",
   },
   {
-    id: "q5",
-    level: "B1",
+    id: "b1-s2", level: "B1", category: "subjuntivo",
     question: "___ estivesse cansada, ela continuou estudando.",
     options: ["Porque", "Embora", "Portanto", "Assim"],
     correct: 1,
-    explanation: "'Embora' é conjunção concessiva e exige subjuntivo.",
+    explanation: "'Embora' é conjunção concessiva e exige subjuntivo imperfeito ('estivesse').",
+    grammarRule: "Conjunções concessivas + subjuntivo",
   },
   {
-    id: "q6",
-    level: "B1",
+    id: "b1-s3", level: "B1", category: "subjuntivo",
+    question: "É importante que todos ___ as regras.",
+    options: ["conhecem", "conhecerão", "conheçam", "conheceram"],
+    correct: 2,
+    explanation: "Após 'é importante que', usa-se o subjuntivo presente: 'conheçam'.",
+    grammarRule: "Subjuntivo com expressões impessoais",
+  },
+  // ── B1 – Pronomes ──────────────────────────────────────────────────────────
+  {
+    id: "b1-p1", level: "B1", category: "pronomes",
     question: "A pesquisadora ___ você me falou ganhou um prêmio.",
     options: ["que", "a qual", "de quem", "quem"],
     correct: 2,
-    explanation: "'Falar de alguém' → 'de quem você me falou'.",
+    explanation: "'Falar de alguém' → o pronome relativo correto é 'de quem'.",
+    grammarRule: "Pronomes relativos com preposição",
   },
   {
-    id: "q7",
-    level: "B1",
+    id: "b1-p2", level: "B1", category: "pronomes",
     question: "O relatório ___ pela equipe até sexta-feira.",
     options: ["será entregado", "será entregue", "entregará", "vai entregar"],
     correct: 1,
-    explanation: "'Entregar' tem particípio irregular: entregue (voz passiva).",
+    explanation: "'Entregar' tem particípio irregular: 'entregue'. Voz passiva: 'será entregue'.",
+    grammarRule: "Particípios irregulares – voz passiva",
   },
+  // ── B2 – Subjuntivo Futuro ─────────────────────────────────────────────────
   {
-    id: "q8",
-    level: "B2",
+    id: "b2-sf1", level: "B2", category: "subjuntivo",
     question: "Quando você ___ os dados, me avise imediatamente.",
     options: ["analisará", "analisa", "analisar", "analisasse"],
     correct: 2,
-    explanation: "Após 'quando' referindo-se ao futuro, usa-se o futuro do subjuntivo.",
+    explanation: "Após 'quando' com referência ao futuro, usa-se o futuro do subjuntivo.",
+    grammarRule: "Futuro do subjuntivo",
   },
+  // ── B2 – Conectivos ────────────────────────────────────────────────────────
   {
-    id: "q9",
-    level: "B2",
+    id: "b2-k1", level: "B2", category: "conectivos",
     question: "Estudamos bastante ___ passar no exame.",
     options: ["pois", "assim", "a fim de", "visto que"],
     correct: 2,
-    explanation: "'A fim de' exprime finalidade (= para).",
+    explanation: "'A fim de' + infinitivo exprime finalidade. 'Pois' e 'visto que' são causais.",
+    grammarRule: "Locuções finais",
   },
   {
-    id: "q10",
-    level: "B2",
+    id: "b2-k2", level: "B2", category: "conectivos",
     question: "Ela disse que ___ à festa naquela noite.",
     options: ["iria", "vai", "foi", "irá"],
     correct: 0,
-    explanation: "No discurso indireto, o futuro do indicativo vira futuro do pretérito (iria).",
+    explanation: "No discurso indireto, o futuro do indicativo vira futuro do pretérito ('iria').",
+    grammarRule: "Discurso indireto – correlação temporal",
   },
+  // ── B2 – Preposições ───────────────────────────────────────────────────────
   {
-    id: "q11",
-    level: "B2",
+    id: "b2-prep1", level: "B2", category: "preposicoes",
     question: "Os especialistas discordaram ___ decisão tomada.",
     options: ["de a", "da", "em", "à"],
     correct: 1,
-    explanation: "'Discordar de' + 'a decisão' → crase obrigatória: 'da'.",
+    explanation: "'Discordar de' + artigo 'a' = crase obrigatória: 'da' (contração de + a).",
+    grammarRule: "Regência verbal + crase",
   },
   {
-    id: "q12",
-    level: "B2",
+    id: "b2-prep2", level: "B2", category: "preposicoes",
     question: "As análises apresentadas foram ___ relevantes para o caso.",
     options: ["muito", "muitas", "muitos", "muitíssimas"],
     correct: 0,
     explanation: "'Muito' como advérbio (modifica adjetivo) é invariável.",
+    grammarRule: "Advérbio invariável vs. pronome indefinido",
   },
+  // ── C1 – Subjuntivo Avançado ───────────────────────────────────────────────
   {
-    id: "q13",
-    level: "C1",
+    id: "c1-s1", level: "C1", category: "subjuntivo",
     question: "Era necessário que todos ___ mais conscientes sobre o impacto.",
     options: ["são", "fossem", "sejam", "tenham sido"],
     correct: 1,
-    explanation: "Com verbo principal no passado, o subjuntivo da subordinada fica no imperfeito: fossem.",
+    explanation: "Verbo principal no passado → subjuntivo da subordinada no imperfeito: 'fossem'.",
+    grammarRule: "Correlação de tempos – subjuntivo imperfeito",
   },
+  // ── C1 – Conectivos avançados ─────────────────────────────────────────────
   {
-    id: "q14",
-    level: "C1",
+    id: "c1-k1", level: "C1", category: "conectivos",
     question: "O programa mostrou-se eficiente; ___, gerou novos desafios.",
     options: ["por isso", "contudo", "assim sendo", "além disso"],
     correct: 1,
-    explanation: "'Contudo' expressa contraste/adversidade entre as orações.",
+    explanation: "'Contudo' expressa contraste/adversidade — conectivo adversativo.",
+    grammarRule: "Conectivos adversativos",
   },
   {
-    id: "q15",
-    level: "C1",
+    id: "c1-k2", level: "C1", category: "conectivos",
     question: "Trata-se de uma das análises mais ___ já conduzidas nessa área.",
     options: ["abrangente", "abrangentes", "abrangendo", "abrangido"],
     correct: 1,
-    explanation: "Concordância com 'análises' (plural): abrangentes.",
+    explanation: "Concordância com 'análises' (plural feminino): 'abrangentes'.",
+    grammarRule: "Superlativo relativo – concordância",
+  },
+  // ── C1 – Preposições avançadas ────────────────────────────────────────────
+  {
+    id: "c1-prep1", level: "C1", category: "preposicoes",
+    question: "O relatório foi elaborado ___ intuito de esclarecer as dúvidas.",
+    options: ["com", "no", "ao", "pelo"],
+    correct: 1,
+    explanation: "'No intuito de' é locução prepositiva de finalidade. 'Com intuito' também existe, mas a alternativa correta aqui é 'no'.",
+    grammarRule: "Locuções prepositivas de finalidade",
+  },
+  // ── C1 – Concordância avançada ────────────────────────────────────────────
+  {
+    id: "c1-c1", level: "C1", category: "concordancia",
+    question: "Fazem dois anos que não vejo minha família.",
+    options: ["A frase está correta", "Deveria ser 'Faz dois anos'", "Deveria ser 'Fazem dois anos passados'", "Deveria ser 'Faz dois ano'"],
+    correct: 1,
+    explanation: "Verbos que indicam tempo decorrido (fazer, haver) são impessoais e ficam no singular: 'Faz dois anos'.",
+    grammarRule: "Verbos impessoais – fazer/haver com sentido de tempo",
+  },
+  // ── C1 – Verbos avançados ─────────────────────────────────────────────────
+  {
+    id: "c1-v1", level: "C1", category: "verbos",
+    question: "Se eu ___ mais tempo, teria estudado o dobro.",
+    options: ["tivesse", "teria", "tenho", "terei"],
+    correct: 0,
+    explanation: "Período hipotético do passado: 'se + imperfeito do subjuntivo + futuro do pretérito'.",
+    grammarRule: "Período condicional hipotético (passado)",
   },
 ];
 
-function calculateLevel(answers: (number | null)[]): Level {
+const CATEGORY_LABELS: Record<string, string> = {
+  verbos: "Verbos",
+  concordancia: "Concordância",
+  subjuntivo: "Subjuntivo",
+  pronomes: "Pronomes",
+  conectivos: "Conectivos",
+  preposicoes: "Preposições",
+};
+
+const CATEGORY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
+  verbos: "clock",
+  concordancia: "check-square",
+  subjuntivo: "git-branch",
+  pronomes: "user",
+  conectivos: "link",
+  preposicoes: "arrow-right",
+};
+
+function calculateLevel(answers: (number | null)[], questions: Question[]): Level {
   const byLevel: Record<Level, { correct: number; total: number }> = {
-    A2: { correct: 0, total: 0 },
-    B1: { correct: 0, total: 0 },
-    B2: { correct: 0, total: 0 },
-    C1: { correct: 0, total: 0 },
+    A2: { correct: 0, total: 0 }, B1: { correct: 0, total: 0 },
+    B2: { correct: 0, total: 0 }, C1: { correct: 0, total: 0 },
   };
-  QUESTIONS.forEach((q, i) => {
+  questions.forEach((q, i) => {
     byLevel[q.level].total++;
     if (answers[i] === q.correct) byLevel[q.level].correct++;
   });
-
-  const pct = (l: Level) =>
-    byLevel[l].total > 0 ? byLevel[l].correct / byLevel[l].total : 0;
-
+  const pct = (l: Level) => byLevel[l].total > 0 ? byLevel[l].correct / byLevel[l].total : 0;
   if (pct("C1") >= 0.67) return "C1";
   if (pct("B2") >= 0.6) return "B2";
   if (pct("B1") >= 0.5) return "B1";
   return "A2";
 }
 
-const LEVEL_DESC: Record<Level, string> = {
-  A2: "Nível básico — foque em gramática fundamental e vocabulário essencial.",
-  B1: "Nível intermediário — trabalhe estruturas complexas e coesão textual.",
-  B2: "Nível intermediário-avançado — refine o registro formal e argumentação.",
-  C1: "Nível avançado — foque em precisão, sofisticação e adequação ao gênero.",
+function calcCategoryBreakdown(answers: (number | null)[], questions: Question[]) {
+  const cat: Record<string, { correct: number; total: number }> = {};
+  questions.forEach((q, i) => {
+    if (!cat[q.category]) cat[q.category] = { correct: 0, total: 0 };
+    cat[q.category]!.total++;
+    if (answers[i] === q.correct) cat[q.category]!.correct++;
+  });
+  return cat;
+}
+
+function formatTime(secs: number) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+const LEVEL_DESC: Record<Level, { short: string; tip: string }> = {
+  A2: {
+    short: "Básico",
+    tip: "Foque em estruturas fundamentais: conjugações regulares, concordância básica e vocabulário cotidiano.",
+  },
+  B1: {
+    short: "Intermediário",
+    tip: "Trabalhe o subjuntivo, pronomes relativos e coesão textual. Leia textos acadêmicos curtos.",
+  },
+  B2: {
+    short: "Intermediário Avançado",
+    tip: "Refine o registro formal, argumentação e períodos complexos. Pratique redações dissertativas.",
+  },
+  C1: {
+    short: "Avançado",
+    tip: "Foque em precisão gramatical, sofisticação lexical e adequação ao gênero discursivo do Celpe-Bras.",
+  },
 };
 
 const LEVEL_COLOR: Record<Level, string> = {
-  A2: "#BA7517",
-  B1: "#185FA5",
-  B2: "#6B21A8",
-  C1: "#1D9E75",
+  A2: "#BA7517", B1: "#185FA5", B2: "#6B21A8", C1: "#1D9E75",
 };
 
 export default function DiagnosticScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const { updateProfile } = useApp();
+  const { updateProfile, profile } = useApp();
 
   const [step, setStep] = useState<"intro" | "quiz" | "result">("intro");
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(
-    Array(QUESTIONS.length).fill(null)
-  );
+  const [answers, setAnswers] = useState<(number | null)[]>(Array(QUESTIONS.length).fill(null));
   const [selected, setSelected] = useState<number | null>(null);
   const [resultLevel, setResultLevel] = useState<Level>("B1");
+  const [elapsed, setElapsed] = useState(0);
+  const [showReview, setShowReview] = useState(false);
+  const [expandedQ, setExpandedQ] = useState<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const q = QUESTIONS[currentIdx];
+  useEffect(() => {
+    if (step === "quiz") {
+      timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [step]);
+
+  const q = QUESTIONS[currentIdx]!;
   const progress = (currentIdx / QUESTIONS.length) * 100;
+
+  const animateTransition = (cb: () => void) => {
+    Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => {
+      cb();
+      Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    });
+  };
 
   const handleSelect = (optIdx: number) => {
     if (selected !== null) return;
@@ -214,228 +328,402 @@ export default function DiagnosticScreen() {
     setAnswers(newAnswers);
 
     if (currentIdx + 1 < QUESTIONS.length) {
-      setCurrentIdx(currentIdx + 1);
-      setSelected(null);
+      animateTransition(() => {
+        setCurrentIdx(currentIdx + 1);
+        setSelected(null);
+      });
     } else {
-      const level = calculateLevel(newAnswers);
+      if (timerRef.current) clearInterval(timerRef.current);
+      const level = calculateLevel(newAnswers, QUESTIONS);
       setResultLevel(level);
       setStep("result");
       updateProfile({ diagnosticDone: true, level });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Save result to API
+      const breakdown = calcCategoryBreakdown(newAnswers, QUESTIONS);
+      const correctCount = newAnswers.filter((a, i) => a === QUESTIONS[i]!.correct).length;
+      fetch(getApiUrl("/api/diagnostic/result"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deviceToken: profile.deviceToken ?? "anonymous",
+          level,
+          score: correctCount,
+          totalQuestions: QUESTIONS.length,
+          timeTakenSeconds: elapsed,
+          answers: newAnswers.map((a, i) => ({
+            questionId: QUESTIONS[i]!.id,
+            chosen: a ?? -1,
+            correct: a === QUESTIONS[i]!.correct,
+          })),
+          categoryBreakdown: breakdown,
+        }),
+      }).catch(() => {});
     }
   };
 
+  // ── Intro ──────────────────────────────────────────────────────────────────
   if (step === "intro") {
+    const categories = [...new Set(QUESTIONS.map(q => q.category))];
     return (
-      <ScrollView
-        style={[styles.root, { backgroundColor: colors.background }]}
-        contentContainerStyle={[styles.content, { paddingTop: topPad + 16 }]}
-      >
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+      <ScrollView style={[S.root, { backgroundColor: colors.background }]}
+        contentContainerStyle={[S.content, { paddingTop: topPad + 16 }]}>
+        <Pressable onPress={() => router.back()} style={S.backBtn}>
           <Feather name="arrow-left" size={20} color={colors.text} />
         </Pressable>
-        <View style={[styles.introIcon, { backgroundColor: colors.primary + "18" }]}>
+        <View style={[S.introIcon, { backgroundColor: colors.primary + "18" }]}>
           <Feather name="activity" size={36} color={colors.primary} />
         </View>
-        <Text style={[styles.introTitle, { color: colors.text }]}>
-          Teste Diagnóstico
+        <Text style={[S.introTitle, { color: colors.text }]}>Teste Diagnóstico</Text>
+        <Text style={[S.introDesc, { color: colors.textSecondary }]}>
+          {QUESTIONS.length} questões de gramática distribuídas em 4 níveis do Celpe-Bras para identificar seu nível atual e personalizar seu plano de estudo.
         </Text>
-        <Text style={[styles.introDesc, { color: colors.mutedForeground }]}>
-          15 questões de gramática que vão determinar seu nível atual de português e personalizar seu plano de estudos.
-        </Text>
-        <View style={styles.infoCards}>
+
+        <View style={[S.infoGrid, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {[
-            { icon: "clock" as const, text: "~10 minutos" },
-            { icon: "bar-chart-2" as const, text: "15 questões de gramática" },
-            { icon: "target" as const, text: "Plano personalizado ao final" },
-          ].map((item) => (
-            <View
-              key={item.text}
-              style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            >
+            { icon: "clock" as const, label: "Duração estimada", value: "~15 minutos" },
+            { icon: "bar-chart-2" as const, label: "Questões", value: `${QUESTIONS.length} de gramática` },
+            { icon: "layers" as const, label: "Níveis avaliados", value: "A2 · B1 · B2 · C1" },
+            { icon: "target" as const, label: "Resultado", value: "Plano personalizado" },
+          ].map(item => (
+            <View key={item.label} style={[S.infoCell, { borderColor: colors.border }]}>
               <Feather name={item.icon} size={18} color={colors.primary} />
-              <Text style={[styles.infoCardText, { color: colors.text }]}>{item.text}</Text>
+              <Text style={[S.infoCellLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+              <Text style={[S.infoCellValue, { color: colors.text }]}>{item.value}</Text>
             </View>
           ))}
         </View>
-        <Pressable
-          style={[styles.ctaBtn, { backgroundColor: colors.primary }]}
-          onPress={() => setStep("quiz")}
-        >
-          <Text style={styles.ctaBtnText}>Começar teste</Text>
+
+        <Text style={[S.sectionLabel, { color: colors.text }]}>Categorias avaliadas</Text>
+        <View style={S.catChips}>
+          {categories.map(cat => (
+            <View key={cat} style={[S.catChip, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "30" }]}>
+              <Feather name={CATEGORY_ICONS[cat] ?? "book"} size={12} color={colors.primary} />
+              <Text style={[S.catChipText, { color: colors.primary }]}>{CATEGORY_LABELS[cat] ?? cat}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={[S.levelLegend, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[S.legendTitle, { color: colors.text }]}>Escala de referência</Text>
+          {(["A2", "B1", "B2", "C1"] as Level[]).map(lvl => (
+            <View key={lvl} style={S.legendRow}>
+              <View style={[S.legendDot, { backgroundColor: LEVEL_COLOR[lvl] }]} />
+              <Text style={[S.legendLevel, { color: LEVEL_COLOR[lvl] }]}>{lvl}</Text>
+              <Text style={[S.legendDesc, { color: colors.textSecondary }]}>{LEVEL_DESC[lvl].short}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Pressable style={[S.ctaBtn, { backgroundColor: colors.primary }]} onPress={() => setStep("quiz")}>
+          <Text style={S.ctaBtnText}>Começar diagnóstico</Text>
           <Feather name="arrow-right" size={18} color="#fff" />
         </Pressable>
       </ScrollView>
     );
   }
 
+  // ── Result ─────────────────────────────────────────────────────────────────
   if (step === "result") {
-    const correct = answers.filter((a, i) => a === QUESTIONS[i].correct).length;
+    const correct = answers.filter((a, i) => a === QUESTIONS[i]!.correct).length;
+    const pct = Math.round((correct / QUESTIONS.length) * 100);
     const levelColor = LEVEL_COLOR[resultLevel];
-    return (
-      <ScrollView
-        style={[styles.root, { backgroundColor: colors.background }]}
-        contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: 60 }]}
-      >
-        <View style={[styles.resultHeader, { backgroundColor: levelColor + "15", borderColor: levelColor + "40" }]}>
-          <Text style={[styles.resultLabel, { color: levelColor }]}>Seu nível</Text>
-          <Text style={[styles.resultLevel, { color: levelColor }]}>{resultLevel}</Text>
-          <Text style={[styles.resultScore, { color: colors.mutedForeground }]}>
-            {correct}/{QUESTIONS.length} questões corretas
-          </Text>
-        </View>
-        <Text style={[styles.resultDesc, { color: colors.text }]}>
-          {LEVEL_DESC[resultLevel]}
-        </Text>
+    const breakdown = calcCategoryBreakdown(answers, QUESTIONS);
+    const sortedCats = Object.entries(breakdown).sort((a, b) => {
+      const pa = a[1].total > 0 ? a[1].correct / a[1].total : 0;
+      const pb = b[1].total > 0 ? b[1].correct / b[1].total : 0;
+      return pb - pa;
+    });
+    const strengths = sortedCats.filter(([, v]) => v.total > 0 && v.correct / v.total >= 0.67);
+    const weaknesses = sortedCats.filter(([, v]) => v.total > 0 && v.correct / v.total < 0.5);
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Desempenho por nível
-        </Text>
-        {(["A2", "B1", "B2", "C1"] as Level[]).map((lvl) => {
-          const qs = QUESTIONS.filter((q) => q.level === lvl);
-          const correct = qs.filter((q, i) => {
-            const qIdx = QUESTIONS.indexOf(q);
-            return answers[qIdx] === q.correct;
-          }).length;
-          const pct = qs.length > 0 ? (correct / qs.length) * 100 : 0;
+    return (
+      <ScrollView style={[S.root, { backgroundColor: colors.background }]}
+        contentContainerStyle={[S.content, { paddingTop: topPad + 16, paddingBottom: 60 }]}>
+
+        {/* Level Badge */}
+        <View style={[S.resultBadge, { backgroundColor: levelColor + "15", borderColor: levelColor + "40" }]}>
+          <Text style={[S.resultBadgeLabel, { color: levelColor }]}>SEU NÍVEL</Text>
+          <Text style={[S.resultBadgeLevel, { color: levelColor }]}>{resultLevel}</Text>
+          <Text style={[S.resultBadgeSub, { color: levelColor + "CC" }]}>{LEVEL_DESC[resultLevel].short}</Text>
+        </View>
+
+        {/* Score Row */}
+        <View style={[S.scoreRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={S.scoreCell}>
+            <Text style={[S.scoreVal, { color: colors.text }]}>{correct}/{QUESTIONS.length}</Text>
+            <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Acertos</Text>
+          </View>
+          <View style={[S.scoreDivider, { backgroundColor: colors.border }]} />
+          <View style={S.scoreCell}>
+            <Text style={[S.scoreVal, { color: colors.text }]}>{pct}%</Text>
+            <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Aproveitamento</Text>
+          </View>
+          <View style={[S.scoreDivider, { backgroundColor: colors.border }]} />
+          <View style={S.scoreCell}>
+            <Text style={[S.scoreVal, { color: colors.text }]}>{formatTime(elapsed)}</Text>
+            <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Tempo</Text>
+          </View>
+        </View>
+
+        {/* Tip */}
+        <View style={[S.tipBox, { backgroundColor: levelColor + "12", borderColor: levelColor + "30" }]}>
+          <Feather name="zap" size={16} color={levelColor} />
+          <Text style={[S.tipText, { color: colors.text }]}>{LEVEL_DESC[resultLevel].tip}</Text>
+        </View>
+
+        {/* Level Breakdown */}
+        <Text style={[S.sectionTitle, { color: colors.text }]}>Desempenho por nível</Text>
+        {(["A2", "B1", "B2", "C1"] as Level[]).map(lvl => {
+          const qs = QUESTIONS.filter(q => q.level === lvl);
+          const c = qs.filter((q, i) => answers[QUESTIONS.indexOf(q)] === q.correct).length;
+          const p = qs.length > 0 ? (c / qs.length) * 100 : 0;
           return (
-            <View key={lvl} style={styles.levelRow}>
-              <Text style={[styles.levelLabel, { color: LEVEL_COLOR[lvl] }]}>{lvl}</Text>
-              <View style={[styles.levelTrack, { backgroundColor: colors.muted }]}>
-                <View
-                  style={[
-                    styles.levelFill,
-                    { width: `${pct}%` as any, backgroundColor: LEVEL_COLOR[lvl] },
-                  ]}
-                />
+            <View key={lvl} style={S.levelRow}>
+              <View style={[S.levelBadgeSmall, { backgroundColor: LEVEL_COLOR[lvl] + "20" }]}>
+                <Text style={[S.levelBadgeSmallText, { color: LEVEL_COLOR[lvl] }]}>{lvl}</Text>
               </View>
-              <Text style={[styles.levelCount, { color: colors.mutedForeground }]}>
-                {correct}/{qs.length}
-              </Text>
+              <View style={[S.levelTrack, { backgroundColor: colors.border }]}>
+                <View style={[S.levelFill, { width: `${p}%` as any, backgroundColor: LEVEL_COLOR[lvl] }]} />
+              </View>
+              <Text style={[S.levelCount, { color: colors.textSecondary }]}>{c}/{qs.length}</Text>
             </View>
           );
         })}
 
-        <Pressable
-          style={[styles.ctaBtn, { backgroundColor: colors.primary, marginTop: 24 }]}
-          onPress={() => router.replace("/(tabs)")}
-        >
-          <Text style={styles.ctaBtnText}>Ver meu plano de estudo</Text>
+        {/* Category Breakdown */}
+        <Text style={[S.sectionTitle, { color: colors.text }]}>Desempenho por categoria</Text>
+        {sortedCats.map(([cat, v]) => {
+          const p = v.total > 0 ? (v.correct / v.total) * 100 : 0;
+          const catColor = p >= 67 ? "#1D9E75" : p >= 50 ? "#185FA5" : "#D85A30";
+          return (
+            <View key={cat} style={[S.catRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[S.catRowIcon, { backgroundColor: catColor + "20" }]}>
+                <Feather name={CATEGORY_ICONS[cat] ?? "book"} size={14} color={catColor} />
+              </View>
+              <View style={S.catRowBody}>
+                <View style={S.catRowTop}>
+                  <Text style={[S.catRowName, { color: colors.text }]}>{CATEGORY_LABELS[cat] ?? cat}</Text>
+                  <Text style={[S.catRowPct, { color: catColor }]}>{Math.round(p)}%</Text>
+                </View>
+                <View style={[S.catTrack, { backgroundColor: colors.border }]}>
+                  <View style={[S.catFill, { width: `${p}%` as any, backgroundColor: catColor }]} />
+                </View>
+                <Text style={[S.catRowSub, { color: colors.textSecondary }]}>{v.correct} de {v.total} corretas</Text>
+              </View>
+            </View>
+          );
+        })}
+
+        {/* Strengths & Weaknesses */}
+        {(strengths.length > 0 || weaknesses.length > 0) && (
+          <View style={[S.swBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            {strengths.length > 0 && (
+              <View style={S.swSection}>
+                <View style={S.swHeader}>
+                  <Feather name="award" size={14} color="#1D9E75" />
+                  <Text style={[S.swTitle, { color: "#1D9E75" }]}>Pontos fortes</Text>
+                </View>
+                {strengths.map(([cat]) => (
+                  <Text key={cat} style={[S.swItem, { color: colors.textSecondary }]}>
+                    · {CATEGORY_LABELS[cat] ?? cat}
+                  </Text>
+                ))}
+              </View>
+            )}
+            {weaknesses.length > 0 && (
+              <View style={[S.swSection, strengths.length > 0 && { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 12, paddingTop: 12 }]}>
+                <View style={S.swHeader}>
+                  <Feather name="alert-circle" size={14} color="#D85A30" />
+                  <Text style={[S.swTitle, { color: "#D85A30" }]}>Áreas a reforçar</Text>
+                </View>
+                {weaknesses.map(([cat]) => (
+                  <Text key={cat} style={[S.swItem, { color: colors.textSecondary }]}>
+                    · {CATEGORY_LABELS[cat] ?? cat}
+                  </Text>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Question Review Toggle */}
+        <Pressable style={[S.reviewToggle, { borderColor: colors.border, backgroundColor: colors.surface }]}
+          onPress={() => setShowReview(r => !r)}>
+          <Feather name={showReview ? "chevron-up" : "chevron-down"} size={16} color={colors.textSecondary} />
+          <Text style={[S.reviewToggleText, { color: colors.text }]}>
+            {showReview ? "Esconder" : "Ver"} gabarito completo
+          </Text>
+        </Pressable>
+
+        {showReview && (
+          <View style={{ gap: 8 }}>
+            {QUESTIONS.map((question, i) => {
+              const userAnswer = answers[i];
+              const isCorrect = userAnswer === question.correct;
+              return (
+                <Pressable key={question.id}
+                  style={[S.reviewCard, { backgroundColor: colors.surface, borderColor: isCorrect ? "#1D9E7540" : "#D85A3040" }]}
+                  onPress={() => setExpandedQ(expandedQ === i ? null : i)}>
+                  <View style={S.reviewCardHeader}>
+                    <View style={[S.reviewIcon, { backgroundColor: isCorrect ? "#1D9E7520" : "#D85A3020" }]}>
+                      <Feather name={isCorrect ? "check" : "x"} size={13} color={isCorrect ? "#1D9E75" : "#D85A30"} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: "row", gap: 6, marginBottom: 2 }}>
+                        <Text style={[S.reviewQLevel, { color: LEVEL_COLOR[question.level] }]}>{question.level}</Text>
+                        <Text style={[S.reviewQCat, { color: colors.textSecondary }]}>{CATEGORY_LABELS[question.category] ?? question.category}</Text>
+                      </View>
+                      <Text style={[S.reviewQText, { color: colors.text }]} numberOfLines={expandedQ === i ? undefined : 2}>
+                        {question.question}
+                      </Text>
+                    </View>
+                    <Feather name={expandedQ === i ? "chevron-up" : "chevron-down"} size={14} color={colors.textSecondary} />
+                  </View>
+                  {expandedQ === i && (
+                    <View style={[S.reviewExpanded, { borderTopColor: colors.border }]}>
+                      {question.options.map((opt, oi) => {
+                        const isOpt = userAnswer === oi;
+                        const isCorr = question.correct === oi;
+                        const c = isCorr ? "#1D9E75" : isOpt ? "#D85A30" : colors.textSecondary;
+                        return (
+                          <View key={oi} style={S.reviewOpt}>
+                            <Feather name={isCorr ? "check-circle" : isOpt ? "x-circle" : "circle"} size={13} color={c} />
+                            <Text style={[S.reviewOptText, { color: c }]}>{["A", "B", "C", "D"][oi]}. {opt}</Text>
+                          </View>
+                        );
+                      })}
+                      <View style={[S.reviewExplanation, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "30" }]}>
+                        <Feather name="info" size={12} color={colors.primary} />
+                        <Text style={[S.reviewExplanationText, { color: colors.text }]}>{question.explanation}</Text>
+                      </View>
+                      {question.grammarRule && (
+                        <Text style={[S.reviewRule, { color: colors.textSecondary }]}>Regra: {question.grammarRule}</Text>
+                      )}
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        <Pressable style={[S.ctaBtn, { backgroundColor: colors.primary, marginTop: 24 }]}
+          onPress={() => router.replace("/(tabs)")}>
+          <Text style={S.ctaBtnText}>Ver meu plano de estudo</Text>
           <Feather name="arrow-right" size={18} color="#fff" />
+        </Pressable>
+        <Pressable style={[S.retakeBtn, { borderColor: colors.border }]}
+          onPress={() => {
+            setStep("intro"); setCurrentIdx(0);
+            setAnswers(Array(QUESTIONS.length).fill(null));
+            setSelected(null); setElapsed(0); setShowReview(false);
+          }}>
+          <Feather name="refresh-cw" size={14} color={colors.textSecondary} />
+          <Text style={[S.retakeBtnText, { color: colors.textSecondary }]}>Refazer diagnóstico</Text>
         </Pressable>
       </ScrollView>
     );
   }
 
+  // ── Quiz ───────────────────────────────────────────────────────────────────
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <View style={[styles.quizHeader, { paddingTop: topPad + 12, borderBottomColor: colors.border }]}>
-        <Pressable
-          onPress={() => {
-            if (currentIdx > 0) {
-              setCurrentIdx(currentIdx - 1);
-              setSelected(answers[currentIdx - 1]);
-            } else {
-              setStep("intro");
-            }
-          }}
-        >
+    <View style={[S.root, { backgroundColor: colors.background }]}>
+      <View style={[S.quizHeader, { paddingTop: topPad + 12, borderBottomColor: colors.border }]}>
+        <Pressable onPress={() => {
+          if (currentIdx > 0) { animateTransition(() => { setCurrentIdx(currentIdx - 1); setSelected(answers[currentIdx - 1]); }); }
+          else { setStep("intro"); }
+        }}>
           <Feather name="arrow-left" size={20} color={colors.text} />
         </Pressable>
-        <View style={styles.quizProgressWrap}>
-          <View style={[styles.quizTrack, { backgroundColor: colors.muted }]}>
-            <View
-              style={[
-                styles.quizFill,
-                { width: `${progress}%` as any, backgroundColor: colors.primary },
-              ]}
-            />
+        <View style={S.quizProgressWrap}>
+          <View style={[S.quizTrack, { backgroundColor: colors.border }]}>
+            <View style={[S.quizFill, { width: `${progress}%` as any, backgroundColor: colors.primary }]} />
           </View>
-          <Text style={[styles.quizProgress, { color: colors.mutedForeground }]}>
-            {currentIdx + 1} / {QUESTIONS.length}
-          </Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={[S.quizProgressText, { color: colors.textSecondary }]}>
+              {currentIdx + 1} / {QUESTIONS.length}
+            </Text>
+            <Text style={[S.quizProgressText, { color: colors.textSecondary }]}>
+              {formatTime(elapsed)}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.levelBadge, { backgroundColor: LEVEL_COLOR[q.level] + "18" }]}>
-          <Text style={[styles.levelBadgeText, { color: LEVEL_COLOR[q.level] }]}>
-            {q.level}
-          </Text>
+        <View style={[S.levelBadge, { backgroundColor: LEVEL_COLOR[q.level] + "18" }]}>
+          <Text style={[S.levelBadgeText, { color: LEVEL_COLOR[q.level] }]}>{q.level}</Text>
         </View>
       </View>
 
-      <ScrollView
-        style={styles.quizBody}
-        contentContainerStyle={styles.quizContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={[styles.questionText, { color: colors.text }]}>{q.question}</Text>
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <ScrollView style={S.quizBody} contentContainerStyle={S.quizContent}
+          showsVerticalScrollIndicator={false}>
 
-        <View style={styles.optionsList}>
-          {q.options.map((opt, i) => {
-            const isSelected = selected === i;
-            const isCorrect = i === q.correct;
-            const isWrong = isSelected && !isCorrect;
-            const showResult = selected !== null;
-
-            let bg = colors.card;
-            let border = colors.border;
-            let textColor = colors.text;
-
-            if (showResult && isCorrect) {
-              bg = "#D1FAE5";
-              border = "#34D399";
-              textColor = "#065F46";
-            } else if (showResult && isWrong) {
-              bg = "#FEE2E2";
-              border = "#F87171";
-              textColor = "#991B1B";
-            } else if (isSelected) {
-              bg = colors.infoBg;
-              border = colors.primary;
-              textColor = colors.primary;
-            }
-
-            return (
-              <Pressable
-                key={i}
-                style={[styles.option, { backgroundColor: bg, borderColor: border }]}
-                onPress={() => handleSelect(i)}
-                disabled={selected !== null}
-              >
-                <View style={[styles.optionLetter, { backgroundColor: border + "30" }]}>
-                  <Text style={[styles.optionLetterText, { color: textColor }]}>
-                    {["A", "B", "C", "D"][i]}
-                  </Text>
-                </View>
-                <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
-                {showResult && isCorrect && (
-                  <Feather name="check-circle" size={18} color="#059669" />
-                )}
-                {showResult && isWrong && (
-                  <Feather name="x-circle" size={18} color="#DC2626" />
-                )}
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {selected !== null && (
-          <View style={[styles.explanationBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Feather name="info" size={14} color={colors.primary} />
-            <Text style={[styles.explanationText, { color: colors.mutedForeground }]}>
-              {q.explanation}
-            </Text>
+          {/* Category tag */}
+          <View style={[S.catTag, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Feather name={CATEGORY_ICONS[q.category] ?? "book"} size={11} color={colors.textSecondary} />
+            <Text style={[S.catTagText, { color: colors.textSecondary }]}>{CATEGORY_LABELS[q.category] ?? q.category}</Text>
           </View>
-        )}
-      </ScrollView>
+
+          <Text style={[S.questionText, { color: colors.text }]}>{q.question}</Text>
+
+          <View style={S.optionsList}>
+            {q.options.map((opt, i) => {
+              const isSelected = selected === i;
+              const isCorrect = i === q.correct;
+              const isWrong = isSelected && !isCorrect;
+              const showResult = selected !== null;
+              let bg = colors.card, border = colors.border, textColor = colors.text;
+              if (showResult && isCorrect) { bg = "#D1FAE5"; border = "#34D399"; textColor = "#065F46"; }
+              else if (showResult && isWrong) { bg = "#FEE2E2"; border = "#F87171"; textColor = "#991B1B"; }
+              else if (isSelected) { bg = colors.primary + "15"; border = colors.primary; textColor = colors.primary; }
+              return (
+                <Pressable key={i} style={[S.option, { backgroundColor: bg, borderColor: border }]}
+                  onPress={() => handleSelect(i)} disabled={selected !== null}>
+                  <View style={[S.optionLetter, { backgroundColor: border + "30" }]}>
+                    <Text style={[S.optionLetterText, { color: textColor }]}>{["A", "B", "C", "D"][i]}</Text>
+                  </View>
+                  <Text style={[S.optionText, { color: textColor }]}>{opt}</Text>
+                  {showResult && isCorrect && <Feather name="check-circle" size={18} color="#059669" />}
+                  {showResult && isWrong && <Feather name="x-circle" size={18} color="#DC2626" />}
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {selected !== null && (
+            <View style={[S.explanationBox, { backgroundColor: colors.primary + "0E", borderColor: colors.primary + "30" }]}>
+              <Feather name="info" size={14} color={colors.primary} style={{ marginTop: 1 }} />
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={[S.explanationText, { color: colors.text }]}>{q.explanation}</Text>
+                {q.grammarRule && (
+                  <Text style={[S.grammarRuleText, { color: colors.textSecondary }]}>Regra: {q.grammarRule}</Text>
+                )}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </Animated.View>
 
       {selected !== null && (
-        <View style={[styles.nextBar, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-          <Pressable
-            style={[styles.nextBtn, { backgroundColor: colors.primary }]}
-            onPress={handleNext}
-          >
-            <Text style={styles.nextBtnText}>
-              {currentIdx + 1 < QUESTIONS.length ? "Próxima" : "Ver resultado"}
+        <View style={[S.nextBar, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+            {Array.from({ length: QUESTIONS.length }, (_, i) => {
+              const a = i === currentIdx ? selected : answers[i];
+              const done = a !== null;
+              const corr = done && a === QUESTIONS[i]!.correct;
+              return (
+                <View key={i} style={[S.dot,
+                  { backgroundColor: done ? (corr ? "#1D9E75" : "#D85A30") : colors.border,
+                    width: i === currentIdx ? 10 : 6,
+                    height: i === currentIdx ? 10 : 6,
+                    borderRadius: 5,
+                  }]} />
+              );
+            })}
+          </View>
+          <Pressable style={[S.nextBtn, { backgroundColor: colors.primary }]} onPress={handleNext}>
+            <Text style={S.nextBtnText}>
+              {currentIdx + 1 < QUESTIONS.length ? "Próxima questão" : "Ver resultado"}
             </Text>
             <Feather name="arrow-right" size={16} color="#fff" />
           </Pressable>
@@ -445,62 +733,101 @@ export default function DiagnosticScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const S = StyleSheet.create({
   root: { flex: 1 },
-  content: { paddingHorizontal: 24, gap: 20, paddingBottom: 40 },
-  backBtn: { padding: 4, marginBottom: 8 },
+  content: { paddingHorizontal: 20, gap: 16, paddingBottom: 40 },
+  backBtn: { padding: 4, marginBottom: 4 },
   introIcon: { width: 72, height: 72, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   introTitle: { fontSize: 26, fontFamily: "Inter_700Bold" },
-  introDesc: { fontSize: 15, fontFamily: "Inter_400Regular", lineHeight: 24 },
-  infoCards: { gap: 10 },
-  infoCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, padding: 14 },
-  infoCardText: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  introDesc: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 22 },
+  infoGrid: { borderRadius: 14, borderWidth: 1, padding: 4, flexDirection: "row", flexWrap: "wrap" },
+  infoCell: { width: "50%", padding: 14, gap: 4, borderWidth: 0.5, borderColor: "transparent" },
+  infoCellLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  infoCellValue: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  sectionLabel: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  catChips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  catChip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
+  catChipText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  levelLegend: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
+  legendTitle: { fontSize: 13, fontFamily: "Inter_700Bold", marginBottom: 2 },
+  legendRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendLevel: { fontSize: 12, fontFamily: "Inter_700Bold", width: 28 },
+  legendDesc: { fontSize: 12, fontFamily: "Inter_400Regular" },
   ctaBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 16, borderRadius: 14 },
   ctaBtnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
-  resultHeader: { borderRadius: 16, borderWidth: 1.5, padding: 24, alignItems: "center", gap: 4 },
-  resultLabel: { fontSize: 13, fontFamily: "Inter_700Bold", textTransform: "uppercase", letterSpacing: 0.8 },
-  resultLevel: { fontSize: 56, fontFamily: "Inter_700Bold" },
-  resultScore: { fontSize: 14, fontFamily: "Inter_400Regular" },
-  resultDesc: { fontSize: 15, fontFamily: "Inter_400Regular", lineHeight: 24 },
-  sectionTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  levelRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  levelLabel: { fontSize: 13, fontFamily: "Inter_700Bold", width: 28 },
+  retakeBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 13, borderRadius: 14, borderWidth: 1 },
+  retakeBtnText: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  // Result
+  resultBadge: { borderRadius: 20, borderWidth: 2, padding: 28, alignItems: "center", gap: 4 },
+  resultBadgeLabel: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.5, textTransform: "uppercase" },
+  resultBadgeLevel: { fontSize: 64, fontFamily: "Inter_700Bold", lineHeight: 72 },
+  resultBadgeSub: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  scoreRow: { flexDirection: "row", borderRadius: 14, borderWidth: 1, overflow: "hidden" },
+  scoreCell: { flex: 1, paddingVertical: 14, alignItems: "center", gap: 2 },
+  scoreDivider: { width: 1 },
+  scoreVal: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  scoreLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  tipBox: { flexDirection: "row", gap: 10, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: "flex-start" },
+  tipText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  sectionTitle: { fontSize: 15, fontFamily: "Inter_700Bold", marginTop: 4 },
+  levelRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  levelBadgeSmall: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, width: 38, alignItems: "center" },
+  levelBadgeSmallText: { fontSize: 11, fontFamily: "Inter_700Bold" },
   levelTrack: { flex: 1, height: 8, borderRadius: 4, overflow: "hidden" },
   levelFill: { height: 8, borderRadius: 4 },
-  levelCount: { fontSize: 12, fontFamily: "Inter_500Medium", width: 28, textAlign: "right" },
-  quizHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-  },
-  quizProgressWrap: { flex: 1, gap: 4 },
+  levelCount: { fontSize: 12, fontFamily: "Inter_500Medium", width: 30, textAlign: "right" },
+  catRow: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, padding: 12 },
+  catRowIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  catRowBody: { flex: 1, gap: 4 },
+  catRowTop: { flexDirection: "row", justifyContent: "space-between" },
+  catRowName: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  catRowPct: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  catTrack: { height: 6, borderRadius: 3, overflow: "hidden" },
+  catFill: { height: 6, borderRadius: 3 },
+  catRowSub: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  swBox: { borderRadius: 14, borderWidth: 1, padding: 16 },
+  swSection: {},
+  swHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
+  swTitle: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  swItem: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 3 },
+  reviewToggle: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, borderRadius: 12, borderWidth: 1, marginTop: 4 },
+  reviewToggleText: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  reviewCard: { borderRadius: 12, borderWidth: 1.5, overflow: "hidden" },
+  reviewCardHeader: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 12 },
+  reviewIcon: { width: 26, height: 26, borderRadius: 8, alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 },
+  reviewQLevel: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  reviewQCat: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  reviewQText: { fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
+  reviewExpanded: { borderTopWidth: 1, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, gap: 6 },
+  reviewOpt: { flexDirection: "row", alignItems: "center", gap: 8 },
+  reviewOptText: { fontSize: 12, fontFamily: "Inter_400Regular", flex: 1 },
+  reviewExplanation: { flexDirection: "row", gap: 8, borderRadius: 8, borderWidth: 1, padding: 10, marginTop: 4, alignItems: "flex-start" },
+  reviewExplanationText: { flex: 1, fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  reviewRule: { fontSize: 11, fontFamily: "Inter_500Medium", fontStyle: "italic" },
+  // Quiz
+  quizHeader: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1 },
+  quizProgressWrap: { flex: 1, gap: 5 },
   quizTrack: { height: 6, borderRadius: 3, overflow: "hidden" },
   quizFill: { height: 6, borderRadius: 3 },
-  quizProgress: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  quizProgressText: { fontSize: 11, fontFamily: "Inter_500Medium" },
   levelBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   levelBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold" },
   quizBody: { flex: 1 },
   quizContent: { padding: 20, gap: 16, paddingBottom: 40 },
+  catTag: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
+  catTagText: { fontSize: 11, fontFamily: "Inter_500Medium" },
   questionText: { fontSize: 18, fontFamily: "Inter_600SemiBold", lineHeight: 28 },
   optionsList: { gap: 10 },
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    padding: 14,
-    minHeight: 52,
-  },
+  option: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1.5, padding: 14, minHeight: 52 },
   optionLetter: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   optionLetterText: { fontSize: 13, fontFamily: "Inter_700Bold" },
   optionText: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", lineHeight: 20 },
   explanationBox: { flexDirection: "row", gap: 10, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: "flex-start" },
-  explanationText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
-  nextBar: { padding: 16, paddingBottom: Platform.OS === "web" ? 16 : 32, borderTopWidth: 1 },
+  explanationText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  grammarRuleText: { fontSize: 11, fontFamily: "Inter_600SemiBold", fontStyle: "italic" },
+  nextBar: { padding: 16, paddingBottom: Platform.OS === "web" ? 16 : 32, borderTopWidth: 1, gap: 0 },
+  dot: { borderRadius: 5 },
   nextBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 15, borderRadius: 14 },
   nextBtnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
 });
