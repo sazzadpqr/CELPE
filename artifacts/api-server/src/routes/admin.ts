@@ -11,6 +11,8 @@ import {
   saveConfig,
   getStoredPasswordHash,
   savePasswordHash,
+  getSecurityEvents,
+  recordSecurityEvent,
   type PracticePrompt,
   type GrammarTopic,
 } from "../lib/adminStore.js";
@@ -92,7 +94,14 @@ router.post("/admin/auth/rotate", (req, res) => {
   }
   const newHash = hashPassword(newPassword);
   savePasswordHash(newHash);
+  recordSecurityEvent("password_rotated", "Admin password was changed successfully.");
   res.json({ ok: true, token: makeToken(newHash) });
+});
+
+// ─── GET /admin/security-events ───────────────────────────────────────────────
+router.get("/admin/security-events", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  res.json(getSecurityEvents());
 });
 
 // ─── GET /admin/stats ─────────────────────────────────────────────────────────

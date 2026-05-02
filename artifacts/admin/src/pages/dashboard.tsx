@@ -1,4 +1,8 @@
-import { useGetAdminStats, getGetAdminStatsQueryKey, useGetAdminLogs, getGetAdminLogsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetAdminStats, getGetAdminStatsQueryKey,
+  useGetAdminLogs, getGetAdminLogsQueryKey,
+  useListAdminSecurityEvents, getListAdminSecurityEventsQueryKey,
+} from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +11,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, Legend,
 } from "recharts";
-import { Activity, AlertCircle, MessageSquare, Clock } from "lucide-react";
+import { Activity, AlertCircle, MessageSquare, Clock, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -18,6 +22,10 @@ export default function Dashboard() {
 
   const { data: logs, isLoading: logsLoading } = useGetAdminLogs({
     query: { queryKey: getGetAdminLogsQueryKey(), refetchInterval: 15000 }
+  });
+
+  const { data: securityEvents, isLoading: securityLoading } = useListAdminSecurityEvents({
+    query: { queryKey: getListAdminSecurityEventsQueryKey(), refetchInterval: 30000 }
   });
 
   const endpointChartData = stats?.requestsByEndpoint
@@ -302,6 +310,68 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Security Activity Log */}
+      <Card className="border-yellow-900/40">
+        <CardHeader>
+          <CardTitle className="font-mono text-lg flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-yellow-500" />
+            Security Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {securityLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          ) : (
+            <ScrollArea className="h-[200px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">When</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {securityEvents && securityEvents.length > 0 ? (
+                    securityEvents.map((evt) => (
+                      <TableRow key={evt.id}>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className="font-mono text-[10px] border-yellow-700/50 text-yellow-400"
+                          >
+                            {evt.type.replace(/_/g, " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {evt.description}
+                        </TableCell>
+                        <TableCell className="text-right text-xs text-muted-foreground font-mono whitespace-nowrap">
+                          {formatDistanceToNow(new Date(evt.timestamp), { addSuffix: true })}
+                          <div className="text-[10px] opacity-60">
+                            {format(new Date(evt.timestamp), "MMM d, HH:mm")}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center h-24 text-muted-foreground text-sm">
+                        No security events recorded yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

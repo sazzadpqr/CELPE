@@ -19,3 +19,4 @@ export * from "./practicePrompt";
 export * from "./practicePromptBody";
 export * from "./requestLog";
 export * from "./rotatePasswordBody";
+export * from "./securityEvent";

@@ -28,6 +28,7 @@ import type {
   PracticePromptBody,
   RequestLog,
   RotatePasswordBody,
+  SecurityEvent,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -1100,6 +1101,82 @@ export const useDeleteAdminGrammar = <
 > => {
   return useMutation(getDeleteAdminGrammarMutationOptions(options));
 };
+
+/**
+ * @summary List security activity events
+ */
+export const getListAdminSecurityEventsUrl = () => {
+  return `/api/admin/security-events`;
+};
+
+export const listAdminSecurityEvents = async (
+  options?: RequestInit,
+): Promise<SecurityEvent[]> => {
+  return customFetch<SecurityEvent[]>(getListAdminSecurityEventsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminSecurityEventsQueryKey = () => {
+  return [`/api/admin/security-events`] as const;
+};
+
+export const getListAdminSecurityEventsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminSecurityEvents>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminSecurityEvents>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminSecurityEventsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminSecurityEvents>>
+  > = ({ signal }) => listAdminSecurityEvents({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminSecurityEvents>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminSecurityEventsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminSecurityEvents>>
+>;
+export type ListAdminSecurityEventsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List security activity events
+ */
+
+export function useListAdminSecurityEvents<
+  TData = Awaited<ReturnType<typeof listAdminSecurityEvents>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminSecurityEvents>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminSecurityEventsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get AI config

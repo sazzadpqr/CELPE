@@ -13,6 +13,13 @@ export interface AdminLoginBody {
   password: string;
 }
 
+export interface SecurityEvent {
+  id: string;
+  type: string;
+  description: string;
+  timestamp: string;
+}
+
 export interface RotatePasswordBody {
   currentPassword: string;
   newPassword: string;

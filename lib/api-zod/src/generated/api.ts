@@ -196,6 +196,19 @@ export const DeleteAdminGrammarParams = zod.object({
 });
 
 /**
+ * @summary List security activity events
+ */
+export const ListAdminSecurityEventsResponseItem = zod.object({
+  id: zod.string(),
+  type: zod.string(),
+  description: zod.string(),
+  timestamp: zod.string(),
+});
+export const ListAdminSecurityEventsResponse = zod.array(
+  ListAdminSecurityEventsResponseItem,
+);
+
+/**
  * @summary Get AI config
  */
 export const GetAdminConfigResponse = zod.object({

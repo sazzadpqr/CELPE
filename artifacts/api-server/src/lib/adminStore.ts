@@ -234,3 +234,27 @@ export function getStoredPasswordHash(): string | null {
 export function savePasswordHash(hash: string) {
   writeJson("password.json", { hash });
 }
+
+export type SecurityEvent = {
+  id: string;
+  type: string;
+  description: string;
+  timestamp: string;
+};
+
+export function getSecurityEvents(): SecurityEvent[] {
+  return readJson<SecurityEvent[]>("security-events.json", []);
+}
+
+export function recordSecurityEvent(type: string, description: string) {
+  const events = getSecurityEvents();
+  const event: SecurityEvent = {
+    id: crypto.randomUUID(),
+    type,
+    description,
+    timestamp: new Date().toISOString(),
+  };
+  events.unshift(event);
+  if (events.length > 50) events.pop();
+  writeJson("security-events.json", events);
+}
