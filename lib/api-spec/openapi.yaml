@@ -303,6 +303,26 @@ components:
         - token
         - ok
 
+    HourlyAiStat:
+      type: object
+      properties:
+        hour:
+          type: string
+        feedback:
+          type: number
+        prompt:
+          type: number
+        wordOfDay:
+          type: number
+        total:
+          type: number
+      required:
+        - hour
+        - feedback
+        - prompt
+        - wordOfDay
+        - total
+
     AdminStats:
       type: object
       properties:
@@ -324,6 +344,10 @@ components:
           type: object
           additionalProperties:
             type: number
+        hourlyAiCalls:
+          type: array
+          items:
+            $ref: "#/components/schemas/HourlyAiStat"
       required:
         - totalRequests
         - aiCallsToday
@@ -333,6 +357,7 @@ components:
         - uptimeSeconds
         - startedAt
         - requestsByEndpoint
+        - hourlyAiCalls
 
     RequestLog:
       type: object

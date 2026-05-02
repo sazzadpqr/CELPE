@@ -3,36 +3,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format, formatDistanceToNow } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, AlertCircle, MessageSquare, BookOpen, Clock } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, Legend,
+} from "recharts";
+import { Activity, AlertCircle, MessageSquare, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetAdminStats({
-    query: { queryKey: getGetAdminStatsQueryKey() }
+    query: { queryKey: getGetAdminStatsQueryKey(), refetchInterval: 15000 }
   });
 
   const { data: logs, isLoading: logsLoading } = useGetAdminLogs({
-    query: { queryKey: getGetAdminLogsQueryKey() }
+    query: { queryKey: getGetAdminLogsQueryKey(), refetchInterval: 15000 }
   });
 
   const endpointChartData = stats?.requestsByEndpoint
-    ? Object.entries(stats.requestsByEndpoint).map(([endpoint, count]) => ({
-        endpoint,
-        count
-      }))
+    ? Object.entries(stats.requestsByEndpoint)
+        .map(([endpoint, count]) => ({ endpoint: endpoint.replace("/api", ""), count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
     : [];
+
+  const hourlyData = stats?.hourlyAiCalls ?? [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight font-mono">Overview</h1>
-          <p className="text-muted-foreground text-sm">System metrics and recent activity.</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight font-mono">Overview</h1>
+        <p className="text-muted-foreground text-sm">System metrics and recent activity.</p>
       </div>
 
+      {/* Stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -57,11 +61,13 @@ export default function Dashboard() {
             {statsLoading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-2xl font-bold font-mono">{stats?.aiCallsToday.toLocaleString() ?? 0}</div>
+              <>
+                <div className="text-2xl font-bold font-mono">{stats?.aiCallsToday.toLocaleString() ?? 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Feedback: {stats?.aiCallsToday ? (stats.aiCallsToday - (stats.promptCallsToday ?? 0) - (stats.wordOfDayCallsToday ?? 0)) : 0} · Prompts: {stats?.promptCallsToday ?? 0} · WOD: {stats?.wordOfDayCallsToday ?? 0}
+                </p>
+              </>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Prompts: {stats?.promptCallsToday ?? 0} | WOD: {stats?.wordOfDayCallsToday ?? 0}
-            </p>
           </CardContent>
         </Card>
 
@@ -96,6 +102,102 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Hourly AI calls chart — full width */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-mono text-lg">AI Call Volume — Last 24 Hours</CardTitle>
+        </CardHeader>
+        <CardContent className="pl-2">
+          {statsLoading ? (
+            <div className="h-[220px]">
+              <Skeleton className="h-full w-full" />
+            </div>
+          ) : (
+            <div className="h-[220px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={hourlyData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradFeedback" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradPrompt" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradWod" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis
+                    dataKey="hour"
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    interval={3}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={28}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius-md)",
+                      fontSize: 12,
+                    }}
+                    itemStyle={{ color: "var(--foreground)" }}
+                    labelStyle={{ color: "var(--muted-foreground)", marginBottom: 4 }}
+                  />
+                  <Legend
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="feedback"
+                    name="Feedback"
+                    stroke="hsl(var(--primary))"
+                    fill="url(#gradFeedback)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="prompt"
+                    name="Prompts"
+                    stroke="hsl(var(--chart-2))"
+                    fill="url(#gradPrompt)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="wordOfDay"
+                    name="Word of Day"
+                    stroke="hsl(var(--chart-3))"
+                    fill="url(#gradWod)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Traffic by endpoint + Recent logs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
@@ -103,19 +205,31 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pl-2">
             {statsLoading ? (
-              <div className="h-[300px] flex items-center justify-center">
+              <div className="h-[260px]">
                 <Skeleton className="h-full w-full" />
               </div>
             ) : (
-              <div className="h-[300px] w-full">
+              <div className="h-[260px] w-full">
                 {endpointChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={endpointChartData} layout="vertical" margin={{ top: 0, right: 0, left: 40, bottom: 0 }}>
+                    <BarChart data={endpointChartData} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-                      <XAxis type="number" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
-                      <YAxis dataKey="endpoint" type="category" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+                      <XAxis type="number" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis
+                        dataKey="endpoint"
+                        type="category"
+                        tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                        width={120}
+                        tickLine={false}
+                        axisLine={false}
+                      />
                       <Tooltip
-                        contentStyle={{ backgroundColor: "var(--popover)", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}
+                        contentStyle={{
+                          backgroundColor: "var(--popover)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "var(--radius-md)",
+                          fontSize: 12,
+                        }}
                         itemStyle={{ color: "var(--foreground)" }}
                         cursor={{ fill: "var(--accent)" }}
                       />
@@ -123,7 +237,7 @@ export default function Dashboard() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No data available</div>
+                  <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No data yet</div>
                 )}
               </div>
             )}
@@ -142,7 +256,7 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <ScrollArea className="h-[300px]">
+              <ScrollArea className="h-[260px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -155,13 +269,13 @@ export default function Dashboard() {
                   <TableBody>
                     {logs && logs.length > 0 ? (
                       logs.map((log) => (
-                        <TableRow key={log.id}>
+                        <TableRow key={log.id} data-testid={`row-log-${log.id}`}>
                           <TableCell>
                             <Badge variant="outline" className="font-mono text-[10px]">
                               {log.method}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-mono text-xs max-w-[120px] truncate" title={log.path}>
+                          <TableCell className="font-mono text-xs max-w-[110px] truncate" title={log.path}>
                             {log.path}
                           </TableCell>
                           <TableCell>

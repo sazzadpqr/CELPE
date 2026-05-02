@@ -65,6 +65,8 @@ export type AdminConfig = {
   promptGenerationSystemPrompt: string;
 };
 
+type HourlyCounts = { feedback: number; prompt: number; wordOfDay: number };
+
 const serverStartTime = Date.now();
 const requestLogs: RequestLog[] = [];
 let totalRequests = 0;
@@ -75,6 +77,25 @@ const aiCallCounts: Record<string, number> = {
 };
 let errorsToday = 0;
 const requestsByEndpoint: Record<string, number> = {};
+
+// Hourly AI call tracking — keyed by "YYYY-MM-DDTHH" (UTC)
+const hourlyAiCalls: Map<string, HourlyCounts> = new Map();
+
+function hourKey(date = new Date()): string {
+  return date.toISOString().slice(0, 13); // "2025-05-02T14"
+}
+
+function getOrCreateHour(key: string): HourlyCounts {
+  if (!hourlyAiCalls.has(key)) {
+    hourlyAiCalls.set(key, { feedback: 0, prompt: 0, wordOfDay: 0 });
+    // Prune entries older than 24 hours
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 13);
+    for (const k of hourlyAiCalls.keys()) {
+      if (k < cutoff) hourlyAiCalls.delete(k);
+    }
+  }
+  return hourlyAiCalls.get(key)!;
+}
 
 const todayKey = () => new Date().toISOString().split("T")[0];
 let currentDay = todayKey();
@@ -105,6 +126,28 @@ export function recordRequest(log: Omit<RequestLog, "id">) {
 export function recordAiCall(type: "feedback" | "prompt" | "wordOfDay") {
   resetDailyIfNeeded();
   aiCallCounts[type] = (aiCallCounts[type] ?? 0) + 1;
+  const hour = getOrCreateHour(hourKey());
+  hour[type]++;
+}
+
+function buildHourlySeries() {
+  // Return last 24 hours as a sorted array, filling gaps with zeros
+  const now = new Date();
+  const result = [];
+  for (let i = 23; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 60 * 60 * 1000);
+    const key = d.toISOString().slice(0, 13);
+    const counts = hourlyAiCalls.get(key) ?? { feedback: 0, prompt: 0, wordOfDay: 0 };
+    const label = `${String(d.getUTCHours()).padStart(2, "0")}:00`;
+    result.push({
+      hour: label,
+      feedback: counts.feedback,
+      prompt: counts.prompt,
+      wordOfDay: counts.wordOfDay,
+      total: counts.feedback + counts.prompt + counts.wordOfDay,
+    });
+  }
+  return result;
 }
 
 export function getStats() {
@@ -118,6 +161,7 @@ export function getStats() {
     uptimeSeconds: Math.floor((Date.now() - serverStartTime) / 1000),
     startedAt: new Date(serverStartTime).toISOString(),
     requestsByEndpoint,
+    hourlyAiCalls: buildHourlySeries(),
   };
 }
 

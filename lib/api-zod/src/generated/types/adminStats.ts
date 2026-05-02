@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AdminStatsRequestsByEndpoint } from "./adminStatsRequestsByEndpoint";
+import type { HourlyAiStat } from "./hourlyAiStat";
 
 export interface AdminStats {
   totalRequests: number;
@@ -16,4 +17,5 @@ export interface AdminStats {
   uptimeSeconds: number;
   startedAt: string;
   requestsByEndpoint: AdminStatsRequestsByEndpoint;
+  hourlyAiCalls: HourlyAiStat[];
 }

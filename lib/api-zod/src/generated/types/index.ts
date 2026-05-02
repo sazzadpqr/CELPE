@@ -14,6 +14,7 @@ export * from "./adminStatsRequestsByEndpoint";
 export * from "./grammarTopic";
 export * from "./grammarTopicBody";
 export * from "./healthStatus";
+export * from "./hourlyAiStat";
 export * from "./practicePrompt";
 export * from "./practicePromptBody";
 export * from "./requestLog";

@@ -39,6 +39,15 @@ export const GetAdminStatsResponse = zod.object({
   uptimeSeconds: zod.number(),
   startedAt: zod.string(),
   requestsByEndpoint: zod.record(zod.string(), zod.number()),
+  hourlyAiCalls: zod.array(
+    zod.object({
+      hour: zod.string(),
+      feedback: zod.number(),
+      prompt: zod.number(),
+      wordOfDay: zod.number(),
+      total: zod.number(),
+    }),
+  ),
 });
 
 /**

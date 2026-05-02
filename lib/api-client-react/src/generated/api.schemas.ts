@@ -18,6 +18,14 @@ export interface AdminLoginResponse {
   ok: boolean;
 }
 
+export interface HourlyAiStat {
+  hour: string;
+  feedback: number;
+  prompt: number;
+  wordOfDay: number;
+  total: number;
+}
+
 export type AdminStatsRequestsByEndpoint = { [key: string]: number };
 
 export interface AdminStats {
@@ -29,6 +37,7 @@ export interface AdminStats {
   uptimeSeconds: number;
   startedAt: string;
   requestsByEndpoint: AdminStatsRequestsByEndpoint;
+  hourlyAiCalls: HourlyAiStat[];
 }
 
 export interface RequestLog {
