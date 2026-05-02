@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Platform,
   Pressable,
@@ -29,13 +30,26 @@ interface Question {
   grammarRule?: string;
 }
 
+interface AiStudyRec {
+  area: string;
+  priority: string;
+  tip: string;
+}
+
+interface AiAnalysis {
+  level: string;
+  confidence: string;
+  personalizedAnalysis: string;
+  studyRecommendations: AiStudyRec[];
+  motivationalNote: string;
+}
+
 function getApiUrl(path: string) {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   return domain ? `https://${domain}${path}` : path;
 }
 
-const QUESTIONS: Question[] = [
-  // ── A2 – Verbos ────────────────────────────────────────────────────────────
+const FALLBACK_QUESTIONS: Question[] = [
   {
     id: "a2-v1", level: "A2", category: "verbos",
     question: "Como estudante dedicada, ela ___ sempre pontual.",
@@ -52,7 +66,6 @@ const QUESTIONS: Question[] = [
     explanation: "O pretérito imperfeito ('brincava') indica ação habitual no passado.",
     grammarRule: "Pretérito Imperfeito",
   },
-  // ── A2 – Concordância ──────────────────────────────────────────────────────
   {
     id: "a2-c1", level: "A2", category: "concordancia",
     question: "A carta que você escreveu está muito bem ___.",
@@ -69,7 +82,6 @@ const QUESTIONS: Question[] = [
     explanation: "'Alunos' é plural → verbo no plural: 'têm sido'. 'Sidos' não existe.",
     grammarRule: "Concordância verbal",
   },
-  // ── B1 – Subjuntivo ────────────────────────────────────────────────────────
   {
     id: "b1-s1", level: "B1", category: "subjuntivo",
     question: "O professor pediu que os alunos ___ o texto com atenção.",
@@ -94,7 +106,6 @@ const QUESTIONS: Question[] = [
     explanation: "Após 'é importante que', usa-se o subjuntivo presente: 'conheçam'.",
     grammarRule: "Subjuntivo com expressões impessoais",
   },
-  // ── B1 – Pronomes ──────────────────────────────────────────────────────────
   {
     id: "b1-p1", level: "B1", category: "pronomes",
     question: "A pesquisadora ___ você me falou ganhou um prêmio.",
@@ -111,7 +122,6 @@ const QUESTIONS: Question[] = [
     explanation: "'Entregar' tem particípio irregular: 'entregue'. Voz passiva: 'será entregue'.",
     grammarRule: "Particípios irregulares – voz passiva",
   },
-  // ── B2 – Subjuntivo Futuro ─────────────────────────────────────────────────
   {
     id: "b2-sf1", level: "B2", category: "subjuntivo",
     question: "Quando você ___ os dados, me avise imediatamente.",
@@ -120,7 +130,6 @@ const QUESTIONS: Question[] = [
     explanation: "Após 'quando' com referência ao futuro, usa-se o futuro do subjuntivo.",
     grammarRule: "Futuro do subjuntivo",
   },
-  // ── B2 – Conectivos ────────────────────────────────────────────────────────
   {
     id: "b2-k1", level: "B2", category: "conectivos",
     question: "Estudamos bastante ___ passar no exame.",
@@ -137,7 +146,6 @@ const QUESTIONS: Question[] = [
     explanation: "No discurso indireto, o futuro do indicativo vira futuro do pretérito ('iria').",
     grammarRule: "Discurso indireto – correlação temporal",
   },
-  // ── B2 – Preposições ───────────────────────────────────────────────────────
   {
     id: "b2-prep1", level: "B2", category: "preposicoes",
     question: "Os especialistas discordaram ___ decisão tomada.",
@@ -154,7 +162,6 @@ const QUESTIONS: Question[] = [
     explanation: "'Muito' como advérbio (modifica adjetivo) é invariável.",
     grammarRule: "Advérbio invariável vs. pronome indefinido",
   },
-  // ── C1 – Subjuntivo Avançado ───────────────────────────────────────────────
   {
     id: "c1-s1", level: "C1", category: "subjuntivo",
     question: "Era necessário que todos ___ mais conscientes sobre o impacto.",
@@ -163,7 +170,6 @@ const QUESTIONS: Question[] = [
     explanation: "Verbo principal no passado → subjuntivo da subordinada no imperfeito: 'fossem'.",
     grammarRule: "Correlação de tempos – subjuntivo imperfeito",
   },
-  // ── C1 – Conectivos avançados ─────────────────────────────────────────────
   {
     id: "c1-k1", level: "C1", category: "conectivos",
     question: "O programa mostrou-se eficiente; ___, gerou novos desafios.",
@@ -180,16 +186,14 @@ const QUESTIONS: Question[] = [
     explanation: "Concordância com 'análises' (plural feminino): 'abrangentes'.",
     grammarRule: "Superlativo relativo – concordância",
   },
-  // ── C1 – Preposições avançadas ────────────────────────────────────────────
   {
     id: "c1-prep1", level: "C1", category: "preposicoes",
     question: "O relatório foi elaborado ___ intuito de esclarecer as dúvidas.",
     options: ["com", "no", "ao", "pelo"],
     correct: 1,
-    explanation: "'No intuito de' é locução prepositiva de finalidade. 'Com intuito' também existe, mas a alternativa correta aqui é 'no'.",
+    explanation: "'No intuito de' é locução prepositiva de finalidade.",
     grammarRule: "Locuções prepositivas de finalidade",
   },
-  // ── C1 – Concordância avançada ────────────────────────────────────────────
   {
     id: "c1-c1", level: "C1", category: "concordancia",
     question: "Fazem dois anos que não vejo minha família.",
@@ -198,7 +202,6 @@ const QUESTIONS: Question[] = [
     explanation: "Verbos que indicam tempo decorrido (fazer, haver) são impessoais e ficam no singular: 'Faz dois anos'.",
     grammarRule: "Verbos impessoais – fazer/haver com sentido de tempo",
   },
-  // ── C1 – Verbos avançados ─────────────────────────────────────────────────
   {
     id: "c1-v1", level: "C1", category: "verbos",
     question: "Se eu ___ mais tempo, teria estudado o dobro.",
@@ -226,6 +229,15 @@ const CATEGORY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
   conectivos: "link",
   preposicoes: "arrow-right",
 };
+
+const GEN_MESSAGES = [
+  "Analisando categorias gramaticais...",
+  "Criando questões do cotidiano real...",
+  "Adaptando aos padrões do Celpe-Bras...",
+  "Selecionando contextos autênticos...",
+  "Calibrando a dificuldade por nível...",
+  "Preparando seu diagnóstico único...",
+];
 
 function calculateLevel(answers: (number | null)[], questions: Question[]): Level {
   const byLevel: Record<Level, { correct: number; total: number }> = {
@@ -288,16 +300,22 @@ export default function DiagnosticScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const { updateProfile, profile } = useApp();
 
-  const [step, setStep] = useState<"intro" | "quiz" | "result">("intro");
+  const [step, setStep] = useState<"intro" | "generating" | "quiz" | "result">("intro");
+  const [questions, setQuestions] = useState<Question[]>(FALLBACK_QUESTIONS);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(Array(QUESTIONS.length).fill(null));
+  const [answers, setAnswers] = useState<(number | null)[]>(new Array(FALLBACK_QUESTIONS.length).fill(null));
   const [selected, setSelected] = useState<number | null>(null);
   const [resultLevel, setResultLevel] = useState<Level>("B1");
   const [elapsed, setElapsed] = useState(0);
   const [showReview, setShowReview] = useState(false);
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
+  const [genMsgIdx, setGenMsgIdx] = useState(0);
+  const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const genMsgRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(0.7)).current;
 
   useEffect(() => {
     if (step === "quiz") {
@@ -306,8 +324,22 @@ export default function DiagnosticScreen() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [step]);
 
-  const q = QUESTIONS[currentIdx]!;
-  const progress = (currentIdx / QUESTIONS.length) * 100;
+  useEffect(() => {
+    if (step === "generating") {
+      setGenMsgIdx(0);
+      genMsgRef.current = setInterval(() => setGenMsgIdx(i => (i + 1) % GEN_MESSAGES.length), 1800);
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 0.7, duration: 900, useNativeDriver: true }),
+        ])
+      ).start();
+    }
+    return () => { if (genMsgRef.current) clearInterval(genMsgRef.current); };
+  }, [step]);
+
+  const q = questions[currentIdx] ?? FALLBACK_QUESTIONS[0]!;
+  const progress = questions.length > 0 ? (currentIdx / questions.length) * 100 : 0;
 
   const animateTransition = (cb: () => void) => {
     Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }).start(() => {
@@ -322,26 +354,78 @@ export default function DiagnosticScreen() {
     setSelected(optIdx);
   };
 
+  const handleStart = async () => {
+    setStep("generating");
+    setElapsed(0);
+    setAiAnalysis(null);
+    try {
+      const res = await fetch(getApiUrl("/api/diagnostic/generate-session"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceToken: profile.deviceToken ?? "anonymous" }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { questions?: Question[] };
+        if (Array.isArray(data.questions) && data.questions.length >= 12) {
+          const loaded = data.questions as Question[];
+          setQuestions(loaded);
+          setAnswers(new Array(loaded.length).fill(null));
+          setCurrentIdx(0);
+          setSelected(null);
+          setStep("quiz");
+          return;
+        }
+      }
+    } catch {
+      // fall through to fallback
+    }
+    setQuestions(FALLBACK_QUESTIONS);
+    setAnswers(new Array(FALLBACK_QUESTIONS.length).fill(null));
+    setCurrentIdx(0);
+    setSelected(null);
+    setStep("quiz");
+  };
+
+  const handleAnalyze = async (qs: Question[], ans: (number | null)[], time: number) => {
+    setAnalyzing(true);
+    try {
+      const res = await fetch(getApiUrl("/api/diagnostic/analyze"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions: qs, answers: ans, elapsed: time }),
+      });
+      if (res.ok) {
+        const data = await res.json() as AiAnalysis;
+        setAiAnalysis(data);
+      }
+    } catch {
+      // analysis unavailable
+    }
+    setAnalyzing(false);
+  };
+
   const handleNext = () => {
     const newAnswers = [...answers];
     newAnswers[currentIdx] = selected;
     setAnswers(newAnswers);
 
-    if (currentIdx + 1 < QUESTIONS.length) {
+    if (currentIdx + 1 < questions.length) {
       animateTransition(() => {
         setCurrentIdx(currentIdx + 1);
         setSelected(null);
       });
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
-      const level = calculateLevel(newAnswers, QUESTIONS);
+      const level = calculateLevel(newAnswers, questions);
       setResultLevel(level);
       setStep("result");
       updateProfile({ diagnosticDone: true, level });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      // Save result to API
-      const breakdown = calcCategoryBreakdown(newAnswers, QUESTIONS);
-      const correctCount = newAnswers.filter((a, i) => a === QUESTIONS[i]!.correct).length;
+
+      handleAnalyze(questions, newAnswers, elapsed);
+
+      const breakdown = calcCategoryBreakdown(newAnswers, questions);
+      const correctCount = newAnswers.filter((a, i) => a === questions[i]!.correct).length;
       fetch(getApiUrl("/api/diagnostic/result"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -349,22 +433,65 @@ export default function DiagnosticScreen() {
           deviceToken: profile.deviceToken ?? "anonymous",
           level,
           score: correctCount,
-          totalQuestions: QUESTIONS.length,
+          totalQuestions: questions.length,
           timeTakenSeconds: elapsed,
           answers: newAnswers.map((a, i) => ({
-            questionId: QUESTIONS[i]!.id,
+            questionId: questions[i]!.id,
             chosen: a ?? -1,
-            correct: a === QUESTIONS[i]!.correct,
+            correct: a === questions[i]!.correct,
           })),
           categoryBreakdown: breakdown,
+          sessionQuestions: questions.map(({ id, level: l, category, question, options, correct }) => ({ id, level: l, category, question, options, correct })),
         }),
       }).catch(() => {});
     }
   };
 
+  const handleRetake = () => {
+    setStep("intro");
+    setCurrentIdx(0);
+    setQuestions(FALLBACK_QUESTIONS);
+    setAnswers(new Array(FALLBACK_QUESTIONS.length).fill(null));
+    setSelected(null);
+    setElapsed(0);
+    setShowReview(false);
+    setAiAnalysis(null);
+    setAnalyzing(false);
+  };
+
+  // ── Generating ─────────────────────────────────────────────────────────────
+  if (step === "generating") {
+    const categories = ["verbos", "concordancia", "subjuntivo", "pronomes", "conectivos", "preposicoes"];
+    return (
+      <View style={[S.root, { backgroundColor: colors.background, alignItems: "center", justifyContent: "center", padding: 32 }]}>
+        <View style={[S.genCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Animated.View style={{ opacity: pulseAnim }}>
+            <View style={[S.genIconWrap, { backgroundColor: colors.primary + "18" }]}>
+              <Feather name="cpu" size={38} color={colors.primary} />
+            </View>
+          </Animated.View>
+          <Text style={[S.genTitle, { color: colors.text }]}>Preparando seu diagnóstico</Text>
+          <Text style={[S.genMsg, { color: colors.primary }]}>{GEN_MESSAGES[genMsgIdx]}</Text>
+          <ActivityIndicator color={colors.primary} style={{ marginVertical: 4 }} />
+          <View style={S.genCats}>
+            {categories.map(cat => (
+              <View key={cat} style={[S.genCatChip, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "25" }]}>
+                <Feather name={CATEGORY_ICONS[cat] ?? "book"} size={11} color={colors.primary} />
+                <Text style={[S.genCatText, { color: colors.primary }]}>{CATEGORY_LABELS[cat]}</Text>
+              </View>
+            ))}
+          </View>
+          <Text style={[S.genNote, { color: colors.textSecondary }]}>
+            A IA está a criar questões únicas para você,{"\n"}com situações reais do cotidiano brasileiro.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   // ── Intro ──────────────────────────────────────────────────────────────────
   if (step === "intro") {
-    const categories = [...new Set(QUESTIONS.map(q => q.category))];
+    const categories = [...new Set(FALLBACK_QUESTIONS.map(q => q.category))];
     return (
       <ScrollView style={[S.root, { backgroundColor: colors.background }]}
         contentContainerStyle={[S.content, { paddingTop: topPad + 16 }]}>
@@ -376,15 +503,25 @@ export default function DiagnosticScreen() {
         </View>
         <Text style={[S.introTitle, { color: colors.text }]}>Teste Diagnóstico</Text>
         <Text style={[S.introDesc, { color: colors.textSecondary }]}>
-          {QUESTIONS.length} questões de gramática distribuídas em 4 níveis do Celpe-Bras para identificar seu nível atual e personalizar seu plano de estudo.
+          A IA vai gerar um conjunto único de questões do cotidiano real para identificar seu nível e personalizar seu plano de estudo.
         </Text>
+
+        <View style={[S.aiHighlight, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "30" }]}>
+          <Feather name="cpu" size={16} color={colors.primary} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[S.aiHighlightTitle, { color: colors.primary }]}>Diagnóstico gerado por IA</Text>
+            <Text style={[S.aiHighlightSub, { color: colors.textSecondary }]}>
+              Questões únicas com situações reais · Análise personalizada dos seus resultados
+            </Text>
+          </View>
+        </View>
 
         <View style={[S.infoGrid, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {[
-            { icon: "clock" as const, label: "Duração estimada", value: "~15 minutos" },
-            { icon: "bar-chart-2" as const, label: "Questões", value: `${QUESTIONS.length} de gramática` },
+            { icon: "clock" as const, label: "Duração estimada", value: "~20 minutos" },
+            { icon: "bar-chart-2" as const, label: "Questões", value: "20 de gramática" },
             { icon: "layers" as const, label: "Níveis avaliados", value: "A2 · B1 · B2 · C1" },
-            { icon: "target" as const, label: "Resultado", value: "Plano personalizado" },
+            { icon: "zap" as const, label: "Resultado", value: "Análise com IA" },
           ].map(item => (
             <View key={item.label} style={[S.infoCell, { borderColor: colors.border }]}>
               <Feather name={item.icon} size={18} color={colors.primary} />
@@ -415,8 +552,9 @@ export default function DiagnosticScreen() {
           ))}
         </View>
 
-        <Pressable style={[S.ctaBtn, { backgroundColor: colors.primary }]} onPress={() => setStep("quiz")}>
-          <Text style={S.ctaBtnText}>Começar diagnóstico</Text>
+        <Pressable style={[S.ctaBtn, { backgroundColor: colors.primary }]} onPress={handleStart}>
+          <Feather name="cpu" size={18} color="#fff" />
+          <Text style={S.ctaBtnText}>Gerar meu diagnóstico</Text>
           <Feather name="arrow-right" size={18} color="#fff" />
         </Pressable>
       </ScrollView>
@@ -425,10 +563,10 @@ export default function DiagnosticScreen() {
 
   // ── Result ─────────────────────────────────────────────────────────────────
   if (step === "result") {
-    const correct = answers.filter((a, i) => a === QUESTIONS[i]!.correct).length;
-    const pct = Math.round((correct / QUESTIONS.length) * 100);
+    const correct = answers.filter((a, i) => a === questions[i]!.correct).length;
+    const pct = Math.round((correct / questions.length) * 100);
     const levelColor = LEVEL_COLOR[resultLevel];
-    const breakdown = calcCategoryBreakdown(answers, QUESTIONS);
+    const breakdown = calcCategoryBreakdown(answers, questions);
     const sortedCats = Object.entries(breakdown).sort((a, b) => {
       const pa = a[1].total > 0 ? a[1].correct / a[1].total : 0;
       const pb = b[1].total > 0 ? b[1].correct / b[1].total : 0;
@@ -441,17 +579,15 @@ export default function DiagnosticScreen() {
       <ScrollView style={[S.root, { backgroundColor: colors.background }]}
         contentContainerStyle={[S.content, { paddingTop: topPad + 16, paddingBottom: 60 }]}>
 
-        {/* Level Badge */}
         <View style={[S.resultBadge, { backgroundColor: levelColor + "15", borderColor: levelColor + "40" }]}>
           <Text style={[S.resultBadgeLabel, { color: levelColor }]}>SEU NÍVEL</Text>
           <Text style={[S.resultBadgeLevel, { color: levelColor }]}>{resultLevel}</Text>
           <Text style={[S.resultBadgeSub, { color: levelColor + "CC" }]}>{LEVEL_DESC[resultLevel].short}</Text>
         </View>
 
-        {/* Score Row */}
         <View style={[S.scoreRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={S.scoreCell}>
-            <Text style={[S.scoreVal, { color: colors.text }]}>{correct}/{QUESTIONS.length}</Text>
+            <Text style={[S.scoreVal, { color: colors.text }]}>{correct}/{questions.length}</Text>
             <Text style={[S.scoreLabel, { color: colors.textSecondary }]}>Acertos</Text>
           </View>
           <View style={[S.scoreDivider, { backgroundColor: colors.border }]} />
@@ -466,17 +602,74 @@ export default function DiagnosticScreen() {
           </View>
         </View>
 
-        {/* Tip */}
-        <View style={[S.tipBox, { backgroundColor: levelColor + "12", borderColor: levelColor + "30" }]}>
-          <Feather name="zap" size={16} color={levelColor} />
-          <Text style={[S.tipText, { color: colors.text }]}>{LEVEL_DESC[resultLevel].tip}</Text>
-        </View>
+        {/* AI Analysis Card */}
+        {(analyzing || aiAnalysis) ? (
+          <View style={[S.aiCard, { backgroundColor: colors.surface, borderColor: colors.primary + "40" }]}>
+            <View style={S.aiCardHeader}>
+              <View style={[S.aiCardIconWrap, { backgroundColor: colors.primary + "18" }]}>
+                <Feather name="cpu" size={16} color={colors.primary} />
+              </View>
+              <Text style={[S.aiCardTitle, { color: colors.text }]}>Análise da IA</Text>
+              {analyzing && <ActivityIndicator size="small" color={colors.primary} style={{ marginLeft: "auto" }} />}
+              {!analyzing && aiAnalysis && (
+                <View style={[S.aiConfBadge, { backgroundColor: colors.primary + "15" }]}>
+                  <Text style={[S.aiConfText, { color: colors.primary }]}>Confiança {aiAnalysis.confidence}</Text>
+                </View>
+              )}
+            </View>
 
-        {/* Level Breakdown */}
+            {analyzing ? (
+              <View style={{ gap: 10, paddingTop: 4 }}>
+                <View style={[S.aiSkeleton, { backgroundColor: colors.border, width: "100%" }]} />
+                <View style={[S.aiSkeleton, { backgroundColor: colors.border, width: "85%" }]} />
+                <View style={[S.aiSkeleton, { backgroundColor: colors.border, width: "92%" }]} />
+                <Text style={[S.aiLoadingText, { color: colors.textSecondary }]}>Analisando seu desempenho...</Text>
+              </View>
+            ) : aiAnalysis ? (
+              <View style={{ gap: 14 }}>
+                <Text style={[S.aiAnalysisText, { color: colors.text }]}>{aiAnalysis.personalizedAnalysis}</Text>
+
+                {aiAnalysis.studyRecommendations?.length > 0 && (
+                  <View style={{ gap: 8 }}>
+                    <Text style={[S.aiRecTitle, { color: colors.text }]}>Recomendações de estudo</Text>
+                    {aiAnalysis.studyRecommendations.map((rec, i) => (
+                      <View key={i} style={[S.aiRecRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                        <View style={[S.aiRecPriority, {
+                          backgroundColor: rec.priority === "alta" ? "#D85A3020" : "#185FA520",
+                        }]}>
+                          <Text style={[S.aiRecPriorityText, {
+                            color: rec.priority === "alta" ? "#D85A30" : "#185FA5",
+                          }]}>{rec.priority === "alta" ? "Alta" : "Média"}</Text>
+                        </View>
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={[S.aiRecArea, { color: colors.text }]}>{rec.area}</Text>
+                          <Text style={[S.aiRecTip, { color: colors.textSecondary }]}>{rec.tip}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {aiAnalysis.motivationalNote && (
+                  <View style={[S.aiMotivRow, { backgroundColor: "#1D9E7510", borderColor: "#1D9E7530" }]}>
+                    <Feather name="award" size={14} color="#1D9E75" />
+                    <Text style={[S.aiMotivText, { color: colors.text }]}>{aiAnalysis.motivationalNote}</Text>
+                  </View>
+                )}
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          <View style={[S.tipBox, { backgroundColor: levelColor + "12", borderColor: levelColor + "30" }]}>
+            <Feather name="zap" size={16} color={levelColor} />
+            <Text style={[S.tipText, { color: colors.text }]}>{LEVEL_DESC[resultLevel].tip}</Text>
+          </View>
+        )}
+
         <Text style={[S.sectionTitle, { color: colors.text }]}>Desempenho por nível</Text>
         {(["A2", "B1", "B2", "C1"] as Level[]).map(lvl => {
-          const qs = QUESTIONS.filter(q => q.level === lvl);
-          const c = qs.filter((q, i) => answers[QUESTIONS.indexOf(q)] === q.correct).length;
+          const qs = questions.filter(q => q.level === lvl);
+          const c = qs.filter(q => answers[questions.indexOf(q)] === q.correct).length;
           const p = qs.length > 0 ? (c / qs.length) * 100 : 0;
           return (
             <View key={lvl} style={S.levelRow}>
@@ -491,7 +684,6 @@ export default function DiagnosticScreen() {
           );
         })}
 
-        {/* Category Breakdown */}
         <Text style={[S.sectionTitle, { color: colors.text }]}>Desempenho por categoria</Text>
         {sortedCats.map(([cat, v]) => {
           const p = v.total > 0 ? (v.correct / v.total) * 100 : 0;
@@ -515,7 +707,6 @@ export default function DiagnosticScreen() {
           );
         })}
 
-        {/* Strengths & Weaknesses */}
         {(strengths.length > 0 || weaknesses.length > 0) && (
           <View style={[S.swBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {strengths.length > 0 && (
@@ -547,7 +738,6 @@ export default function DiagnosticScreen() {
           </View>
         )}
 
-        {/* Question Review Toggle */}
         <Pressable style={[S.reviewToggle, { borderColor: colors.border, backgroundColor: colors.surface }]}
           onPress={() => setShowReview(r => !r)}>
           <Feather name={showReview ? "chevron-up" : "chevron-down"} size={16} color={colors.textSecondary} />
@@ -558,7 +748,7 @@ export default function DiagnosticScreen() {
 
         {showReview && (
           <View style={{ gap: 8 }}>
-            {QUESTIONS.map((question, i) => {
+            {questions.map((question, i) => {
               const userAnswer = answers[i];
               const isCorrect = userAnswer === question.correct;
               return (
@@ -613,12 +803,7 @@ export default function DiagnosticScreen() {
           <Text style={S.ctaBtnText}>Ver meu plano de estudo</Text>
           <Feather name="arrow-right" size={18} color="#fff" />
         </Pressable>
-        <Pressable style={[S.retakeBtn, { borderColor: colors.border }]}
-          onPress={() => {
-            setStep("intro"); setCurrentIdx(0);
-            setAnswers(Array(QUESTIONS.length).fill(null));
-            setSelected(null); setElapsed(0); setShowReview(false);
-          }}>
+        <Pressable style={[S.retakeBtn, { borderColor: colors.border }]} onPress={handleRetake}>
           <Feather name="refresh-cw" size={14} color={colors.textSecondary} />
           <Text style={[S.retakeBtnText, { color: colors.textSecondary }]}>Refazer diagnóstico</Text>
         </Pressable>
@@ -631,7 +816,7 @@ export default function DiagnosticScreen() {
     <View style={[S.root, { backgroundColor: colors.background }]}>
       <View style={[S.quizHeader, { paddingTop: topPad + 12, borderBottomColor: colors.border }]}>
         <Pressable onPress={() => {
-          if (currentIdx > 0) { animateTransition(() => { setCurrentIdx(currentIdx - 1); setSelected(answers[currentIdx - 1]); }); }
+          if (currentIdx > 0) { animateTransition(() => { setCurrentIdx(currentIdx - 1); setSelected(answers[currentIdx - 1] ?? null); }); }
           else { setStep("intro"); }
         }}>
           <Feather name="arrow-left" size={20} color={colors.text} />
@@ -642,7 +827,7 @@ export default function DiagnosticScreen() {
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Text style={[S.quizProgressText, { color: colors.textSecondary }]}>
-              {currentIdx + 1} / {QUESTIONS.length}
+              {currentIdx + 1} / {questions.length}
             </Text>
             <Text style={[S.quizProgressText, { color: colors.textSecondary }]}>
               {formatTime(elapsed)}
@@ -658,7 +843,6 @@ export default function DiagnosticScreen() {
         <ScrollView style={S.quizBody} contentContainerStyle={S.quizContent}
           showsVerticalScrollIndicator={false}>
 
-          {/* Category tag */}
           <View style={[S.catTag, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Feather name={CATEGORY_ICONS[q.category] ?? "book"} size={11} color={colors.textSecondary} />
             <Text style={[S.catTagText, { color: colors.textSecondary }]}>{CATEGORY_LABELS[q.category] ?? q.category}</Text>
@@ -706,11 +890,11 @@ export default function DiagnosticScreen() {
 
       {selected !== null && (
         <View style={[S.nextBar, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-            {Array.from({ length: QUESTIONS.length }, (_, i) => {
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 3 }}>
+            {questions.map((_, i) => {
               const a = i === currentIdx ? selected : answers[i];
               const done = a !== null;
-              const corr = done && a === QUESTIONS[i]!.correct;
+              const corr = done && a === questions[i]!.correct;
               return (
                 <View key={i} style={[S.dot,
                   { backgroundColor: done ? (corr ? "#1D9E75" : "#D85A30") : colors.border,
@@ -723,7 +907,7 @@ export default function DiagnosticScreen() {
           </View>
           <Pressable style={[S.nextBtn, { backgroundColor: colors.primary }]} onPress={handleNext}>
             <Text style={S.nextBtnText}>
-              {currentIdx + 1 < QUESTIONS.length ? "Próxima questão" : "Ver resultado"}
+              {currentIdx + 1 < questions.length ? "Próxima questão" : "Ver resultado"}
             </Text>
             <Feather name="arrow-right" size={16} color="#fff" />
           </Pressable>
@@ -740,6 +924,9 @@ const S = StyleSheet.create({
   introIcon: { width: 72, height: 72, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   introTitle: { fontSize: 26, fontFamily: "Inter_700Bold" },
   introDesc: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 22 },
+  aiHighlight: { flexDirection: "row", gap: 10, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: "flex-start" },
+  aiHighlightTitle: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  aiHighlightSub: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
   infoGrid: { borderRadius: 14, borderWidth: 1, padding: 4, flexDirection: "row", flexWrap: "wrap" },
   infoCell: { width: "50%", padding: 14, gap: 4, borderWidth: 0.5, borderColor: "transparent" },
   infoCellLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
@@ -758,6 +945,15 @@ const S = StyleSheet.create({
   ctaBtnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
   retakeBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 13, borderRadius: 14, borderWidth: 1 },
   retakeBtnText: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  // Generating
+  genCard: { borderRadius: 20, borderWidth: 1, padding: 28, alignItems: "center", gap: 14, width: "100%", maxWidth: 380 },
+  genIconWrap: { width: 72, height: 72, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  genTitle: { fontSize: 18, fontFamily: "Inter_700Bold", textAlign: "center" },
+  genMsg: { fontSize: 13, fontFamily: "Inter_500Medium", textAlign: "center" },
+  genCats: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 4 },
+  genCatChip: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 16, borderWidth: 1 },
+  genCatText: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  genNote: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 18 },
   // Result
   resultBadge: { borderRadius: 20, borderWidth: 2, padding: 28, alignItems: "center", gap: 4 },
   resultBadgeLabel: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.5, textTransform: "uppercase" },
@@ -770,6 +966,24 @@ const S = StyleSheet.create({
   scoreLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
   tipBox: { flexDirection: "row", gap: 10, borderRadius: 12, borderWidth: 1, padding: 14, alignItems: "flex-start" },
   tipText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  // AI Analysis Card
+  aiCard: { borderRadius: 16, borderWidth: 1.5, padding: 16, gap: 12 },
+  aiCardHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  aiCardIconWrap: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  aiCardTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  aiConfBadge: { marginLeft: "auto" as any, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  aiConfText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  aiSkeleton: { height: 14, borderRadius: 7 },
+  aiLoadingText: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center" },
+  aiAnalysisText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 21 },
+  aiRecTitle: { fontSize: 13, fontFamily: "Inter_700Bold", marginBottom: 2 },
+  aiRecRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, borderRadius: 10, borderWidth: 1, padding: 10 },
+  aiRecPriority: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, marginTop: 1 },
+  aiRecPriorityText: { fontSize: 10, fontFamily: "Inter_700Bold" },
+  aiRecArea: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  aiRecTip: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  aiMotivRow: { flexDirection: "row", gap: 8, borderRadius: 10, borderWidth: 1, padding: 12, alignItems: "flex-start" },
+  aiMotivText: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 19, fontStyle: "italic" },
   sectionTitle: { fontSize: 15, fontFamily: "Inter_700Bold", marginTop: 4 },
   levelRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   levelBadgeSmall: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, width: 38, alignItems: "center" },

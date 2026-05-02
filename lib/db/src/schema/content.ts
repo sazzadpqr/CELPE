@@ -70,5 +70,7 @@ export const diagnosticResults = pgTable("diagnostic_results", {
   timeTakenSeconds: integer("time_taken_seconds").notNull().default(0),
   answers: jsonb("answers").$type<{ questionId: string; chosen: number; correct: boolean }[]>().notNull().default([]),
   categoryBreakdown: jsonb("category_breakdown").$type<Record<string, { correct: number; total: number }>>().notNull().default({}),
+  sessionQuestions: jsonb("session_questions").$type<{ id: string; level: string; category: string; question: string; options: string[]; correct: number }[]>(),
+  aiAnalysis: jsonb("ai_analysis").$type<{ level: string; confidence: string; personalizedAnalysis: string; studyRecommendations: { area: string; priority: string; tip: string }[]; motivationalNote: string }>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
