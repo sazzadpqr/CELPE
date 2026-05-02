@@ -255,11 +255,12 @@ router.post("/teacher/codes", requireTeacher, async (req, res) => {
 
 router.delete("/teacher/codes/:id", requireTeacher, async (req, res) => {
   const teacher = (req as Request & { teacher: typeof teachers.$inferSelect }).teacher;
+  const { id } = req.params as { id: string };
   await db
     .delete(teacherInviteCodes)
     .where(
       and(
-        eq(teacherInviteCodes.id, req.params.id),
+        eq(teacherInviteCodes.id, id),
         eq(teacherInviteCodes.teacherId, teacher.id)
       )
     );
@@ -278,6 +279,7 @@ router.get("/teacher/students", requireTeacher, async (req, res) => {
 
 router.put("/teacher/students/:id", requireTeacher, async (req, res) => {
   const teacher = (req as Request & { teacher: typeof teachers.$inferSelect }).teacher;
+  const { id } = req.params as { id: string };
   const { notes, status } = req.body as { notes?: string; status?: string };
 
   const [updated] = await db
@@ -288,7 +290,7 @@ router.put("/teacher/students/:id", requireTeacher, async (req, res) => {
     })
     .where(
       and(
-        eq(teacherStudents.id, req.params.id),
+        eq(teacherStudents.id, id),
         eq(teacherStudents.teacherId, teacher.id)
       )
     )
@@ -299,11 +301,12 @@ router.put("/teacher/students/:id", requireTeacher, async (req, res) => {
 
 router.delete("/teacher/students/:id", requireTeacher, async (req, res) => {
   const teacher = (req as Request & { teacher: typeof teachers.$inferSelect }).teacher;
+  const { id } = req.params as { id: string };
   await db
     .delete(teacherStudents)
     .where(
       and(
-        eq(teacherStudents.id, req.params.id),
+        eq(teacherStudents.id, id),
         eq(teacherStudents.teacherId, teacher.id)
       )
     );
@@ -356,6 +359,7 @@ router.post("/teacher/classes", requireTeacher, async (req, res) => {
 
 router.put("/teacher/classes/:id", requireTeacher, async (req, res) => {
   const teacher = (req as Request & { teacher: typeof teachers.$inferSelect }).teacher;
+  const { id } = req.params as { id: string };
   const {
     title, description, type, studentConnectionIds,
     scheduledAt, durationMinutes, meetingLink, notes, status,
@@ -381,7 +385,7 @@ router.put("/teacher/classes/:id", requireTeacher, async (req, res) => {
     })
     .where(
       and(
-        eq(teacherClasses.id, req.params.id),
+        eq(teacherClasses.id, id),
         eq(teacherClasses.teacherId, teacher.id)
       )
     )
@@ -392,11 +396,12 @@ router.put("/teacher/classes/:id", requireTeacher, async (req, res) => {
 
 router.delete("/teacher/classes/:id", requireTeacher, async (req, res) => {
   const teacher = (req as Request & { teacher: typeof teachers.$inferSelect }).teacher;
+  const { id } = req.params as { id: string };
   await db
     .delete(teacherClasses)
     .where(
       and(
-        eq(teacherClasses.id, req.params.id),
+        eq(teacherClasses.id, id),
         eq(teacherClasses.teacherId, teacher.id)
       )
     );
