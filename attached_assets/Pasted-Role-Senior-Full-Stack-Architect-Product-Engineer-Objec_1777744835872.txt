@@ -1,0 +1,70 @@
+Role: Senior Full-Stack Architect & Product Engineer.
+Objective: The current admin panel is insufficient; you must transform it into a "God-Mode" control center for Ponte Portuguesa. Finalize the React + Vite + TypeScript app with a Supabase backend to allow total control of all data, APIs, and monetization through the UI.
+
+CORE RULES:
+
+Total CRUD Control: Every table in the Supabase database must be manageable via the Admin UI.
+
+Dynamic UI: All user-facing text must be in Brazilian Portuguese (PT-BR).
+
+No Hardcoding: Move hardcoded configurations to a secure admin_config database table manageable via the panel.
+
+1. Universal Database CRUD Management
+Implement a high-performance, searchable, and filterable management interface for every database entity:
+
+User & Finance Management: Edit user profiles, manually override premium_status, adjust AI credit balances, and manage user_roles.
+
+Content & Pedagogy: Full CRUD for courses, lessons, learning_paths, diagnostic_questions, and vocabulary_items.
+
+Marketplace Control: Manage teachers, teacher_availability, and teacher_bookings.
+
+Audit Logging: A secure tab to view audit_logs (tracking every admin action: who changed what and when).
+
+2. API & Config "Vault" Interface
+Create a dedicated "System Settings" section to manage external integrations without touching code:
+
+API Management: Edit and rotate keys/endpoints for OpenAI (model selection, prompts), Supabase, Paddle (webhooks), and Resend (OTP templates).
+
+Ads Control: Management for AdMob/AdSense IDs (Banner, Interstitial, Rewarded) and global toggle switches for ads_enabled and rewarded_enabled.
+
+AI Orchestration: Dynamically update the Evaluation Rubric (0-5 scale) and the system prompts for Writing, Oral, and Diagnostic AI.
+
+3. Monetization & Growth Infrastructure
+Paddle Integration: Finalize the subscription flow.
+
+Pricing Control: Manage the plans directly:
+
+Mensal (Monthly): R$ 44,99.
+
+Anual (Yearly): R$ 479,88 (Display as R$ 39,99/mês).
+
+Paywall CMS: Allow the admin to edit the text, labels, and features displayed on the user-facing Paywall.
+
+4. Celpe-Bras Engine v3.2 (Production Finish)
+Universal 25-Minute Timer: Ensure all practice tasks use a 1500-second server-synced timer.
+
+Auto-Submit Logic: When the timer hits zero, trigger the evaluate-response Edge Function automatically.
+
+Adaptive Study Plan: Implement the logic that identifies weak rubric areas (e.g., Cohesion, Grammar) and suggests specific lessons based on the last 10 attempts.
+
+SRS Vocabulary: Implement the Spaced Repetition backend (Hard: 12h, Good: 7d, Easy: 30d).
+
+5. UI/UX & PWA Standards
+Design: Maintain the Navy (#1A237E) and Amber (#FFC107) palette.
+
+Polish: Use Skeleton Screens for data-heavy admin tables and Toasts for all CRUD confirmations.
+
+Security: Enforce strict Row Level Security (RLS). Only authenticated Admins can access the /admin shell or the admin_config table.
+
+Execution:
+
+Build the dynamic CRUD generator for all existing Supabase tables.
+
+Implement the "Vault" for API Key management.
+
+Finalize the Paddle Webhook and subscription status logic.
+
+Apply a final localization pass to ensure all user screens are in PT-BR.
+
+Pro-Tip for Replit Agent
+Instruct it to use TanStack Table (React Table) for the admin CRUD lists to ensure high performance even with hundreds of users or questions. If the database schema for admin_config doesn't exist yet, ask it to generate the SQL migration first.

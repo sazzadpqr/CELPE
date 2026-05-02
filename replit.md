@@ -57,16 +57,49 @@ All routes mounted at `/api`:
 - `GET/POST /api/admin/grammar` — Grammar topics CRUD (stored in `data/grammar.json`)
 - `PUT/DELETE /api/admin/grammar/:id`
 - `GET/PUT /api/admin/config` — AI system prompts config (stored in `data/config.json`)
+- `GET/PUT /api/admin/vault` — API key management: OpenAI model, Paddle keys, Resend, AdMob (stored in `data/vault-config.json`)
+- `GET/PUT /api/admin/ads-config` — Ads toggles + AdSense/AdMob slot IDs (stored in `data/ads-config.json`)
+- `GET/PUT /api/admin/paywall-cms` — Paywall text/prices/features (stored in `data/paywall-cms.json`)
+- `GET/POST /api/admin/diagnostic-questions` — Diagnostic Q CRUD (stored in `data/diagnostic-questions.json`, seeded with 15 questions)
+- `PUT/DELETE /api/admin/diagnostic-questions/:id`
+- `GET/PUT /api/admin/limits` — Freemium usage limits (stored in `data/limits-config.json`)
+- `GET /api/content/paywall-cms` — Public paywall CMS (no auth)
+- `GET /api/content/diagnostic-questions` — Public diagnostic questions (no auth)
+- `GET /api/content/limits` — Public freemium limits (no auth)
+- `POST /api/ai/chat` — AI conversational chat for Conversation Practice screen
+
+### Admin auth note
+Auth is identical in `adminExtra.ts` and `admin.ts`: if `data/password.json` exists → token = `btoa(storedHash)`; otherwise → token = `btoa(SESSION_SECRET ?? "admin")`. Uses `getStoredPasswordHash()` from `adminStore.ts`.
+
+## Admin Pages
+
+- `/dashboard` — Stats + request log
+- `/prompts` — Practice prompt management
+- `/grammar` — Grammar topic management
+- `/quiz` — Quiz management
+- `/exams` — Exam editions
+- `/wotd` — Word-of-day bank
+- `/diagnostic` — Diagnostic questions CRUD (A2/B1/B2/C1 filter, modal editor)
+- `/paywall-cms` — Paywall text, prices, feature list editor
+- `/limits` — Freemium limits per-feature
+- `/ads` — Ads master toggle, AdSense slots, AdMob unit IDs, rewarded ad config
+- `/config` — AI config
+- `/vault` — API key vault (Paddle, OpenAI model, Resend, AdMob app IDs)
 
 ## Mobile Screens
 
-- `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner (if !diagnosticDone), WOTD
+- `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner, WOTD, quick actions (9 tiles)
 - `app/(tabs)/vocab.tsx` — Vocabulary list + "X to review" CTA → flashcards
 - `app/vocab/flashcards.tsx` — SRS flashcard session (Hard/Good/Easy → SM2 intervals)
 - `app/(tabs)/study.tsx` — Study plan + Weakness Dashboard (≥3 attempts → rubric analysis)
 - `app/diagnostic.tsx` — 15-question grammar diagnostic, sets profile.level + diagnosticDone
 - `app/paywall.tsx` — Premium paywall with Paddle checkout (monthly R$44.99 / yearly R$479.88)
 - `app/practice/session.tsx` — 25-min timed writing session, syncs with /api/sessions
+- `app/oral.tsx` — Oral Simulator: 4 task types, 1-min prep timer + 5-min recording timer
+- `app/pronunciation.tsx` — Pronunciation practice: 5 phonetic categories, TTS via expo-speech
+- `app/conversation.tsx` — AI Conversation: 5 scenarios, chat with POST /api/ai/chat
+- `app/library.tsx` — Study Library: grouped resource hub linking to all practice screens
+- `app/listening.tsx` — Listening comprehension: curated external resources + tips
 
 ## Paddle Integration
 

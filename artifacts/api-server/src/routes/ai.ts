@@ -205,4 +205,38 @@ Responda APENAS com JSON:
   }
 });
 
+// ─── POST /ai/chat ───────────────────────────────────────────────────────────
+// Conversational AI for the Conversation Practice screen
+router.post("/ai/chat", async (req, res) => {
+  const { systemPrompt, messages } = req.body as {
+    systemPrompt: string;
+    messages: { role: "user" | "assistant"; content: string }[];
+  };
+
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    res.status(400).json({ error: "messages array required" });
+    return;
+  }
+
+  const sysMsg = systemPrompt ||
+    "Você é um assistente de conversação em português brasileiro. Ajude o estudante a praticar PT-BR de forma natural e encorajadora.";
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_completion_tokens: 512,
+      messages: [
+        { role: "system", content: sysMsg },
+        ...messages.slice(-12),
+      ],
+    });
+
+    const reply = completion.choices[0]?.message?.content ?? "Desculpe, não consegui gerar uma resposta.";
+    res.json({ reply });
+  } catch (err) {
+    req.log.error({ err }, "Chat error");
+    res.status(500).json({ error: "Erro ao gerar resposta. Tente novamente." });
+  }
+});
+
 export default router;

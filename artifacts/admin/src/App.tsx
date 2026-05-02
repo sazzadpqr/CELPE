@@ -13,6 +13,11 @@ import Config from "@/pages/config";
 import Quiz from "@/pages/quiz";
 import Exams from "@/pages/exams";
 import Wotd from "@/pages/wotd";
+import Vault from "@/pages/vault";
+import AdsPage from "@/pages/ads";
+import PaywallCmsPage from "@/pages/paywall-cms";
+import DiagnosticAdmin from "@/pages/diagnostic-admin";
+import LimitsPage from "@/pages/limits";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -26,7 +31,7 @@ const queryClient = new QueryClient({
 
 setAuthTokenGetter(() => localStorage.getItem("admin_token"));
 
-function ProtectedRoute({ component: Component }: { component: any }) {
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
   
   useEffect(() => {
@@ -48,8 +53,6 @@ function ProtectedRoute({ component: Component }: { component: any }) {
 }
 
 function Router() {
-  const [location] = useLocation();
-
   return (
     <Switch>
       <Route path="/">
@@ -60,34 +63,24 @@ function Router() {
         }}
       </Route>
       <Route path="/login" component={Login} />
-      <Route path="/dashboard">
-        {() => <ProtectedRoute component={Dashboard} />}
-      </Route>
-      <Route path="/prompts">
-        {() => <ProtectedRoute component={Prompts} />}
-      </Route>
-      <Route path="/grammar">
-        {() => <ProtectedRoute component={Grammar} />}
-      </Route>
-      <Route path="/quiz">
-        {() => <ProtectedRoute component={Quiz} />}
-      </Route>
-      <Route path="/exams">
-        {() => <ProtectedRoute component={Exams} />}
-      </Route>
-      <Route path="/wotd">
-        {() => <ProtectedRoute component={Wotd} />}
-      </Route>
-      <Route path="/config">
-        {() => <ProtectedRoute component={Config} />}
-      </Route>
+      <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} />}</Route>
+      <Route path="/prompts">{() => <ProtectedRoute component={Prompts} />}</Route>
+      <Route path="/grammar">{() => <ProtectedRoute component={Grammar} />}</Route>
+      <Route path="/quiz">{() => <ProtectedRoute component={Quiz} />}</Route>
+      <Route path="/exams">{() => <ProtectedRoute component={Exams} />}</Route>
+      <Route path="/wotd">{() => <ProtectedRoute component={Wotd} />}</Route>
+      <Route path="/config">{() => <ProtectedRoute component={Config} />}</Route>
+      <Route path="/vault">{() => <ProtectedRoute component={Vault} />}</Route>
+      <Route path="/ads">{() => <ProtectedRoute component={AdsPage} />}</Route>
+      <Route path="/paywall-cms">{() => <ProtectedRoute component={PaywallCmsPage} />}</Route>
+      <Route path="/diagnostic">{() => <ProtectedRoute component={DiagnosticAdmin} />}</Route>
+      <Route path="/limits">{() => <ProtectedRoute component={LimitsPage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
-  // Force dark mode for admin cockpit vibe
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);

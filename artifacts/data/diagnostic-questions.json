@@ -1,0 +1,227 @@
+[
+  {
+    "id": "q1",
+    "level": "A2",
+    "question": "Como estudante dedicada, ela ___ sempre pontual.",
+    "options": [
+      "está",
+      "é",
+      "estava",
+      "seja"
+    ],
+    "correct": 1,
+    "explanation": "'Ser' expressa característica permanente. 'Estar' é para estados temporários.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q2",
+    "level": "A2",
+    "question": "Quando eu era criança, ___ muito nas ruas.",
+    "options": [
+      "brinquei",
+      "brincava",
+      "brinco",
+      "brinque"
+    ],
+    "correct": 1,
+    "explanation": "O imperfeito ('brincava') indica ação habitual no passado.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q3",
+    "level": "A2",
+    "question": "A carta que você escreveu está muito bem ___.",
+    "options": [
+      "escrito",
+      "escritas",
+      "escrita",
+      "escritos"
+    ],
+    "correct": 2,
+    "explanation": "Concordância com 'carta' (feminino singular): bem escrita.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q4",
+    "level": "B1",
+    "question": "O professor pediu que os alunos ___ o texto com atenção.",
+    "options": [
+      "leram",
+      "lerem",
+      "lerão",
+      "leiam"
+    ],
+    "correct": 3,
+    "explanation": "Após 'pedir que', usa-se o subjuntivo presente: leiam.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q5",
+    "level": "B1",
+    "question": "___ estivesse cansada, ela continuou estudando.",
+    "options": [
+      "Porque",
+      "Embora",
+      "Portanto",
+      "Assim"
+    ],
+    "correct": 1,
+    "explanation": "'Embora' é conjunção concessiva e exige subjuntivo.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q6",
+    "level": "B1",
+    "question": "A pesquisadora ___ você me falou ganhou um prêmio.",
+    "options": [
+      "que",
+      "a qual",
+      "de quem",
+      "quem"
+    ],
+    "correct": 2,
+    "explanation": "'Falar de alguém' → 'de quem você me falou'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q7",
+    "level": "B1",
+    "question": "Apesar de ___ tarde, os convidados ainda chegaram.",
+    "options": [
+      "sendo",
+      "ser",
+      "é",
+      "foi"
+    ],
+    "correct": 1,
+    "explanation": "Após preposição 'de', usa-se infinitivo: 'apesar de ser'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q8",
+    "level": "B2",
+    "question": "O relatório ___ pela diretora ontem trouxe dados alarmantes.",
+    "options": [
+      "apresentado",
+      "apresentou",
+      "apresentando",
+      "apresentar"
+    ],
+    "correct": 0,
+    "explanation": "Particípio passado como adjetivo: 'apresentado pela diretora'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q9",
+    "level": "B2",
+    "question": "Não há dúvida de que a situação ___ graves consequências.",
+    "options": [
+      "terá",
+      "teria",
+      "tenha",
+      "teve"
+    ],
+    "correct": 2,
+    "explanation": "Após 'não há dúvida de que' com sentido assertivo, aceita-se indicativo ou subjuntivo. O subjuntivo 'tenha' é correto em uso formal.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q10",
+    "level": "B2",
+    "question": "Mal ___ ao aeroporto, percebeu que havia esquecido o passaporte.",
+    "options": [
+      "chegou",
+      "chegava",
+      "chegasse",
+      "chegaria"
+    ],
+    "correct": 0,
+    "explanation": "'Mal' com sentido temporal equivale a 'assim que' e exige pretérito perfeito.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q11",
+    "level": "B2",
+    "question": "Trata-se de um fenômeno ___ poucas pesquisas se dedicaram.",
+    "options": [
+      "ao qual",
+      "do qual",
+      "com que",
+      "sobre o qual"
+    ],
+    "correct": 3,
+    "explanation": "'Dedicar-se a' → 'ao qual' seria correto, mas 'fenômeno sobre o qual pesquisas se dedicaram' é mais natural em contexto de 'dedicar pesquisa a fenômeno'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q12",
+    "level": "C1",
+    "question": "Fosse mais criteriosa a análise, ___ erros tão graves.",
+    "options": [
+      "evitaram-se",
+      "ter-se-iam evitado",
+      "se evitaria",
+      "evitar-se-iam"
+    ],
+    "correct": 3,
+    "explanation": "Oração condicional no imperfeito do subjuntivo exige futuro do pretérito: 'evitar-se-iam'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q13",
+    "level": "C1",
+    "question": "A proposta, ___ que seja, deve ser considerada com cautela.",
+    "options": [
+      "inovadora",
+      "inovador",
+      "inovar",
+      "inovação"
+    ],
+    "correct": 0,
+    "explanation": "Concordância nominal com 'proposta' (feminino): 'inovadora que seja'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q14",
+    "level": "C1",
+    "question": "Com ___ habilidade demonstrou o candidato, conseguiu o cargo.",
+    "options": [
+      "tanta",
+      "tamanha",
+      "tal",
+      "quanta"
+    ],
+    "correct": 1,
+    "explanation": "'Tamanha' é sinônimo de 'tão grande', usado para intensidade superlativa de qualidade.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  },
+  {
+    "id": "q15",
+    "level": "C1",
+    "question": "O documento redigido com tal precisão ___ qualquer questionamento.",
+    "options": [
+      "dispensou",
+      "dispensar",
+      "dispense",
+      "dispensaria"
+    ],
+    "correct": 0,
+    "explanation": "Ação concluída no passado com resultado definitivo: pretérito perfeito 'dispensou'.",
+    "active": true,
+    "createdAt": "2026-05-02T18:15:47.277Z"
+  }
+]
