@@ -2,7 +2,8 @@ import { Link, useLocation } from "wouter";
 import {
   LogOut, LayoutDashboard, MessageSquare, BookOpen, Settings,
   HelpCircle, Archive, Star, Shield, Megaphone, CreditCard,
-  FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight
+  FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
+  Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -16,22 +17,35 @@ const NAV_SECTIONS = [
     label: "Geral",
     items: [
       { href: "/dashboard", label: "Visão Geral", icon: LayoutDashboard },
+      { href: "/users", label: "Usuários", icon: Users },
     ],
   },
   {
     label: "Conteúdo",
     items: [
-      { href: "/prompts", label: "Prompts", icon: MessageSquare },
+      { href: "/prompts", label: "Prompts de Prática", icon: MessageSquare },
       { href: "/grammar", label: "Gramática", icon: BookOpen },
       { href: "/quiz", label: "Quiz", icon: HelpCircle },
-      { href: "/exams", label: "Provas", icon: Archive },
+      { href: "/exams", label: "Provas Anteriores", icon: Archive },
       { href: "/wotd", label: "Banco de Palavras", icon: Star },
       { href: "/diagnostic", label: "Diagnóstico", icon: FlaskConical },
+      { href: "/study-library", label: "Biblioteca de Estudo", icon: Library },
+      { href: "/courses", label: "Cursos e Aulas", icon: GraduationCap },
+      { href: "/learning-paths", label: "Trilhas de Aprendizado", icon: Map },
+    ],
+  },
+  {
+    label: "App & CMS",
+    items: [
+      { href: "/banners", label: "Banners", icon: Megaphone },
+      { href: "/notifications", label: "Notificações Push", icon: Bell },
+      { href: "/feature-flags", label: "Feature Flags", icon: Flag },
     ],
   },
   {
     label: "Monetização",
     items: [
+      { href: "/monetization", label: "Planos e Paywall", icon: DollarSign },
       { href: "/paywall-cms", label: "Paywall CMS", icon: CreditCard },
       { href: "/limits", label: "Limites Freemium", icon: SlidersHorizontal },
       { href: "/ads", label: "Anúncios", icon: Megaphone },

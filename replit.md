@@ -17,7 +17,7 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5 + pino logging
-- **Database**: PostgreSQL + Drizzle ORM (provisioned and active — admin config tables live in DB)
+- **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec in `lib/api-spec/openapi.yaml`)
 - **AI**: OpenAI via Replit AI Integrations (env vars: AI_INTEGRATIONS_OPENAI_BASE_URL, AI_INTEGRATIONS_OPENAI_API_KEY)
@@ -26,107 +26,79 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec (NOTE: after codegen, overwrite `lib/api-zod/src/index.ts` to only export from `./generated/api` to avoid duplicate export errors)
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 
-## API Routes
+## Database Schema Files
 
-All routes mounted at `/api`:
+- `lib/db/src/schema/admin.ts` — adminVaultConfig, adminAdsConfig, adminPaywallConfig, adminLimitsConfig, adminAiConfig, auditLogs
+- `lib/db/src/schema/content.ts` — practicePrompts, grammarTopics, wotdEntries, diagnosticQuestions
+- `lib/db/src/schema/users.ts` — profiles, attempts, practiceSessions, subscriptions
+- `lib/db/src/schema/learning.ts` — vocabularyEntries, flashcardReviews, studyPlans, studyPlanItems, courses, lessons, lessonProgress
+- `lib/db/src/schema/conversations.ts` — conversations
+- `lib/db/src/schema/messages.ts` — messages
+- `lib/db/src/schema/exams.ts` — examEditions, examTasks, examAttempts
+- `lib/db/src/schema/quiz.ts` — quizCategories, quizQuestions
+- `lib/db/src/schema/cms.ts` — studyCategories, studyMaterials, featureFlags, appBanners, learningPaths, learningPathSteps
+- `lib/db/src/schema/notifications.ts` — notificationCampaigns, userNotifications
+- `lib/db/src/schema/monetization.ts` — monetizationPlans, paywallVariants, promoCampaigns
 
-### AI Routes (no auth)
-- `POST /api/ai/feedback` — AI essay evaluation (Celpe-Bras rubric)
-- `POST /api/ai/prompt` — AI practice prompt generation
-- `GET /api/ai/word-of-day` — AI word of the day (cached daily)
+## API Route Files
 
-### Session Routes (server-side timer)
-- `POST /api/sessions` — Create timed session `{ taskType, durationSeconds }` → `{ sessionId, startTime }`
-- `GET /api/sessions/:id` — Poll timer `{ elapsed, remaining, isExpired, submitted }`
-- `POST /api/sessions/:id/submit` — Mark session submitted
-
-### Payment Routes (Paddle)
-- `POST /api/payments/checkout` — Create Paddle checkout `{ plan, deviceToken }` → `{ url }`
-- `GET /api/payments/status?token=` — Check premium status `{ isPremium, plan }`
-- `POST /api/webhooks/paddle` — Paddle webhook (subscription.activated, subscription.canceled)
-
-### Admin Routes (Bearer token auth = base64 of SESSION_SECRET)
-- `POST /api/admin/auth` — Login, returns token
-- `GET /api/admin/stats` — Usage stats (in-memory)
-- `GET /api/admin/logs` — Recent request log (in-memory, last 100)
-- `GET/POST /api/admin/prompts` — Practice prompts CRUD (stored in `data/prompts.json`)
-- `PUT/DELETE /api/admin/prompts/:id`
-- `GET/POST /api/admin/grammar` — Grammar topics CRUD (stored in `data/grammar.json`)
-- `PUT/DELETE /api/admin/grammar/:id`
-- `GET/PUT /api/admin/config` — AI system prompts config (stored in `data/config.json`)
-- `GET/PUT /api/admin/vault` — API key management: OpenAI model, Paddle keys, Resend, AdMob (stored in `data/vault-config.json`)
-- `GET/PUT /api/admin/ads-config` — Ads toggles + AdSense/AdMob slot IDs (stored in `data/ads-config.json`)
-- `GET/PUT /api/admin/paywall-cms` — Paywall text/prices/features (stored in `data/paywall-cms.json`)
-- `GET/POST /api/admin/diagnostic-questions` — Diagnostic Q CRUD (stored in `data/diagnostic-questions.json`, seeded with 15 questions)
-- `PUT/DELETE /api/admin/diagnostic-questions/:id`
-- `GET/PUT /api/admin/limits` — Freemium usage limits (stored in `data/limits-config.json`)
-- `GET /api/content/paywall-cms` — Public paywall CMS (no auth)
-- `GET /api/content/diagnostic-questions` — Public diagnostic questions (no auth)
-- `GET /api/content/limits` — Public freemium limits (no auth)
-- `POST /api/ai/chat` — AI conversational chat for Conversation Practice screen
-
-### Admin auth note
-Auth is identical in `adminExtra.ts` and `admin.ts`: if `data/password.json` exists → token = `btoa(storedHash)`; otherwise → token = `btoa(SESSION_SECRET ?? "admin")`. Uses `getStoredPasswordHash()` from `adminStore.ts`.
+- `artifacts/api-server/src/routes/admin.ts` — core admin routes (stats, logs, security)
+- `artifacts/api-server/src/routes/adminExtra.ts` — vault, ads, paywall, diagnostic, limits configs
+- `artifacts/api-server/src/routes/adminCms.ts` — study-categories, study-materials, feature-flags, banners, learning-paths (+ content/ read endpoints)
+- `artifacts/api-server/src/routes/adminCourses.ts` — courses + lessons CRUD (+ content/courses)
+- `artifacts/api-server/src/routes/adminUsers.ts` — users list, toggle-premium, credits, stats/overview
+- `artifacts/api-server/src/routes/adminNotifications.ts` — notification-campaigns CRUD + send, /notifications user endpoints
+- `artifacts/api-server/src/routes/adminMonetization.ts` — monetization-plans, paywall-variants, promo-campaigns
+- `artifacts/api-server/src/routes/ai.ts` — AI feedback, prompt generation, chat, word-of-day
+- `artifacts/api-server/src/routes/content.ts` — public content endpoints
+- `artifacts/api-server/src/routes/sessions.ts` — server-side timer sessions
+- `artifacts/api-server/src/routes/payments.ts` — Paddle checkout, webhooks, status
 
 ## Admin Pages
 
 - `/dashboard` — Stats + request log
+- `/users` — Paginated user list, toggle premium, adjust AI credits
 - `/prompts` — Practice prompt management
 - `/grammar` — Grammar topic management
 - `/quiz` — Quiz management
 - `/exams` — Exam editions
 - `/wotd` — Word-of-day bank
-- `/diagnostic` — Diagnostic questions CRUD (A2/B1/B2/C1 filter, modal editor)
-- `/paywall-cms` — Paywall text, prices, feature list editor
-- `/limits` — Freemium limits per-feature
-- `/ads` — Ads master toggle, AdSense slots, AdMob unit IDs, rewarded ad config
-- `/config` — AI config
-- `/vault` — API key vault (Paddle, OpenAI model, Resend, AdMob app IDs)
+- `/diagnostic` — Diagnostic questions CRUD
+- `/study-library` — Study categories + materials CRUD (tabs)
+- `/courses` — Courses + lessons CRUD (expand per-course)
+- `/learning-paths` — Learning paths + steps CRUD (expandable)
+- `/banners` — App banners with scheduling + audience targeting
+- `/notifications` — Notification campaigns CRUD + send in-app
+- `/feature-flags` — Feature flag toggles grouped by category (14 flags seeded)
+- `/monetization` — Plans, paywall variants, promo campaigns (3 tabs)
+- `/paywall-cms` — Legacy paywall text/prices/feature list
+- `/limits` — Freemium usage limits per feature
+- `/ads` — Ads config (AdSense, AdMob, toggles)
+- `/config` — AI system prompts config
+- `/vault` — API key vault (Paddle, OpenAI, Resend, AdMob)
 
 ## Mobile Screens
 
-- `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner, WOTD, quick actions (9 tiles)
-- `app/(tabs)/vocab.tsx` — Vocabulary list + "X to review" CTA → flashcards
-- `app/vocab/flashcards.tsx` — SRS flashcard session (Hard/Good/Easy → SM2 intervals)
-- `app/(tabs)/study.tsx` — Study plan + Weakness Dashboard (≥3 attempts → rubric analysis)
-- `app/diagnostic.tsx` — 15-question grammar diagnostic, sets profile.level + diagnosticDone
-- `app/paywall.tsx` — Premium paywall with Paddle checkout (monthly R$44.99 / yearly R$479.88)
-- `app/practice/session.tsx` — 25-min timed writing session, syncs with /api/sessions
-- `app/oral.tsx` — Oral Simulator: 4 task types, 1-min prep timer + 5-min recording timer
-- `app/pronunciation.tsx` — Pronunciation practice: 5 phonetic categories, TTS via expo-speech
-- `app/conversation.tsx` — AI Conversation: 5 scenarios, chat with POST /api/ai/chat
-- `app/library.tsx` — Study Library: grouped resource hub linking to all practice screens
-- `app/listening.tsx` — Listening comprehension: curated external resources + tips
-
-## Paddle Integration
-
-Requires env vars: `PADDLE_API_KEY`, `PADDLE_MONTHLY_PRICE_ID`, `PADDLE_YEARLY_PRICE_ID`, `PADDLE_WEBHOOK_SECRET`, `PADDLE_ENV` (sandbox | production). Without these, `/api/payments/checkout` returns 503. Subscriptions stored in `data/subscriptions.json` keyed by deviceToken (UUID auto-generated per device in AppContext).
+- `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner, WOTD, quick actions
+- `app/(tabs)/vocab.tsx` — Vocabulary list + flashcard CTA
+- `app/vocab/flashcards.tsx` — SRS flashcard session (SM2 algorithm)
+- `app/(tabs)/study.tsx` — Study plan + weakness dashboard
+- `app/diagnostic.tsx` — 15-question grammar diagnostic
+- `app/paywall.tsx` — Premium paywall with Paddle checkout
+- `app/practice/session.tsx` — 25-min timed writing session
+- `app/oral.tsx` — Oral simulator with task types
+- `app/pronunciation.tsx` — Pronunciation practice (phonetic categories)
+- `app/conversation.tsx` — AI Conversation scenarios
+- `app/library.tsx` — Study resource library
+- `app/listening.tsx` — Listening comprehension
+- `app/notifications.tsx` — In-app notifications list with read/mark-all
 
 ## Admin Auth
 
-Password = value of `SESSION_SECRET` env var. Token = `btoa(SESSION_SECRET)`. Stored in `localStorage` as `admin_token`.
-
-## Data Storage
-
-- Admin content (prompts, grammar, config): JSON files in `artifacts/api-server/data/`
-- Request stats: in-memory (reset on server restart)
-- Expo app state: AsyncStorage via `context/AppContext.tsx`
-
-## Key Files
-
-- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for all routes)
-- `lib/api-zod/src/index.ts` — Zod schema barrel (only export from `./generated/api`)
-- `artifacts/api-server/src/lib/adminStore.ts` — Admin data store + request tracking
-- `artifacts/api-server/src/routes/admin.ts` — Admin API routes
-- `artifacts/api-server/src/app.ts` — Express app with request tracking middleware
-- `artifacts/celpeprep/context/AppContext.tsx` — Expo app state
-
-## Celpe-Bras Rubric
-
-Four criteria, each 0–5: `tema`, `genero`, `coesao`, `gramatica`. Overall = average.
+Password = value of `SESSION_SECRET` env var (default: "admin"). Token = `btoa(SESSION_SECRET)`. Stored in `localStorage` as `admin_token`. All new route files use the same `checkAuth()` pattern from `adminExtra.ts`.
 
 ## Design Tokens (CelpePrep)
 
@@ -137,3 +109,11 @@ Four criteria, each 0–5: `tema`, `genero`, `coesao`, `gramatica`. Overall = av
 - Purple: #6B21A8
 - Background dark: #141924
 - Card dark: #1E2535
+
+## Paddle Integration
+
+Requires env vars: `PADDLE_API_KEY`, `PADDLE_MONTHLY_PRICE_ID`, `PADDLE_YEARLY_PRICE_ID`, `PADDLE_WEBHOOK_SECRET`, `PADDLE_ENV` (sandbox | production).
+
+## Mobile API Pattern
+
+Mobile screens use `getApiUrl(path)` which prepends `https://${EXPO_PUBLIC_DOMAIN}` in production. Device token is stored in AppContext and passed as `x-device-token` header for user-specific endpoints.

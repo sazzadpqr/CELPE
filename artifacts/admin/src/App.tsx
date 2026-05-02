@@ -18,6 +18,14 @@ import AdsPage from "@/pages/ads";
 import PaywallCmsPage from "@/pages/paywall-cms";
 import DiagnosticAdmin from "@/pages/diagnostic-admin";
 import LimitsPage from "@/pages/limits";
+import UsersPage from "@/pages/users";
+import StudyLibraryPage from "@/pages/study-library";
+import FeatureFlagsPage from "@/pages/feature-flags";
+import BannersPage from "@/pages/banners";
+import NotificationsAdminPage from "@/pages/notifications-admin";
+import LearningPathsPage from "@/pages/learning-paths";
+import CoursesAdminPage from "@/pages/courses-admin";
+import MonetizationPage from "@/pages/monetization";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -75,6 +83,14 @@ function Router() {
       <Route path="/paywall-cms">{() => <ProtectedRoute component={PaywallCmsPage} />}</Route>
       <Route path="/diagnostic">{() => <ProtectedRoute component={DiagnosticAdmin} />}</Route>
       <Route path="/limits">{() => <ProtectedRoute component={LimitsPage} />}</Route>
+      <Route path="/users">{() => <ProtectedRoute component={UsersPage} />}</Route>
+      <Route path="/study-library">{() => <ProtectedRoute component={StudyLibraryPage} />}</Route>
+      <Route path="/feature-flags">{() => <ProtectedRoute component={FeatureFlagsPage} />}</Route>
+      <Route path="/banners">{() => <ProtectedRoute component={BannersPage} />}</Route>
+      <Route path="/notifications">{() => <ProtectedRoute component={NotificationsAdminPage} />}</Route>
+      <Route path="/learning-paths">{() => <ProtectedRoute component={LearningPathsPage} />}</Route>
+      <Route path="/courses">{() => <ProtectedRoute component={CoursesAdminPage} />}</Route>
+      <Route path="/monetization">{() => <ProtectedRoute component={MonetizationPage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
