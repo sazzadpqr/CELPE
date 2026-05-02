@@ -167,11 +167,32 @@ function AICreditsBar({ used, total }: { used: number; total: number }) {
         <View style={[styles.creditsFill, { width: `${pct * 100}%` as any, backgroundColor: remaining === 0 ? colors.destructive : colors.primary }]} />
       </View>
       {remaining === 0 && (
-        <Pressable onPress={() => router.push("/profile")} style={styles.upgradeBtn}>
-          <Text style={[styles.upgradeText, { color: colors.primary }]}>Assinar Premium para ilimitado</Text>
+        <Pressable onPress={() => router.push("/paywall" as any)} style={styles.upgradeBtn}>
+          <Text style={[styles.upgradeText, { color: colors.primary }]}>Assinar Premium para ilimitado →</Text>
         </Pressable>
       )}
     </View>
+  );
+}
+
+function DiagnosticBanner() {
+  const colors = useColors();
+  return (
+    <Pressable
+      style={[styles.diagBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "40" }]}
+      onPress={() => router.push("/diagnostic" as any)}
+    >
+      <View style={[styles.diagIcon, { backgroundColor: colors.primary + "20" }]}>
+        <Feather name="activity" size={20} color={colors.primary} />
+      </View>
+      <View style={styles.diagMeta}>
+        <Text style={[styles.diagTitle, { color: colors.text }]}>Descubra seu nível</Text>
+        <Text style={[styles.diagSub, { color: colors.mutedForeground }]}>
+          Faça o teste diagnóstico e personalize seu plano
+        </Text>
+      </View>
+      <Feather name="arrow-right" size={16} color={colors.primary} />
+    </Pressable>
   );
 }
 
@@ -217,6 +238,7 @@ export default function HomeScreen() {
       <DaysUntilExam examDate={profile.examDate} />
       <StreakCard streak={profile.streakDays} best={profile.bestStreak} />
       <AICreditsBar used={profile.aiCreditsUsed} total={profile.aiCreditsTotal} />
+      {!profile.diagnosticDone && <DiagnosticBanner />}
 
       <WordOfTheDay />
 
@@ -359,6 +381,11 @@ const styles = StyleSheet.create({
   quickCard: { width: "30%", flexGrow: 1, borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
   quickIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   quickLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  diagBanner: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, borderWidth: 1, padding: 14 },
+  diagIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  diagMeta: { flex: 1 },
+  diagTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  diagSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2, lineHeight: 17 },
   statsCard: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 12 },
   statsTitleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   statsTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },

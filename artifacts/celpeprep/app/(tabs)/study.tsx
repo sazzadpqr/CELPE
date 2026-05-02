@@ -11,8 +11,127 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useApp, type StudyTask } from "@/context/AppContext";
+import { router } from "expo-router";
+
+import { useApp, type PracticeAttempt, type StudyTask } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+
+const RUBRIC_INFO = {
+  rubricTema: {
+    label: "Tema e Propósito",
+    icon: "target" as const,
+    color: "#185FA5",
+    suggestion: "Pratique leitura crítica e compreensão das tarefas",
+    action: "/practice",
+  },
+  rubricGenero: {
+    label: "Gênero Discursivo",
+    icon: "file-text" as const,
+    color: "#6B21A8",
+    suggestion: "Estude os diferentes gêneros textuais do Celpe-Bras",
+    action: "/exams",
+  },
+  rubricCoesao: {
+    label: "Coesão e Coerência",
+    icon: "link" as const,
+    color: "#1D9E75",
+    suggestion: "Revise conectivos e organização textual na gramática",
+    action: "/grammar",
+  },
+  rubricGramatica: {
+    label: "Gramática e Léxico",
+    icon: "code" as const,
+    color: "#D85A30",
+    suggestion: "Faça exercícios de gramática e vocabulário",
+    action: "/grammar",
+  },
+} as const;
+
+type RubricKey = keyof typeof RUBRIC_INFO;
+
+function WeaknessDashboard({ attempts }: { attempts: PracticeAttempt[] }) {
+  const colors = useColors();
+  if (attempts.length < 3) return null;
+
+  const last10 = attempts.slice(0, 10);
+  const avg = (key: RubricKey) =>
+    last10.reduce((s, a) => s + a[key], 0) / last10.length;
+
+  const rubrics: { key: RubricKey; avg: number }[] = (
+    ["rubricTema", "rubricGenero", "rubricCoesao", "rubricGramatica"] as RubricKey[]
+  ).map((key) => ({ key, avg: avg(key) }));
+
+  rubrics.sort((a, b) => a.avg - b.avg);
+  const weakest = rubrics[0];
+  const info = RUBRIC_INFO[weakest.key];
+
+  return (
+    <View style={[wStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={wStyles.cardHeader}>
+        <Feather name="alert-triangle" size={14} color="#BA7517" />
+        <Text style={[wStyles.cardTitle, { color: colors.text }]}>Área para melhorar</Text>
+      </View>
+
+      <View style={[wStyles.weakArea, { backgroundColor: info.color + "12", borderColor: info.color + "30" }]}>
+        <View style={[wStyles.weakIcon, { backgroundColor: info.color + "20" }]}>
+          <Feather name={info.icon} size={18} color={info.color} />
+        </View>
+        <View style={wStyles.weakMeta}>
+          <Text style={[wStyles.weakLabel, { color: info.color }]}>{info.label}</Text>
+          <Text style={[wStyles.weakScore, { color: colors.mutedForeground }]}>
+            Média: {weakest.avg.toFixed(1)} / 5.0
+          </Text>
+        </View>
+      </View>
+
+      <View style={wStyles.barsSection}>
+        {rubrics.map(({ key, avg: a }) => {
+          const i = RUBRIC_INFO[key];
+          return (
+            <View key={key} style={wStyles.barRow}>
+              <Text style={[wStyles.barLabel, { color: colors.mutedForeground }]} numberOfLines={1}>
+                {i.label}
+              </Text>
+              <View style={[wStyles.barTrack, { backgroundColor: colors.muted }]}>
+                <View
+                  style={[wStyles.barFill, { width: `${(a / 5) * 100}%` as any, backgroundColor: i.color }]}
+                />
+              </View>
+              <Text style={[wStyles.barNum, { color: i.color }]}>{a.toFixed(1)}</Text>
+            </View>
+          );
+        })}
+      </View>
+
+      <Pressable
+        style={[wStyles.suggestionBtn, { backgroundColor: info.color + "12", borderColor: info.color + "30" }]}
+        onPress={() => router.push(info.action as any)}
+      >
+        <Text style={[wStyles.suggestionText, { color: info.color }]}>{info.suggestion}</Text>
+        <Feather name="arrow-right" size={14} color={info.color} />
+      </Pressable>
+    </View>
+  );
+}
+
+const wStyles = StyleSheet.create({
+  card: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
+  cardHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  cardTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  weakArea: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, borderWidth: 1, padding: 12 },
+  weakIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  weakMeta: { flex: 1 },
+  weakLabel: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  weakScore: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  barsSection: { gap: 6 },
+  barRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  barLabel: { fontSize: 11, fontFamily: "Inter_400Regular", width: 92 },
+  barTrack: { flex: 1, height: 6, borderRadius: 3, overflow: "hidden" },
+  barFill: { height: 6, borderRadius: 3 },
+  barNum: { fontSize: 11, fontFamily: "Inter_700Bold", width: 24, textAlign: "right" },
+  suggestionBtn: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, padding: 10 },
+  suggestionText: { flex: 1, fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 18 },
+});
 
 const DAY_NAMES = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const DAY_NAMES_FULL = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -35,7 +154,7 @@ const TYPE_COLORS: Record<StudyTask["type"], string> = {
 export default function StudyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { studyTasks, toggleStudyTask, profile } = useApp();
+  const { studyTasks, toggleStudyTask, profile, attempts } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const today = new Date().getDay();
@@ -98,6 +217,8 @@ export default function StudyScreen() {
           <View style={[styles.progressFill, { width: `${studyTasks.length > 0 ? (weekCompleted / studyTasks.length) * 100 : 0}%` as any }]} />
         </View>
       </View>
+
+      <WeaknessDashboard attempts={attempts} />
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Hoje — {DAY_NAMES_FULL[today]}</Text>
 

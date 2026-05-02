@@ -75,6 +75,7 @@ export default function PracticeSessionScreen() {
   const [remaining, setRemaining] = useState(TIMER_SECONDS);
   const [timeExpired, setTimeExpired] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const draftKey = `celpeprep_draft_${timerStartedAt}`;
 
   useEffect(() => {
@@ -84,6 +85,42 @@ export default function PracticeSessionScreen() {
     };
     restoreDraft();
   }, []);
+
+  useEffect(() => {
+    const createSession = async () => {
+      try {
+        const domain = process.env.EXPO_PUBLIC_DOMAIN;
+        const url = domain ? `https://${domain}/api/sessions` : "/api/sessions";
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ taskType, durationSeconds: TIMER_SECONDS }),
+        });
+        const data = (await res.json()) as { sessionId?: string };
+        if (data.sessionId) sessionIdRef.current = data.sessionId;
+      } catch {}
+    };
+    createSession();
+  }, []);
+
+  useEffect(() => {
+    const sync = setInterval(async () => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      try {
+        const domain = process.env.EXPO_PUBLIC_DOMAIN;
+        const url = domain ? `https://${domain}/api/sessions/${sid}` : `/api/sessions/${sid}`;
+        const res = await fetch(url);
+        const data = (await res.json()) as { remaining?: number; elapsed?: number; isExpired?: boolean };
+        if (data.remaining !== undefined) {
+          const clientElapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+          const drift = Math.abs(clientElapsed - (data.elapsed ?? 0));
+          if (drift > 15) setRemaining(data.remaining);
+        }
+      } catch {}
+    }, 30000);
+    return () => clearInterval(sync);
+  }, [timerStartedAt]);
 
   useEffect(() => {
     const autoSave = setInterval(async () => {

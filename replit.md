@@ -38,6 +38,16 @@ All routes mounted at `/api`:
 - `POST /api/ai/prompt` — AI practice prompt generation
 - `GET /api/ai/word-of-day` — AI word of the day (cached daily)
 
+### Session Routes (server-side timer)
+- `POST /api/sessions` — Create timed session `{ taskType, durationSeconds }` → `{ sessionId, startTime }`
+- `GET /api/sessions/:id` — Poll timer `{ elapsed, remaining, isExpired, submitted }`
+- `POST /api/sessions/:id/submit` — Mark session submitted
+
+### Payment Routes (Paddle)
+- `POST /api/payments/checkout` — Create Paddle checkout `{ plan, deviceToken }` → `{ url }`
+- `GET /api/payments/status?token=` — Check premium status `{ isPremium, plan }`
+- `POST /api/webhooks/paddle` — Paddle webhook (subscription.activated, subscription.canceled)
+
 ### Admin Routes (Bearer token auth = base64 of SESSION_SECRET)
 - `POST /api/admin/auth` — Login, returns token
 - `GET /api/admin/stats` — Usage stats (in-memory)
@@ -47,6 +57,20 @@ All routes mounted at `/api`:
 - `GET/POST /api/admin/grammar` — Grammar topics CRUD (stored in `data/grammar.json`)
 - `PUT/DELETE /api/admin/grammar/:id`
 - `GET/PUT /api/admin/config` — AI system prompts config (stored in `data/config.json`)
+
+## Mobile Screens
+
+- `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner (if !diagnosticDone), WOTD
+- `app/(tabs)/vocab.tsx` — Vocabulary list + "X to review" CTA → flashcards
+- `app/vocab/flashcards.tsx` — SRS flashcard session (Hard/Good/Easy → SM2 intervals)
+- `app/(tabs)/study.tsx` — Study plan + Weakness Dashboard (≥3 attempts → rubric analysis)
+- `app/diagnostic.tsx` — 15-question grammar diagnostic, sets profile.level + diagnosticDone
+- `app/paywall.tsx` — Premium paywall with Paddle checkout (monthly R$44.99 / yearly R$479.88)
+- `app/practice/session.tsx` — 25-min timed writing session, syncs with /api/sessions
+
+## Paddle Integration
+
+Requires env vars: `PADDLE_API_KEY`, `PADDLE_MONTHLY_PRICE_ID`, `PADDLE_YEARLY_PRICE_ID`, `PADDLE_WEBHOOK_SECRET`, `PADDLE_ENV` (sandbox | production). Without these, `/api/payments/checkout` returns 503. Subscriptions stored in `data/subscriptions.json` keyed by deviceToken (UUID auto-generated per device in AppContext).
 
 ## Admin Auth
 

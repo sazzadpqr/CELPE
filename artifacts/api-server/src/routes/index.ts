@@ -3,6 +3,8 @@ import healthRouter from "./health";
 import aiRouter from "./ai";
 import adminRouter from "./admin";
 import contentRouter from "./content";
+import sessionsRouter from "./sessions";
+import paymentsRouter from "./payments";
 
 const router: IRouter = Router();
 
@@ -10,5 +12,7 @@ router.use(healthRouter);
 router.use(aiRouter);
 router.use(adminRouter);
 router.use(contentRouter);
+router.use(sessionsRouter);
+router.use(paymentsRouter);
 
 export default router;

@@ -19,6 +19,8 @@ export interface UserProfile {
   aiCreditsTotal: number;
   isPremium: boolean;
   onboardingDone: boolean;
+  diagnosticDone: boolean;
+  deviceToken: string;
 }
 
 export interface VocabWord {
@@ -85,6 +87,8 @@ const defaultProfile: UserProfile = {
   aiCreditsTotal: 5,
   isPremium: false,
   onboardingDone: false,
+  diagnosticDone: false,
+  deviceToken: "",
 };
 
 const defaultStudyTasks: StudyTask[] = [
@@ -101,6 +105,14 @@ const defaultStudyTasks: StudyTask[] = [
   { id: "11", title: "Simulado oral", type: "practice", durationMins: 25, dayOfWeek: 6, completed: false, completedDate: null },
   { id: "12", title: "Revisão semanal", type: "reading", durationMins: 30, dayOfWeek: 0, completed: false, completedDate: null },
 ];
+
+function generateUUID(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -123,7 +135,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         "celpeprep_attempts",
         "celpeprep_tasks",
       ]);
-      if (profileStr[1]) setProfile(JSON.parse(profileStr[1]));
+      if (profileStr[1]) {
+        const saved = JSON.parse(profileStr[1]) as Partial<UserProfile>;
+        const merged: UserProfile = { ...defaultProfile, ...saved };
+        if (!merged.deviceToken) {
+          merged.deviceToken = generateUUID();
+          AsyncStorage.setItem("celpeprep_profile", JSON.stringify(merged));
+        }
+        setProfile(merged);
+      } else {
+        const withToken = { ...defaultProfile, deviceToken: generateUUID() };
+        AsyncStorage.setItem("celpeprep_profile", JSON.stringify(withToken));
+        setProfile(withToken);
+      }
       if (vocabStr[1]) setVocabWords(JSON.parse(vocabStr[1]));
       if (attemptsStr[1]) setAttempts(JSON.parse(attemptsStr[1]));
       if (tasksStr[1]) setStudyTasks(JSON.parse(tasksStr[1]));

@@ -142,7 +142,7 @@ export default function VocabScreen() {
             style={[styles.reviewBtn, { backgroundColor: colors.primary }]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              router.push("/vocab/review");
+              router.push("/vocab/flashcards");
             }}
           >
             <Feather name="refresh-cw" size={16} color="#fff" />
