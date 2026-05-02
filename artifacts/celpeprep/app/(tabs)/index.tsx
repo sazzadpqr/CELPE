@@ -33,6 +33,7 @@ const LEVEL_LABELS: Record<string, string> = {
 const QUICK_ACTIONS = [
   { label: "Praticar", icon: "edit-3" as const, route: "/practice", color: "#185FA5" },
   { label: "Vocabulário", icon: "book-open" as const, route: "/vocab", color: "#1D9E75" },
+  { label: "Cursos", icon: "play-circle" as const, route: "/courses", color: "#D85A30" },
   { label: "Gramática", icon: "git-branch" as const, route: "/grammar", color: "#6B21A8" },
   { label: "Oral", icon: "mic" as const, route: "/oral", color: "#D85A30" },
   { label: "Pronúncia", icon: "volume-2" as const, route: "/pronunciation", color: "#BA7517" },

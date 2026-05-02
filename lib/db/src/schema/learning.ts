@@ -56,6 +56,7 @@ export const studyPlanItems = pgTable("study_plan_items", {
 export const courses = pgTable("courses", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),
+  subtitle: text("subtitle").notNull().default(""),
   description: text("description").notNull().default(""),
   level: text("level").notNull().default("B1"),
   category: text("category").notNull().default(""),

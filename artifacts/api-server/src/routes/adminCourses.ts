@@ -33,6 +33,7 @@ router.post("/admin/courses", async (req, res) => {
     const b = req.body;
     const [row] = await db.insert(courses).values({
       title: b.title ?? "Novo Curso",
+      subtitle: b.subtitle ?? "",
       description: b.description ?? "",
       level: b.level ?? "B1",
       category: b.category ?? "",
@@ -52,7 +53,7 @@ router.put("/admin/courses/:id", async (req, res) => {
     const b = req.body;
     const [row] = await db.update(courses)
       .set({
-        title: b.title, description: b.description, level: b.level,
+        title: b.title, subtitle: b.subtitle, description: b.description, level: b.level,
         category: b.category, thumbnailUrl: b.thumbnailUrl,
         estimatedHours: b.estimatedHours, active: b.active, order: b.order,
       })

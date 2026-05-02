@@ -40,6 +40,9 @@ function RootLayoutNav() {
       <Stack.Screen name="exams" options={{ headerShown: false }} />
       <Stack.Screen name="grammar" options={{ headerShown: false }} />
       <Stack.Screen name="progress" options={{ headerShown: false }} />
+      <Stack.Screen name="courses" options={{ headerShown: false }} />
+      <Stack.Screen name="course/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="course/[id]/lesson/[lessonId]" options={{ headerShown: false }} />
     </Stack>
   );
 }

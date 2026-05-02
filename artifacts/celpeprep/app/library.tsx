@@ -29,6 +29,20 @@ type LibrarySection = {
 
 const SECTIONS: LibrarySection[] = [
   {
+    title: "Vídeo-Aulas",
+    items: [
+      {
+        id: "courses",
+        title: "Cursos em Vídeo",
+        description: "Aulas estruturadas com YouTube e vídeo direto para dominar o português.",
+        icon: "play-circle",
+        color: "#D85A30",
+        route: "/courses",
+        badge: "Novo",
+      },
+    ],
+  },
+  {
     title: "Habilidades Escritas",
     items: [
       {
