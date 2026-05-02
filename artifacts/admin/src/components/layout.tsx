@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { CommandPalette, useCommandPalette } from "./command-palette";
+import { TopBar } from "./top-bar";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -63,9 +65,11 @@ const NAV_SECTIONS = [
 export function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const { open, setOpen } = useCommandPalette();
 
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_token_expires");
     setLocation("/login");
   };
 
@@ -74,24 +78,26 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen bg-background">
-      <div className="w-60 border-r bg-card flex flex-col">
-        <div className="p-5 border-b">
-          <h1 className="font-mono text-base font-bold tracking-tighter uppercase text-primary">CelpePrep</h1>
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">Painel Admin</p>
+      {/* Sidebar */}
+      <div className="w-56 border-r bg-card flex flex-col shrink-0">
+        <div className="p-4 border-b">
+          <h1 className="font-mono text-sm font-bold tracking-tighter uppercase text-primary">CelpePrep</h1>
+          <p className="font-mono text-[9px] text-muted-foreground/50 uppercase tracking-widest mt-0.5">Painel Admin</p>
         </div>
-        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+
+        <nav className="flex-1 p-2 space-y-3 overflow-y-auto">
           {NAV_SECTIONS.map((section) => (
             <div key={section.label}>
               <button
                 onClick={() => toggleSection(section.label)}
-                className="flex items-center justify-between w-full px-2 mb-1"
+                className="flex items-center justify-between w-full px-2 mb-0.5 group"
               >
-                <span className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-widest">
+                <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-widest group-hover:text-muted-foreground/70 transition-colors">
                   {section.label}
                 </span>
                 {collapsed[section.label]
-                  ? <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
-                  : <ChevronDown className="h-3 w-3 text-muted-foreground/40" />
+                  ? <ChevronRight className="h-2.5 w-2.5 text-muted-foreground/30" />
+                  : <ChevronDown className="h-2.5 w-2.5 text-muted-foreground/30" />
                 }
               </button>
               {!collapsed[section.label] && (
@@ -101,14 +107,14 @@ export function Layout({ children }: LayoutProps) {
                     return (
                       <Link key={item.href} href={item.href}>
                         <div
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors cursor-pointer text-xs font-medium ${
+                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors cursor-pointer text-[11px] font-medium ${
                             isActive
                               ? "bg-primary text-primary-foreground"
                               : "text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
                           }`}
                         >
-                          <item.icon className="h-3.5 w-3.5 shrink-0" />
-                          {item.label}
+                          <item.icon className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{item.label}</span>
                         </div>
                       </Link>
                     );
@@ -118,21 +124,37 @@ export function Layout({ children }: LayoutProps) {
             </div>
           ))}
         </nav>
-        <div className="p-3 border-t">
+
+        <div className="p-2 border-t space-y-1">
+          {/* Quick search hint */}
+          <button
+            onClick={() => setOpen(true)}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[11px] font-mono text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary transition-colors"
+          >
+            <span className="flex-1 text-left">Busca rápida</span>
+            <kbd className="text-[9px] bg-muted px-1 rounded border border-border">⌘K</kbd>
+          </button>
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-muted-foreground hover:text-foreground text-xs"
+            className="w-full justify-start text-muted-foreground hover:text-foreground text-[11px] px-2.5 h-7"
             onClick={handleLogout}
           >
-            <LogOut className="h-3.5 w-3.5 mr-2" />
+            <LogOut className="h-3 w-3 mr-2" />
             Sair
           </Button>
         </div>
       </div>
-      <main className="flex-1 overflow-auto">
-        <div className="p-8 max-w-6xl mx-auto">{children}</div>
-      </main>
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopBar onSearchClick={() => setOpen(true)} />
+        <main className="flex-1 overflow-auto">
+          <div className="p-6 max-w-6xl mx-auto">{children}</div>
+        </main>
+      </div>
+
+      <CommandPalette open={open} onClose={() => setOpen(false)} />
     </div>
   );
 }

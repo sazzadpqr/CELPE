@@ -41,17 +41,28 @@ setAuthTokenGetter(() => localStorage.getItem("admin_token"));
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
-  
+
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
-    setIsAuth(!!token);
+    if (!token) { setIsAuth(false); return; }
+    // Check expiry if set
+    const expires = localStorage.getItem("admin_token_expires");
+    if (expires && Date.now() > Number(expires)) {
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_token_expires");
+      setIsAuth(false);
+      return;
+    }
+    setIsAuth(true);
   }, []);
 
-  if (isAuth === null) return null;
-  
-  if (!isAuth) {
-    return <Redirect to="/login" />;
-  }
+  if (isAuth === null) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!isAuth) return <Redirect to="/login" />;
 
   return (
     <Layout>

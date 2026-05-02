@@ -6,8 +6,22 @@ import {
   adminPaywallConfig,
   adminLimitsConfig,
   diagnosticQuestions,
+  practicePrompts,
+  grammarTopics,
+  wotdEntries,
+  profiles,
+  courses,
+  lessons,
+  learningPaths,
+  featureFlags,
+  notificationCampaigns,
+  monetizationPlans,
+  appBanners,
+  studyMaterials,
+  studyCategories,
+  quizQuestions,
 } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getStoredPasswordHash } from "../lib/adminStore.js";
 
 const router = Router();
@@ -332,6 +346,71 @@ router.put("/admin/limits", async (req, res) => {
 
 router.get("/content/limits", async (_req, res) => {
   try { res.json(await getLimitsRow()); } catch { res.status(500).json({ error: "Database error" }); }
+});
+
+// ─── Content Stats ────────────────────────────────────────────────────────────
+
+router.get("/admin/content-stats", async (req, res) => {
+  if (!checkAuth(req, res)) return;
+  try {
+    const [
+      [usersRow],
+      [premiumRow],
+      [promptsRow],
+      [grammarRow],
+      [wotdRow],
+      [diagRow],
+      [quizRow],
+      [coursesRow],
+      [lessonsRow],
+      [pathsRow],
+      [materialsRow],
+      [catsRow],
+      [flagsRow],
+      [bannersRow],
+      [notifsRow],
+      [plansRow],
+    ] = await Promise.all([
+      db.select({ count: sql<number>`count(*)::int` }).from(profiles),
+      db.select({ count: sql<number>`count(*)::int` }).from(profiles).where(eq(profiles.isPremium, true)),
+      db.select({ count: sql<number>`count(*)::int` }).from(practicePrompts),
+      db.select({ count: sql<number>`count(*)::int` }).from(grammarTopics),
+      db.select({ count: sql<number>`count(*)::int` }).from(wotdEntries),
+      db.select({ count: sql<number>`count(*)::int` }).from(diagnosticQuestions),
+      db.select({ count: sql<number>`count(*)::int` }).from(quizQuestions),
+      db.select({ count: sql<number>`count(*)::int` }).from(courses),
+      db.select({ count: sql<number>`count(*)::int` }).from(lessons),
+      db.select({ count: sql<number>`count(*)::int` }).from(learningPaths),
+      db.select({ count: sql<number>`count(*)::int` }).from(studyMaterials),
+      db.select({ count: sql<number>`count(*)::int` }).from(studyCategories),
+      db.select({ count: sql<number>`count(*)::int` }).from(featureFlags).where(eq(featureFlags.enabled, true)),
+      db.select({ count: sql<number>`count(*)::int` }).from(appBanners).where(eq(appBanners.active, true)),
+      db.select({ count: sql<number>`count(*)::int` }).from(notificationCampaigns),
+      db.select({ count: sql<number>`count(*)::int` }).from(monetizationPlans).where(eq(monetizationPlans.isActive, true)),
+    ]);
+
+    res.json({
+      users: usersRow?.count ?? 0,
+      premiumUsers: premiumRow?.count ?? 0,
+      prompts: promptsRow?.count ?? 0,
+      grammarTopics: grammarRow?.count ?? 0,
+      wotdEntries: wotdRow?.count ?? 0,
+      diagnosticQuestions: diagRow?.count ?? 0,
+      quizQuestions: quizRow?.count ?? 0,
+      courses: coursesRow?.count ?? 0,
+      lessons: lessonsRow?.count ?? 0,
+      learningPaths: pathsRow?.count ?? 0,
+      studyMaterials: materialsRow?.count ?? 0,
+      studyCategories: catsRow?.count ?? 0,
+      activeFeatureFlags: flagsRow?.count ?? 0,
+      scheduledBanners: bannersRow?.count ?? 0,
+      notificationCampaigns: notifsRow?.count ?? 0,
+      monetizationPlans: plansRow?.count ?? 0,
+    });
+  } catch (err) {
+    req.log.error(err, "content-stats error");
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default router;
