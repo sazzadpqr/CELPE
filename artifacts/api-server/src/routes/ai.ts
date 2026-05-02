@@ -8,6 +8,10 @@ const openai = new OpenAI({
   apiKey: process.env["AI_INTEGRATIONS_OPENAI_API_KEY"],
 });
 
+// In-memory cache for word of the day
+let wordCache: { date: string; data: unknown } | null = null;
+
+// ─── POST /ai/feedback ──────────────────────────────────────────────────────
 router.post("/ai/feedback", async (req, res) => {
   const { text, task_type, genre, time_expired } = req.body as {
     text: string;
@@ -96,6 +100,107 @@ ${text}`;
       rubric_coesao: fallback,
       rubric_gramatica: fallback,
       commentary: "Avaliação automática indisponível no momento. Pontuação estimada com base na extensão do texto. Tente novamente em instantes.",
+    });
+  }
+});
+
+// ─── POST /ai/prompt ─────────────────────────────────────────────────────────
+router.post("/ai/prompt", async (req, res) => {
+  const { task_type, genre } = req.body as { task_type: string; genre: string };
+
+  if (!task_type) {
+    res.status(400).json({ error: "task_type is required" });
+    return;
+  }
+
+  const systemPrompt = `Você é um criador de questões para o exame Celpe-Bras.
+Gere um novo prompt de prática realista e inédito para o tipo de tarefa especificado.
+
+Responda APENAS com JSON no formato:
+{
+  "source": "<texto de apoio em 3-5 linhas: descreva um vídeo, áudio, texto ou dado visual realista e atual>",
+  "prompt": "<instrução da tarefa em 2-3 linhas: o que o candidato deve escrever, incluindo gênero e extensão esperada>"
+}
+
+O tema deve ser relevante, contemporâneo e brasileiro. Evite temas repetidos.
+Alguns temas sugeridos: sustentabilidade, saúde pública, tecnologia e sociedade, desigualdade, cultura, mercado de trabalho, educação, urbanização.`;
+
+  const userPrompt = `Tipo de tarefa: ${task_type}\nGênero esperado: ${genre}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 512,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(raw) as { source: string; prompt: string };
+
+    res.json({
+      source: parsed.source || "",
+      prompt: parsed.prompt || "",
+    });
+  } catch (err) {
+    req.log.error({ err }, "AI prompt error");
+    res.status(503).json({ error: "Prompt generation unavailable" });
+  }
+});
+
+// ─── GET /ai/word-of-day ─────────────────────────────────────────────────────
+router.get("/ai/word-of-day", async (req, res) => {
+  const today = new Date().toISOString().split("T")[0];
+
+  if (wordCache && wordCache.date === today) {
+    res.json(wordCache.data);
+    return;
+  }
+
+  const systemPrompt = `Você é um professor de português do Brasil especialista em preparação para o Celpe-Bras.
+Selecione UMA palavra sofisticada em português que seja relevante para o Celpe-Bras (formal, acadêmica ou literária).
+
+Responda APENAS com JSON:
+{
+  "word": "<palavra>",
+  "part_of_speech": "<classe gramatical>",
+  "register": "<formal|coloquial|literário|técnico>",
+  "definition": "<definição clara em português simples, 1-2 frases>",
+  "example": "<frase de exemplo autêntica usando a palavra em contexto>",
+  "etymology": "<origem breve da palavra, 1 frase>",
+  "synonyms": ["<sinônimo1>", "<sinônimo2>"]
+}`;
+
+  try {
+    const seed = Math.floor(Math.random() * 1000);
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 384,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Seed: ${seed}. Gere uma palavra inédita para hoje.` },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const data = JSON.parse(raw);
+
+    wordCache = { date: today, data };
+    res.json(data);
+  } catch (err) {
+    req.log.error({ err }, "Word of day error");
+    res.json({
+      word: "cotidiano",
+      part_of_speech: "adjetivo/substantivo",
+      register: "formal",
+      definition: "Relativo ao dia a dia; que acontece todos os dias.",
+      example: "As questões cotidianas da vida urbana refletem as transformações sociais do século XXI.",
+      etymology: "Do latim quotidianus, de quotidie ('cada dia').",
+      synonyms: ["diário", "habitual"],
     });
   }
 });
