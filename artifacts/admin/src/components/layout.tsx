@@ -4,7 +4,7 @@ import {
   HelpCircle, Archive, Star, Shield, Megaphone, CreditCard,
   FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
   Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
-  Mic, Volume2, Headphones, MessageCircle,
+  Mic, Volume2, Headphones, MessageCircle, UserCheck, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -56,6 +56,13 @@ const NAV_SECTIONS = [
       { href: "/paywall-cms", label: "Paywall CMS", icon: CreditCard },
       { href: "/limits", label: "Limites Freemium", icon: SlidersHorizontal },
       { href: "/ads", label: "Anúncios", icon: Megaphone },
+    ],
+  },
+  {
+    label: "Professores",
+    items: [
+      { href: "/teachers", label: "Gestão de Professores", icon: UserCheck },
+      { href: "/teacher-login", label: "Portal do Professor ↗", icon: ExternalLink },
     ],
   },
   {

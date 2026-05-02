@@ -9,3 +9,4 @@ export * from "./messages";
 export * from "./cms";
 export * from "./notifications";
 export * from "./monetization";
+export * from "./teachers";

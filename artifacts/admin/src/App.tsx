@@ -30,6 +30,9 @@ import OralTasksPage from "@/pages/oral-tasks";
 import PronunciationContentPage from "@/pages/pronunciation-content";
 import ListeningContentPage from "@/pages/listening-content";
 import ConversationScenariosPage from "@/pages/conversation-scenarios";
+import TeachersPage from "@/pages/teachers";
+import TeacherLoginPage from "@/pages/teacher-login";
+import TeacherPortalPage from "@/pages/teacher-portal";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -110,6 +113,9 @@ function Router() {
       <Route path="/pronunciation-content">{() => <ProtectedRoute component={PronunciationContentPage} />}</Route>
       <Route path="/listening-content">{() => <ProtectedRoute component={ListeningContentPage} />}</Route>
       <Route path="/conversation-scenarios">{() => <ProtectedRoute component={ConversationScenariosPage} />}</Route>
+      <Route path="/teachers">{() => <ProtectedRoute component={TeachersPage} />}</Route>
+      <Route path="/teacher-login" component={TeacherLoginPage} />
+      <Route path="/teacher-portal" component={TeacherPortalPage} />
       <Route component={NotFound} />
     </Switch>
   );

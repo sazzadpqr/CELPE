@@ -13,6 +13,9 @@ import adminContentRouter from "./adminContent";
 import contentRouter from "./content";
 import sessionsRouter from "./sessions";
 import paymentsRouter from "./payments";
+import adminTeachersRouter from "./adminTeachers";
+import teacherPortalRouter from "./teacherPortal";
+import studentTeacherRouter from "./studentTeacher";
 
 const router: IRouter = Router();
 
@@ -30,5 +33,8 @@ router.use(adminContentRouter);
 router.use(contentRouter);
 router.use(sessionsRouter);
 router.use(paymentsRouter);
+router.use(adminTeachersRouter);
+router.use(teacherPortalRouter);
+router.use(studentTeacherRouter);
 
 export default router;

@@ -23,6 +23,18 @@ pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese le
 - **AI**: OpenAI via Replit AI Integrations (env vars: AI_INTEGRATIONS_OPENAI_BASE_URL, AI_INTEGRATIONS_OPENAI_API_KEY)
 - **Build**: esbuild
 
+## Teacher Management System
+
+- **DB tables**: `teachers`, `teacher_invite_codes`, `teacher_students`, `teacher_classes`
+- **Admin routes**: `GET/POST/PUT/DELETE /api/admin/teachers`, `POST /api/admin/teacher-codes`, `DELETE /api/admin/teacher-codes/:id`, `DELETE /api/admin/teacher-students/:id`
+- **Teacher auth**: `POST /api/teacher/register`, `POST /api/teacher/login` → returns session token (30-day UUID stored in DB)
+- **Teacher portal API**: `GET /api/teacher/me`, `GET /api/teacher/dashboard`, `GET/POST/DELETE /api/teacher/codes`, `GET/PUT/DELETE /api/teacher/students`, `GET/POST/PUT/DELETE /api/teacher/classes` (requires `Authorization: Bearer {token}`)
+- **Student connect**: `POST /api/student/connect-teacher` (code + deviceToken + studentName), `GET /api/student/my-teachers?deviceToken=...`, `DELETE /api/student/disconnect-teacher`
+- **Admin UI**: `/admin/teachers` — full teacher CRUD, view students/codes/classes per teacher
+- **Teacher login**: `/admin/teacher-login` — dedicated teacher login (email + password)
+- **Teacher portal**: `/admin/teacher-portal` — teacher self-service dashboard (manage codes, students, classes)
+- **Mobile screen**: `artifacts/celpeprep/app/teacher-connect.tsx` — enter invite code to connect to teacher, view upcoming classes
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages
