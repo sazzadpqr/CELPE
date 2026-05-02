@@ -24,9 +24,84 @@ const LEVEL_LABELS: Record<string, string> = {
 const QUICK_ACTIONS = [
   { label: "Praticar", icon: "edit-3" as const, route: "/practice", color: "#185FA5" },
   { label: "Vocabulário", icon: "book-open" as const, route: "/vocab", color: "#1D9E75" },
-  { label: "Provas", icon: "archive" as const, route: "/exams", color: "#6B21A8" },
-  { label: "Plano", icon: "calendar" as const, route: "/study", color: "#BA7517" },
+  { label: "Gramática", icon: "git-branch" as const, route: "/grammar", color: "#6B21A8" },
+  { label: "Progresso", icon: "bar-chart-2" as const, route: "/progress", color: "#BA7517" },
+  { label: "Provas", icon: "archive" as const, route: "/exams", color: "#D85A30" },
+  { label: "Plano", icon: "calendar" as const, route: "/study", color: "#1D9E75" },
 ];
+
+const WORD_OF_THE_DAY = [
+  { word: "reivindicar", pos: "verbo", def: "Reclamar como direito próprio; exigir algo a que se tem direito.", example: "Os trabalhadores reivindicaram melhores condições." },
+  { word: "suscitar", pos: "verbo", def: "Provocar, causar, originar (sentimento, reação ou questão).", example: "O discurso suscitou grande debate." },
+  { word: "ponderar", pos: "verbo", def: "Considerar atentamente; avaliar com cuidado antes de decidir.", example: "É preciso ponderar todas as consequências." },
+  { word: "elucidar", pos: "verbo", def: "Esclarecer, tornar mais claro; explicar com detalhes.", example: "O relatório elucidou os fatos do caso." },
+  { word: "equívoco", pos: "substantivo", def: "Erro resultante de má compreensão; engano, mal-entendido.", example: "O equívoco causou confusão entre os participantes." },
+  { word: "paradoxo", pos: "substantivo", def: "Situação ou afirmação que parece contraditória mas pode ser verdadeira.", example: "É um paradoxo que a tecnologia una e isole as pessoas." },
+  { word: "eminente", pos: "adjetivo", def: "De grande destaque; notável, ilustre.", example: "Um eminente cientista recebeu o prêmio." },
+  { word: "iminente", pos: "adjetivo", def: "Que está prestes a acontecer; muito próximo.", example: "O perigo era iminente e todos evacuaram." },
+  { word: "cotidiano", pos: "adjetivo/subst.", def: "Relativo ao dia a dia; o conjunto de atividades diárias.", example: "As redes sociais fazem parte do cotidiano moderno." },
+  { word: "precário", pos: "adjetivo", def: "De má qualidade; instável, insuficiente, deficiente.", example: "A infraestrutura precária prejudica os moradores." },
+  { word: "imprescindível", pos: "adjetivo", def: "Absolutamente necessário; indispensável.", example: "A educação é imprescindível para o desenvolvimento." },
+  { word: "averiguar", pos: "verbo", def: "Investigar para descobrir a verdade; apurar.", example: "A polícia vai averiguar as circunstâncias do acidente." },
+  { word: "almejar", pos: "verbo", def: "Desejar muito; aspirar a algo.", example: "Muitos jovens almejam uma carreira internacional." },
+  { word: "discrepância", pos: "substantivo", def: "Diferença notável; divergência entre dados ou opiniões.", example: "Há uma discrepância entre os resultados esperados e os obtidos." },
+  { word: "efêmero", pos: "adjetivo", def: "Que dura pouco tempo; passageiro, transitório.", example: "A fama nas redes sociais pode ser efêmera." },
+  { word: "incumbir", pos: "verbo", def: "Atribuir uma tarefa ou responsabilidade a alguém.", example: "Incumbiram-no de coordenar o projeto." },
+  { word: "tônica", pos: "substantivo", def: "Elemento principal; o ponto central de algo.", example: "A sustentabilidade é a tônica das discussões atuais." },
+  { word: "respaldar", pos: "verbo", def: "Apoiar, amparar; dar respaldo a algo ou alguém.", example: "Os dados científicos respaldaram a teoria." },
+  { word: "emblemático", pos: "adjetivo", def: "Que serve como símbolo ou exemplo representativo.", example: "Aquele caso foi emblemático para a legislação brasileira." },
+  { word: "lacuna", pos: "substantivo", def: "Espaço vazio; ausência de algo necessário; falha.", example: "Há uma lacuna na legislação sobre esse tema." },
+  { word: "mitigar", pos: "verbo", def: "Diminuir a intensidade de; amenizar, suavizar.", example: "Medidas foram tomadas para mitigar os efeitos da crise." },
+  { word: "propício", pos: "adjetivo", def: "Favorável; que oferece boas condições.", example: "O momento é propício para investimentos." },
+  { word: "vicioso", pos: "adjetivo", def: "Relativo a vício; que tem defeito; perverso.", example: "O ciclo vicioso da pobreza é difícil de romper." },
+  { word: "abordar", pos: "verbo", def: "Tratar de um assunto; aproximar-se para falar.", example: "O texto aborda questões ambientais urgentes." },
+  { word: "remeter", pos: "verbo", def: "Enviar; fazer referência a; encaminhar.", example: "O autor remete o leitor a obras anteriores." },
+  { word: "depreender", pos: "verbo", def: "Concluir por meio de raciocínio; deduzir, inferir.", example: "Depreende-se do texto que o autor é favorável à mudança." },
+  { word: "corroborar", pos: "verbo", def: "Confirmar, reforçar (argumento, tese ou afirmação).", example: "Os estudos corroboram a hipótese apresentada." },
+  { word: "enfatizar", pos: "verbo", def: "Dar ênfase a; destacar, ressaltar.", example: "O relatório enfatiza a importância da prevenção." },
+  { word: "contrapor", pos: "verbo", def: "Colocar em oposição; apresentar como contrário.", example: "O debate contrapôs dois pontos de vista opostos." },
+  { word: "prerrogativa", pos: "substantivo", def: "Direito exclusivo ou privilégio ligado a uma função.", example: "É prerrogativa do juiz decidir sobre o caso." },
+];
+
+function getDayOfYear() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  return Math.floor(diff / 86400000);
+}
+
+function WordOfTheDay() {
+  const colors = useColors();
+  const word = WORD_OF_THE_DAY[getDayOfYear() % WORD_OF_THE_DAY.length];
+
+  return (
+    <View style={[styles.wotdCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={styles.wotdHeader}>
+        <View style={styles.wotdHeaderLeft}>
+          <Feather name="star" size={14} color="#BA7517" />
+          <Text style={[styles.wotdLabel, { color: "#BA7517" }]}>Palavra do Dia</Text>
+        </View>
+        <Pressable onPress={() => router.push("/vocab")} style={styles.wotdLink}>
+          <Text style={[styles.wotdLinkText, { color: colors.primary }]}>Ver vocabulário</Text>
+        </Pressable>
+      </View>
+      <View style={styles.wotdBody}>
+        <Text style={[styles.wotdWord, { color: colors.text }]}>{word.word}</Text>
+        <View style={[styles.wotdPosBadge, { backgroundColor: "#BA751718" }]}>
+          <Text style={[styles.wotdPos, { color: "#BA7517" }]}>{word.pos}</Text>
+        </View>
+      </View>
+      <Text style={[styles.wotdDef, { color: colors.text }]}>{word.def}</Text>
+      <View style={[styles.wotdExampleWrap, { borderLeftColor: colors.primary, backgroundColor: colors.infoBg }]}>
+        <Text style={[styles.wotdExample, { color: colors.mutedForeground }]}>
+          <Text style={{ fontFamily: "Inter_600SemiBold", color: colors.text }}>"</Text>
+          {word.example}
+          <Text style={{ fontFamily: "Inter_600SemiBold", color: colors.text }}>"</Text>
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 function DaysUntilExam({ examDate }: { examDate: string | null }) {
   const colors = useColors();
@@ -137,6 +212,8 @@ export default function HomeScreen() {
       <StreakCard streak={profile.streakDays} best={profile.bestStreak} />
       <AICreditsBar used={profile.aiCreditsUsed} total={profile.aiCreditsTotal} />
 
+      <WordOfTheDay />
+
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Acesso rápido</Text>
       <View style={styles.quickGrid}>
         {QUICK_ACTIONS.map((a) => (
@@ -157,8 +234,17 @@ export default function HomeScreen() {
       </View>
 
       {avgScore && (
-        <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.statsTitle, { color: colors.text }]}>Seu progresso</Text>
+        <Pressable
+          style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => router.push("/progress")}
+        >
+          <View style={styles.statsTitleRow}>
+            <Text style={[styles.statsTitle, { color: colors.text }]}>Seu progresso</Text>
+            <View style={styles.statsChevron}>
+              <Text style={[styles.statsViewAll, { color: colors.primary }]}>Ver análise</Text>
+              <Feather name="chevron-right" size={14} color={colors.primary} />
+            </View>
+          </View>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={[styles.statNumber, { color: colors.primary }]}>{attempts.length}</Text>
@@ -175,7 +261,7 @@ export default function HomeScreen() {
               <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Sequência</Text>
             </View>
           </View>
-        </View>
+        </Pressable>
       )}
 
       {recentAttempts.length > 0 && (
@@ -249,13 +335,29 @@ const styles = StyleSheet.create({
   creditsFill: { height: 6, borderRadius: 3 },
   upgradeBtn: { paddingTop: 4 },
   upgradeText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  wotdCard: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
+  wotdHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  wotdHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
+  wotdLabel: { fontSize: 12, fontFamily: "Inter_700Bold", textTransform: "uppercase", letterSpacing: 0.5 },
+  wotdLink: {},
+  wotdLinkText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  wotdBody: { flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  wotdWord: { fontSize: 22, fontFamily: "Inter_700Bold" },
+  wotdPosBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  wotdPos: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  wotdDef: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  wotdExampleWrap: { borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 4 },
+  wotdExample: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, fontStyle: "italic" },
   sectionTitle: { fontSize: 16, fontFamily: "Inter_700Bold", marginTop: 4 },
   quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  quickCard: { width: "47%", borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
+  quickCard: { width: "30%", flexGrow: 1, borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
   quickIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  quickLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  quickLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   statsCard: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 12 },
+  statsTitleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   statsTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  statsChevron: { flexDirection: "row", alignItems: "center", gap: 2 },
+  statsViewAll: { fontSize: 12, fontFamily: "Inter_500Medium" },
   statsRow: { flexDirection: "row", alignItems: "center" },
   statItem: { flex: 1, alignItems: "center", gap: 2 },
   statNumber: { fontSize: 26, fontFamily: "Inter_700Bold" },

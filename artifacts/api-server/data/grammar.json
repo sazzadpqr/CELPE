@@ -1,0 +1,59 @@
+[
+  {
+    "id": "grammar-001",
+    "title": "Subjuntivo Presente",
+    "category": "Modo Verbal",
+    "explanation": "O subjuntivo presente é usado para expressar desejos, dúvidas, sentimentos e situações hipotéticas. É frequentemente introduzido por expressões como 'espero que', 'é importante que', 'embora', 'para que'.",
+    "examples": [
+      "Espero que você consiga passar no Celpe-Bras.",
+      "É essencial que os candidatos estudem bastante.",
+      "Embora seja difícil, o exame é muito valorizado.",
+      "O professor quer que todos participem da aula."
+    ],
+    "tips": [
+      "Conjugue a partir da 1ª pessoa do singular do presente do indicativo (tiro o -o e adiciono as terminações do subjuntivo).",
+      "Verbos irregulares no presente do indicativo também são irregulares no subjuntivo: ser → seja, estar → esteja, ir → vá.",
+      "Use após expressões de emoção: 'fico feliz que', 'é uma pena que', 'surpreende-me que'."
+    ],
+    "active": true,
+    "createdAt": "2025-01-15T09:00:00.000Z"
+  },
+  {
+    "id": "grammar-002",
+    "title": "Voz Passiva",
+    "category": "Estrutura Sintática",
+    "explanation": "A voz passiva é usada quando o sujeito sofre a ação verbal em vez de praticá-la. É muito comum em textos formais, acadêmicos e jornalísticos. Pode ser formada com o verbo 'ser' + particípio ou com a partícula 'se'.",
+    "examples": [
+      "A lei foi aprovada pelo Congresso Nacional.",
+      "Os dados foram coletados por pesquisadores da USP.",
+      "Vendem-se imóveis nesta região. (passiva sintética)",
+      "O relatório será publicado amanhã."
+    ],
+    "tips": [
+      "Use a voz passiva para dar ênfase ao objeto da ação ou quando o agente é desconhecido ou irrelevante.",
+      "A passiva sintética (com 'se') é mais comum na linguagem informal e em anúncios.",
+      "Em textos acadêmicos, a voz passiva é preferida para dar objetividade: 'observou-se que', 'constatou-se que'."
+    ],
+    "active": true,
+    "createdAt": "2025-01-15T09:10:00.000Z"
+  },
+  {
+    "id": "grammar-003",
+    "title": "Conectivos de Causa e Consequência",
+    "category": "Coesão Textual",
+    "explanation": "Conectivos de causa e consequência são fundamentais para a coerência textual. Eles estabelecem relações lógicas entre ideias, essenciais para uma boa avaliação no critério de coesão do Celpe-Bras.",
+    "examples": [
+      "CAUSA: porque, pois, visto que, uma vez que, já que, dado que",
+      "CONSEQUÊNCIA: portanto, logo, assim, por isso, dessa forma, consequentemente",
+      "O candidato estudou muito; portanto, obteve uma boa nota.",
+      "Visto que a inflação aumentou, muitas famílias reduziram o consumo."
+    ],
+    "tips": [
+      "'Porque' introduz causa e vem após o efeito; 'por que' é usado em perguntas.",
+      "Evite repetir o mesmo conectivo; varie entre 'pois', 'uma vez que', 'já que'.",
+      "'Portanto' e 'logo' são formais; 'então' e 'aí' são coloquiais — escolha conforme o gênero textual."
+    ],
+    "active": true,
+    "createdAt": "2025-01-15T09:20:00.000Z"
+  }
+]

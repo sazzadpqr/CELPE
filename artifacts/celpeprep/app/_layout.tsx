@@ -38,6 +38,8 @@ function RootLayoutNav() {
       <Stack.Screen name="practice/feedback" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="vocab/review" options={{ headerShown: false }} />
       <Stack.Screen name="exams" options={{ headerShown: false }} />
+      <Stack.Screen name="grammar" options={{ headerShown: false }} />
+      <Stack.Screen name="progress" options={{ headerShown: false }} />
     </Stack>
   );
 }

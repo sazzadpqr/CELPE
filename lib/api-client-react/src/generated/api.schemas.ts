@@ -8,3 +8,79 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface AdminLoginBody {
+  password: string;
+}
+
+export interface AdminLoginResponse {
+  token: string;
+  ok: boolean;
+}
+
+export type AdminStatsRequestsByEndpoint = { [key: string]: number };
+
+export interface AdminStats {
+  totalRequests: number;
+  aiCallsToday: number;
+  promptCallsToday: number;
+  wordOfDayCallsToday: number;
+  errorsToday: number;
+  uptimeSeconds: number;
+  startedAt: string;
+  requestsByEndpoint: AdminStatsRequestsByEndpoint;
+}
+
+export interface RequestLog {
+  id: string;
+  method: string;
+  path: string;
+  status: number;
+  durationMs: number;
+  timestamp: string;
+  isError: boolean;
+}
+
+export interface PracticePrompt {
+  id: string;
+  taskType: string;
+  genre: string;
+  source: string;
+  prompt: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface PracticePromptBody {
+  taskType: string;
+  genre: string;
+  source: string;
+  prompt: string;
+  active: boolean;
+}
+
+export interface GrammarTopic {
+  id: string;
+  title: string;
+  category: string;
+  explanation: string;
+  examples: string[];
+  tips: string[];
+  active: boolean;
+  createdAt: string;
+}
+
+export interface GrammarTopicBody {
+  title: string;
+  category: string;
+  explanation: string;
+  examples: string[];
+  tips: string[];
+  active: boolean;
+}
+
+export interface AdminConfig {
+  feedbackSystemPrompt: string;
+  promptGenerationSystemPrompt: string;
+  adminPasswordHash?: string;
+}

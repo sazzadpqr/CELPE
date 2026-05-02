@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
@@ -24,7 +26,255 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /admin/auth:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginBody"
+      responses:
+        "200":
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResponse"
+        "401":
+          description: Unauthorized
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get usage stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/logs:
+    get:
+      operationId: getAdminLogs
+      tags: [admin]
+      summary: Get recent request logs
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Recent logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RequestLog"
+
+  /admin/prompts:
+    get:
+      operationId: listAdminPrompts
+      tags: [admin]
+      summary: List practice prompts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PracticePrompt"
+    post:
+      operationId: createAdminPrompt
+      tags: [admin]
+      summary: Create a practice prompt
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PracticePromptBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PracticePrompt"
+
+  /admin/prompts/{id}:
+    put:
+      operationId: updateAdminPrompt
+      tags: [admin]
+      summary: Update a practice prompt
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PracticePromptBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PracticePrompt"
+    delete:
+      operationId: deleteAdminPrompt
+      tags: [admin]
+      summary: Delete a practice prompt
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/grammar:
+    get:
+      operationId: listAdminGrammar
+      tags: [admin]
+      summary: List grammar topics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of grammar topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GrammarTopic"
+    post:
+      operationId: createAdminGrammar
+      tags: [admin]
+      summary: Create a grammar topic
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrammarTopicBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrammarTopic"
+
+  /admin/grammar/{id}:
+    put:
+      operationId: updateAdminGrammar
+      tags: [admin]
+      summary: Update a grammar topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrammarTopicBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrammarTopic"
+    delete:
+      operationId: deleteAdminGrammar
+      tags: [admin]
+      summary: Delete a grammar topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/config:
+    get:
+      operationId: getAdminConfig
+      tags: [admin]
+      summary: Get AI config
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Config values
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminConfig"
+    put:
+      operationId: updateAdminConfig
+      tags: [admin]
+      summary: Update AI config
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminConfig"
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminConfig"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +284,197 @@ components:
       required:
         - status
 
+    AdminLoginBody:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+
+    AdminLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        ok:
+          type: boolean
+      required:
+        - token
+        - ok
+
+    AdminStats:
+      type: object
+      properties:
+        totalRequests:
+          type: number
+        aiCallsToday:
+          type: number
+        promptCallsToday:
+          type: number
+        wordOfDayCallsToday:
+          type: number
+        errorsToday:
+          type: number
+        uptimeSeconds:
+          type: number
+        startedAt:
+          type: string
+        requestsByEndpoint:
+          type: object
+          additionalProperties:
+            type: number
+      required:
+        - totalRequests
+        - aiCallsToday
+        - promptCallsToday
+        - wordOfDayCallsToday
+        - errorsToday
+        - uptimeSeconds
+        - startedAt
+        - requestsByEndpoint
+
+    RequestLog:
+      type: object
+      properties:
+        id:
+          type: string
+        method:
+          type: string
+        path:
+          type: string
+        status:
+          type: number
+        durationMs:
+          type: number
+        timestamp:
+          type: string
+        isError:
+          type: boolean
+      required:
+        - id
+        - method
+        - path
+        - status
+        - durationMs
+        - timestamp
+        - isError
+
+    PracticePrompt:
+      type: object
+      properties:
+        id:
+          type: string
+        taskType:
+          type: string
+        genre:
+          type: string
+        source:
+          type: string
+        prompt:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - taskType
+        - genre
+        - source
+        - prompt
+        - active
+        - createdAt
+
+    PracticePromptBody:
+      type: object
+      properties:
+        taskType:
+          type: string
+        genre:
+          type: string
+        source:
+          type: string
+        prompt:
+          type: string
+        active:
+          type: boolean
+      required:
+        - taskType
+        - genre
+        - source
+        - prompt
+        - active
+
+    GrammarTopic:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        explanation:
+          type: string
+        examples:
+          type: array
+          items:
+            type: string
+        tips:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - category
+        - explanation
+        - examples
+        - tips
+        - active
+        - createdAt
+
+    GrammarTopicBody:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        explanation:
+          type: string
+        examples:
+          type: array
+          items:
+            type: string
+        tips:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+      required:
+        - title
+        - category
+        - explanation
+        - examples
+        - tips
+        - active
+
+    AdminConfig:
+      type: object
+      properties:
+        feedbackSystemPrompt:
+          type: string
+        promptGenerationSystemPrompt:
+          type: string
+        adminPasswordHash:
+          type: string
+      required:
+        - feedbackSystemPrompt
+        - promptGenerationSystemPrompt

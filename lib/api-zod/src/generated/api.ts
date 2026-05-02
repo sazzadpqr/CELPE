@@ -14,3 +14,185 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Admin login
+ */
+export const AdminLoginBody = zod.object({
+  password: zod.string(),
+});
+
+export const AdminLoginResponse = zod.object({
+  token: zod.string(),
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Get usage stats
+ */
+export const GetAdminStatsResponse = zod.object({
+  totalRequests: zod.number(),
+  aiCallsToday: zod.number(),
+  promptCallsToday: zod.number(),
+  wordOfDayCallsToday: zod.number(),
+  errorsToday: zod.number(),
+  uptimeSeconds: zod.number(),
+  startedAt: zod.string(),
+  requestsByEndpoint: zod.record(zod.string(), zod.number()),
+});
+
+/**
+ * @summary Get recent request logs
+ */
+export const GetAdminLogsResponseItem = zod.object({
+  id: zod.string(),
+  method: zod.string(),
+  path: zod.string(),
+  status: zod.number(),
+  durationMs: zod.number(),
+  timestamp: zod.string(),
+  isError: zod.boolean(),
+});
+export const GetAdminLogsResponse = zod.array(GetAdminLogsResponseItem);
+
+/**
+ * @summary List practice prompts
+ */
+export const ListAdminPromptsResponseItem = zod.object({
+  id: zod.string(),
+  taskType: zod.string(),
+  genre: zod.string(),
+  source: zod.string(),
+  prompt: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const ListAdminPromptsResponse = zod.array(ListAdminPromptsResponseItem);
+
+/**
+ * @summary Create a practice prompt
+ */
+export const CreateAdminPromptBody = zod.object({
+  taskType: zod.string(),
+  genre: zod.string(),
+  source: zod.string(),
+  prompt: zod.string(),
+  active: zod.boolean(),
+});
+
+/**
+ * @summary Update a practice prompt
+ */
+export const UpdateAdminPromptParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateAdminPromptBody = zod.object({
+  taskType: zod.string(),
+  genre: zod.string(),
+  source: zod.string(),
+  prompt: zod.string(),
+  active: zod.boolean(),
+});
+
+export const UpdateAdminPromptResponse = zod.object({
+  id: zod.string(),
+  taskType: zod.string(),
+  genre: zod.string(),
+  source: zod.string(),
+  prompt: zod.string(),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a practice prompt
+ */
+export const DeleteAdminPromptParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary List grammar topics
+ */
+export const ListAdminGrammarResponseItem = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  category: zod.string(),
+  explanation: zod.string(),
+  examples: zod.array(zod.string()),
+  tips: zod.array(zod.string()),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+export const ListAdminGrammarResponse = zod.array(ListAdminGrammarResponseItem);
+
+/**
+ * @summary Create a grammar topic
+ */
+export const CreateAdminGrammarBody = zod.object({
+  title: zod.string(),
+  category: zod.string(),
+  explanation: zod.string(),
+  examples: zod.array(zod.string()),
+  tips: zod.array(zod.string()),
+  active: zod.boolean(),
+});
+
+/**
+ * @summary Update a grammar topic
+ */
+export const UpdateAdminGrammarParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateAdminGrammarBody = zod.object({
+  title: zod.string(),
+  category: zod.string(),
+  explanation: zod.string(),
+  examples: zod.array(zod.string()),
+  tips: zod.array(zod.string()),
+  active: zod.boolean(),
+});
+
+export const UpdateAdminGrammarResponse = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  category: zod.string(),
+  explanation: zod.string(),
+  examples: zod.array(zod.string()),
+  tips: zod.array(zod.string()),
+  active: zod.boolean(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a grammar topic
+ */
+export const DeleteAdminGrammarParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary Get AI config
+ */
+export const GetAdminConfigResponse = zod.object({
+  feedbackSystemPrompt: zod.string(),
+  promptGenerationSystemPrompt: zod.string(),
+  adminPasswordHash: zod.string().optional(),
+});
+
+/**
+ * @summary Update AI config
+ */
+export const UpdateAdminConfigBody = zod.object({
+  feedbackSystemPrompt: zod.string(),
+  promptGenerationSystemPrompt: zod.string(),
+  adminPasswordHash: zod.string().optional(),
+});
+
+export const UpdateAdminConfigResponse = zod.object({
+  feedbackSystemPrompt: zod.string(),
+  promptGenerationSystemPrompt: zod.string(),
+  adminPasswordHash: zod.string().optional(),
+});

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "taskType": "Tarefa 1",
+    "genre": "E-mail formal",
+    "source": "Vídeo: Um especialista em educação discute o aumento do uso de inteligência artificial nas escolas brasileiras, destacando tanto os benefícios quanto os riscos para o aprendizado dos alunos.",
+    "prompt": "Com base nas informações do vídeo, escreva um e-mail formal ao diretor da sua escola propondo a adoção responsável de ferramentas de IA nas aulas. O e-mail deve ter entre 150 e 200 palavras.",
+    "active": true,
+    "createdAt": "2025-01-15T10:00:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "taskType": "Tarefa 2",
+    "genre": "Artigo de opinião",
+    "source": "Gráfico: Dados do IBGE mostram que 42% dos brasileiros entre 18 e 35 anos nunca votaram em eleições municipais, apesar do voto obrigatório a partir dos 18 anos.",
+    "prompt": "A partir dos dados apresentados, escreva um artigo de opinião para um jornal universitário refletindo sobre a participação política dos jovens brasileiros e propondo soluções para aumentar o engajamento cívico. O artigo deve ter entre 200 e 250 palavras.",
+    "active": true,
+    "createdAt": "2025-01-15T10:05:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "taskType": "Tarefa 3",
+    "genre": "Carta de reclamação",
+    "source": "Áudio: Uma reportagem de rádio aborda os problemas de mobilidade urbana em grandes cidades brasileiras, como engarrafamentos, falta de ciclovias e transporte público ineficiente.",
+    "prompt": "Com base na reportagem, escreva uma carta de reclamação à Secretaria de Transporte de sua cidade, descrevendo os problemas e sugerindo melhorias concretas. A carta deve ter entre 180 e 220 palavras.",
+    "active": true,
+    "createdAt": "2025-01-15T10:10:00.000Z"
+  }
+]
