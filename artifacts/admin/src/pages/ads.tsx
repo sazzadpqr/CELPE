@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Save, Megaphone, ToggleLeft, Smartphone, Globe } from "lucide-react";
+import { Save, Megaphone, ToggleLeft, Smartphone, Globe, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminFetch, adminSave } from "@/lib/adminClient";
 
 type AdsConfig = {
@@ -50,6 +50,13 @@ const DEFAULTS: AdsConfig = {
   rewardedAdMaxPerDay: 3,
 };
 
+function deriveAdProvider(webEnabled: boolean, admobEnabled: boolean): string {
+  if (webEnabled && admobEnabled) return "both";
+  if (webEnabled) return "adsense";
+  if (admobEnabled) return "admob";
+  return "none";
+}
+
 export default function AdsPage() {
   const { toast } = useToast();
   const [config, setConfig] = useState<AdsConfig>(DEFAULTS);
@@ -66,7 +73,9 @@ export default function AdsPage() {
   const save = async () => {
     setSaving(true);
     try {
-      await adminSave("/api/admin/ads-config", config);
+      const derived = deriveAdProvider(config.webAdsEnabled, config.admobEnabled);
+      await adminSave("/api/admin/ads-config", { ...config, adProvider: derived });
+      setConfig((c) => ({ ...c, adProvider: derived }));
       toast({ title: "Configuração de anúncios salva" });
     } catch {
       toast({ title: "Erro ao salvar", variant: "destructive" });
@@ -103,6 +112,8 @@ export default function AdsPage() {
     </div>
   );
 
+  const activeProviderCount = (config.webAdsEnabled ? 1 : 0) + (config.admobEnabled ? 1 : 0);
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center justify-between">
@@ -124,6 +135,7 @@ export default function AdsPage() {
         <div className="space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>
       ) : (
         <div className="space-y-6">
+          {/* General Controls */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
@@ -132,27 +144,86 @@ export default function AdsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <SwitchRow field="adsEnabled" label="Anúncios Habilitados" description="Chave mestre — desativar esconde todos os ads globalmente." />
-              <SwitchRow field="webAdsEnabled" label="Anúncios Web (AdSense)" description="Exibir anúncios no browser." />
-              <SwitchRow field="admobEnabled" label="AdMob (futuro nativo)" description="Scaffold para Android/iOS via Capacitor." />
               <SwitchRow field="rewardedAdsEnabled" label="Anúncios com Recompensa" description="Usuário assiste e ganha créditos de IA." />
               <SwitchRow field="hideAdsForPremium" label="Ocultar Ads para Premium" description="Usuários premium nunca veem anúncios." />
-              <div className="space-y-2 pt-2">
-                <Label className="text-xs font-mono text-muted-foreground">Provedor de Anúncios</Label>
-                <Select value={config.adProvider} onValueChange={(v) => set("adProvider", v)}>
-                  <SelectTrigger className="font-mono text-xs bg-muted/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    <SelectItem value="adsense">AdSense (web)</SelectItem>
-                    <SelectItem value="admob">AdMob (nativo)</SelectItem>
-                    <SelectItem value="both">Ambos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
           </Card>
 
+          {/* Provider Selection — multi-active */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-mono text-sm flex items-center gap-2">
+                <CheckSquare className="h-4 w-4 text-orange-400" /> Provedores de Anúncios
+                {activeProviderCount > 0 && (
+                  <Badge variant="secondary" className="ml-auto font-mono text-xs">
+                    {activeProviderCount} ativo{activeProviderCount > 1 ? "s" : ""}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Ative um ou mais provedores simultaneamente. Cada provedor opera de forma independente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* AdSense provider card */}
+              <div
+                className={`rounded-lg border p-4 transition-colors ${
+                  config.webAdsEnabled
+                    ? "border-blue-500/40 bg-blue-500/5"
+                    : "border-border bg-muted/20"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-md ${config.webAdsEnabled ? "bg-blue-500/15" : "bg-muted"}`}>
+                      <Globe className={`h-4 w-4 ${config.webAdsEnabled ? "text-blue-400" : "text-muted-foreground"}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Google AdSense</p>
+                      <p className="text-xs text-muted-foreground">Anúncios web — exibidos no browser</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={config.webAdsEnabled}
+                    onCheckedChange={(v) => set("webAdsEnabled", v)}
+                  />
+                </div>
+              </div>
+
+              {/* AdMob provider card */}
+              <div
+                className={`rounded-lg border p-4 transition-colors ${
+                  config.admobEnabled
+                    ? "border-green-500/40 bg-green-500/5"
+                    : "border-border bg-muted/20"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-md ${config.admobEnabled ? "bg-green-500/15" : "bg-muted"}`}>
+                      <Smartphone className={`h-4 w-4 ${config.admobEnabled ? "text-green-400" : "text-muted-foreground"}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Google AdMob</p>
+                      <p className="text-xs text-muted-foreground">Anúncios nativos — Android e iOS</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={config.admobEnabled}
+                    onCheckedChange={(v) => set("admobEnabled", v)}
+                  />
+                </div>
+              </div>
+
+              {activeProviderCount === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-1">
+                  Nenhum provedor ativo. Ative ao menos um para exibir anúncios.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Rewarded Ads */}
           <Card>
             <CardHeader>
               <CardTitle className="font-mono text-sm">Anúncios com Recompensa</CardTitle>
@@ -174,10 +245,16 @@ export default function AdsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* AdSense Slots — shown only when AdSense is active */}
+          <Card className={!config.webAdsEnabled ? "opacity-60" : ""}>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
                 <Globe className="h-4 w-4 text-blue-400" /> Google AdSense — Slots
+                {!config.webAdsEnabled && (
+                  <Badge variant="outline" className="ml-auto text-xs font-normal text-muted-foreground">
+                    Inativo
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>IDs de slot para cada posição na web.</CardDescription>
             </CardHeader>
@@ -186,7 +263,7 @@ export default function AdsPage() {
                 <Label className="text-xs font-mono text-muted-foreground">Publisher Client ID</Label>
                 <Input placeholder="ca-pub-..." value={config.adsenseClientId}
                   onChange={(e) => set("adsenseClientId", e.target.value)}
-                  className="font-mono text-xs bg-muted/50" />
+                  className="font-mono text-xs bg-muted/50" disabled={!config.webAdsEnabled} />
               </div>
               <SlotField field="adsenseHomeSlotId" label="Slot — Home (rodapé)" />
               <SlotField field="adsenseBottomSlotId" label="Slot — Inferior global" />
@@ -195,10 +272,16 @@ export default function AdsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* AdMob IDs — shown only when AdMob is active */}
+          <Card className={!config.admobEnabled ? "opacity-60" : ""}>
             <CardHeader>
               <CardTitle className="font-mono text-sm flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-green-400" /> AdMob — IDs de Unidade
+                {!config.admobEnabled && (
+                  <Badge variant="outline" className="ml-auto text-xs font-normal text-muted-foreground">
+                    Inativo
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>IDs de anúncio para Android e iOS.</CardDescription>
             </CardHeader>
