@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
+import { GuestGate } from "@/components/GuestGate";
 
 type Message = {
   id: string;
@@ -46,6 +48,7 @@ function getApiUrl(path: string) {
 export default function ConversationScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { profile } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const listRef = useRef<FlatList>(null);
 
@@ -112,6 +115,8 @@ export default function ConversationScreen() {
       setLoading(false);
     }
   };
+
+  if (profile.isGuest) return <GuestGate feature="Conversação com IA" />;
 
   if (phase === "select") {
     return (

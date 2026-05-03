@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 
 if (Platform.OS !== "web") {
   WebBrowser.maybeCompleteAuthSession();
@@ -35,6 +36,7 @@ export default function SignInScreen() {
   useWarmUpBrowser();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { enterGuestMode } = useApp();
   const { signIn, errors, fetchStatus } = useSignIn();
   const { startSSOFlow } = useSSO();
 
@@ -229,6 +231,24 @@ export default function SignInScreen() {
               <Text style={[styles.linkText, { color: colors.primary }]}>Cadastrar</Text>
             </Pressable>
           </View>
+
+          <View style={[styles.dividerRow, { marginTop: 8 }]}>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>ou</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          </View>
+
+          <Pressable
+            style={[styles.guestBtn, { borderColor: colors.border }]}
+            onPress={async () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              await enterGuestMode();
+              router.replace("/");
+            }}
+          >
+            <Feather name="user" size={16} color={colors.mutedForeground} />
+            <Text style={[styles.guestBtnText, { color: colors.mutedForeground }]}>Continuar como convidado</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -250,6 +270,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontFamily: "Inter_700Bold", textAlign: "center" },
   subtitle: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20, marginTop: -8 },
   googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 14, borderWidth: 1.5, padding: 14, width: "100%", marginTop: 8 },
+  guestBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, borderWidth: 1, paddingVertical: 12, paddingHorizontal: 20, width: "100%" },
+  guestBtnText: { fontSize: 14, fontFamily: "Inter_500Medium" },
   googleIconWrap: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
   googleIconText: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#EA4335" },
   googleBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },

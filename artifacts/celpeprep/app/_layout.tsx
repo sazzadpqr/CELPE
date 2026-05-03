@@ -32,19 +32,19 @@ function RootLayoutNav() {
   useEffect(() => {
     if (!isLoaded || !clerkLoaded) return;
 
-    if (!isSignedIn) {
+    if (!isSignedIn && !profile.isGuest) {
       router.replace("/(auth)/sign-in");
       return;
     }
 
-    if (userId && profile.deviceToken !== userId) {
-      updateProfile({ deviceToken: userId });
+    if (isSignedIn && userId && profile.deviceToken !== userId) {
+      updateProfile({ deviceToken: userId, isGuest: false });
     }
 
     if (!profile.onboardingDone) {
       router.replace("/onboarding");
     }
-  }, [isLoaded, clerkLoaded, isSignedIn, profile.onboardingDone, profile.deviceToken, userId]);
+  }, [isLoaded, clerkLoaded, isSignedIn, profile.onboardingDone, profile.deviceToken, profile.isGuest, userId]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

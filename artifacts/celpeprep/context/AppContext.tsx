@@ -24,6 +24,7 @@ export interface UserProfile {
   onboardingDone: boolean;
   diagnosticDone: boolean;
   deviceToken: string;
+  isGuest: boolean;
 }
 
 export interface VocabWord {
@@ -69,6 +70,8 @@ interface AppContextType {
   profile: UserProfile;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   syncProfileToServer: (updates: Partial<UserProfile>) => Promise<{ ok: boolean; error?: string }>;
+  enterGuestMode: () => Promise<void>;
+  exitGuestMode: () => Promise<void>;
   vocabWords: VocabWord[];
   addVocabWord: (word: Omit<VocabWord, "id" | "addedAt" | "timesReviewed" | "easeLevel" | "nextReview" | "status">) => Promise<void>;
   updateVocabWord: (id: string, updates: Partial<VocabWord>) => Promise<void>;
@@ -96,6 +99,7 @@ const defaultProfile: UserProfile = {
   onboardingDone: false,
   diagnosticDone: false,
   deviceToken: "",
+  isGuest: false,
 };
 
 const defaultStudyTasks: StudyTask[] = [
@@ -174,6 +178,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  const enterGuestMode = useCallback(async () => {
+    const token = generateUUID();
+    const guestProfile = { ...defaultProfile, deviceToken: token, isGuest: true, onboardingDone: true, name: "Convidado" };
+    await AsyncStorage.setItem("celpeprep_profile", JSON.stringify(guestProfile));
+    setProfile(guestProfile);
+  }, []);
+
+  const exitGuestMode = useCallback(async () => {
+    const next = { ...profile, isGuest: false };
+    await AsyncStorage.setItem("celpeprep_profile", JSON.stringify(next));
+    setProfile(next);
+  }, [profile]);
 
   const syncProfileToServer = useCallback(async (updates: Partial<UserProfile>): Promise<{ ok: boolean; error?: string }> => {
     const currentProfile = await AsyncStorage.getItem("celpeprep_profile");
@@ -285,7 +302,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider
-      value={{ profile, updateProfile, syncProfileToServer, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
+      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
     >
       {children}
     </AppContext.Provider>

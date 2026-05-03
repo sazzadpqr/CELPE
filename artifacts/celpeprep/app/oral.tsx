@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
+import { GuestGate } from "@/components/GuestGate";
 
 type OralTask = {
   id: string;
@@ -105,6 +107,7 @@ function formatTime(seconds: number) {
 export default function OralSimulatorScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { profile } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const [tasks, setTasks] = useState<OralTask[]>(FALLBACK_TASKS);
@@ -185,6 +188,8 @@ export default function OralSimulatorScreen() {
 
   const pct = selectedTask ? 1 - remaining / selectedTask.durationSeconds : 0;
   const isWarning = remaining > 0 && remaining <= 60;
+
+  if (profile.isGuest) return <GuestGate feature="Simulador Oral" />;
 
   if (phase === "select") {
     return (

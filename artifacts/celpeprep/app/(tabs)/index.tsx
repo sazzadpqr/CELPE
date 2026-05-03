@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { GuestBanner } from "@/components/GuestBanner";
 
 function getApiUrl(path: string) {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
@@ -373,6 +374,7 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
+      <GuestBanner />
       <DaysUntilExam examDate={profile.examDate} />
       <StreakCard streak={profile.streakDays} best={profile.bestStreak} />
       <AICreditsBar used={profile.aiCreditsUsed} total={profile.aiCreditsTotal} />

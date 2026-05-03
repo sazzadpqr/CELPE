@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { GuestGate } from "@/components/GuestGate";
 
 const TIMER_SECONDS = 1500;
 
@@ -246,6 +247,8 @@ export default function PracticeSessionScreen() {
   const isWarning = remaining < 300;
   const timerColor = timeExpired ? colors.destructive : isWarning ? colors.warning : colors.primary;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  if (profile.isGuest) return <GuestGate feature="Prática com IA" />;
 
   return (
     <KeyboardAvoidingView
