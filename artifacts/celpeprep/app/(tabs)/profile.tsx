@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAuth } from "@clerk/expo";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -310,6 +311,7 @@ function RewardedAdModal({
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { signOut } = useAuth();
   const { profile, attempts, vocabWords, updateProfile, syncProfileToServer } = useApp();
   const [editVisible, setEditVisible] = useState(false);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
@@ -400,6 +402,20 @@ export default function ProfileScreen() {
     Alert.alert("Reiniciar app", "Isso vai apagar todos os dados locais. Continuar?", [
       { text: "Cancelar", style: "cancel" },
       { text: "Reiniciar", style: "destructive", onPress: () => { router.replace("/onboarding"); } },
+    ]);
+  };
+
+  const handleSignOut = () => {
+    Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sair",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+          router.replace("/(auth)/sign-in");
+        },
+      },
     ]);
   };
 
@@ -606,11 +622,18 @@ export default function ProfileScreen() {
           <Text style={[styles.settingsLabel, { color: colors.text }]}>Sobre o app</Text>
           <Feather name="external-link" size={14} color={colors.mutedForeground} />
         </Pressable>
-        <Pressable style={[styles.settingsRow, { borderBottomWidth: 0 }]} onPress={handleReset}>
+        <Pressable style={[styles.settingsRow, { borderBottomColor: colors.border }]} onPress={handleReset}>
           <View style={[styles.settingsIcon, { backgroundColor: colors.destructive + "18" }]}>
             <Feather name="refresh-cw" size={16} color={colors.destructive} />
           </View>
           <Text style={[styles.settingsLabel, { color: colors.destructive }]}>Reiniciar dados</Text>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        </Pressable>
+        <Pressable style={[styles.settingsRow, { borderBottomWidth: 0 }]} onPress={handleSignOut}>
+          <View style={[styles.settingsIcon, { backgroundColor: "#D85A3018" }]}>
+            <Feather name="log-out" size={16} color="#D85A30" />
+          </View>
+          <Text style={[styles.settingsLabel, { color: "#D85A30" }]}>Sair da conta</Text>
           <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
         </Pressable>
       </View>

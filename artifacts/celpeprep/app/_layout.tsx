@@ -5,6 +5,8 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import { ClerkLoaded, ClerkProvider, useAuth } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -20,19 +22,34 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
+const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
+
 function RootLayoutNav() {
-  const { profile, isLoaded } = useApp();
+  const { profile, isLoaded, updateProfile } = useApp();
+  const { isSignedIn, isLoaded: clerkLoaded, userId } = useAuth();
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !clerkLoaded) return;
+
+    if (!isSignedIn) {
+      router.replace("/(auth)/sign-in");
+      return;
+    }
+
+    if (userId && profile.deviceToken !== userId) {
+      updateProfile({ deviceToken: userId });
+    }
+
     if (!profile.onboardingDone) {
       router.replace("/onboarding");
     }
-  }, [isLoaded, profile.onboardingDone]);
+  }, [isLoaded, clerkLoaded, isSignedIn, profile.onboardingDone, profile.deviceToken, userId]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="practice/session" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="practice/feedback" options={{ headerShown: false, gestureEnabled: false }} />
@@ -64,18 +81,22 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <AppProvider>
-                <RootLayoutNav />
-              </AppProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
+      <ClerkLoaded>
+        <SafeAreaProvider>
+          <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                  <AppProvider>
+                    <RootLayoutNav />
+                  </AppProvider>
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </QueryClientProvider>
+          </ErrorBoundary>
+        </SafeAreaProvider>
+      </ClerkLoaded>
+    </ClerkProvider>
   );
 }
