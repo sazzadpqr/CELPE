@@ -169,4 +169,42 @@ router.get("/payments/status", (req, res) => {
   res.json({ isPremium: sub?.isPremium ?? false, plan: sub?.plan ?? null });
 });
 
+router.get("/content/payment-config", (_req, res) => {
+  res.json({ paymentsEnabled: !!PADDLE_API_KEY });
+});
+
+interface InterestRecord {
+  deviceToken: string;
+  email: string;
+  planKey: string;
+  registeredAt: string;
+}
+
+router.post("/payments/register-interest", (req, res) => {
+  const { deviceToken, email, planKey } = req.body as Partial<InterestRecord>;
+  if (!deviceToken) { res.status(400).json({ error: "deviceToken required" }); return; }
+  const list = readData<InterestRecord[]>("interest-list.json", []);
+  const existing = list.findIndex((r) => r.deviceToken === deviceToken);
+  const record: InterestRecord = {
+    deviceToken,
+    email: email ?? "",
+    planKey: planKey ?? "unknown",
+    registeredAt: new Date().toISOString(),
+  };
+  if (existing >= 0) {
+    list[existing] = record;
+  } else {
+    list.push(record);
+  }
+  writeData("interest-list.json", list);
+  res.status(201).json({ ok: true });
+});
+
+router.get("/admin/interest-list", (req, res) => {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader?.startsWith("Bearer ")) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const list = readData<InterestRecord[]>("interest-list.json", []);
+  res.json(list.sort((a, b) => b.registeredAt.localeCompare(a.registeredAt)));
+});
+
 export default router;

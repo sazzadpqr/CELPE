@@ -827,19 +827,28 @@ export default function ProfileScreen() {
         )}
 
         {!profile.isPremium && (
-          <View style={[styles.upgradeCard, { backgroundColor: "#7c3aed12", borderColor: "#7c3aed30" }]}>
+          <Pressable
+            style={[styles.upgradeCard, { backgroundColor: "#7c3aed12", borderColor: "#7c3aed40" }]}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/paywall"); }}
+          >
             <View style={styles.upgradeHeader}>
-              <Feather name="zap" size={16} color="#7c3aed" />
-              <Text style={[styles.upgradeTitle, { color: "#7c3aed" }]}>Premium — avaliações ilimitadas</Text>
+              <View style={[styles.upgradeIconWrap, { backgroundColor: "#7c3aed20" }]}>
+                <Feather name="zap" size={16} color="#7c3aed" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.upgradeTitle, { color: "#7c3aed" }]}>CelpePrep Premium</Text>
+                <Text style={[styles.upgradeDesc, { color: colors.mutedForeground }]}>
+                  Avaliações ilimitadas · IA sem limites · Sem anúncios
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={18} color="#7c3aed" />
             </View>
-            <Text style={[styles.upgradeDesc, { color: colors.mutedForeground }]}>
-              Sem limites de avaliação, vocabulário e práticas geradas por IA.
-            </Text>
-            <Pressable style={[styles.upgradeBtn, { backgroundColor: "#7c3aed" }]} onPress={() => router.push("/paywall")}>
-              <Text style={styles.upgradeBtnText}>Ver planos</Text>
+            <View style={[styles.upgradeCta, { backgroundColor: "#7c3aed" }]}>
+              <Feather name="star" size={14} color="#fff" />
+              <Text style={styles.upgradeCtaText}>Ver planos e preços</Text>
               <Feather name="arrow-right" size={14} color="#fff" />
-            </Pressable>
-          </View>
+            </View>
+          </Pressable>
         )}
       </View>
 
@@ -1034,12 +1043,13 @@ const styles = StyleSheet.create({
   rewardedAdBtn: { flexDirection: "row", alignItems: "center", gap: 7, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 9 },
   rewardedAdBtnText: { color: "#fff", fontSize: 13, fontFamily: "Inter_600SemiBold", flex: 1 },
 
-  upgradeCard: { borderRadius: 10, borderWidth: 1, padding: 14, gap: 8 },
-  upgradeHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  upgradeCard: { borderRadius: 16, borderWidth: 1.5, padding: 14, gap: 12 },
+  upgradeHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  upgradeIconWrap: { width: 38, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   upgradeTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  upgradeDesc: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
-  upgradeBtn: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  upgradeBtnText: { color: "#fff", fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  upgradeDesc: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17, marginTop: 1 },
+  upgradeCta: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 11, paddingVertical: 12 },
+  upgradeCtaText: { color: "#fff", fontSize: 14, fontFamily: "Inter_700Bold", flex: 1, textAlign: "center" },
 
   settingsCard: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
   settingsRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderBottomWidth: 1 },
