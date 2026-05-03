@@ -382,6 +382,7 @@ export type WotdEntry = {
   id: string;
   word: string;
   pos: string;
+  topic?: string;
   definition: string;
   example: string;
   active: boolean;

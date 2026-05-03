@@ -183,6 +183,7 @@ export interface WotdEntry {
   id: string;
   word: string;
   pos: string;
+  topic?: string;
   definition: string;
   example: string;
   active: boolean;
@@ -192,6 +193,7 @@ export interface WotdEntry {
 export interface WotdEntryBody {
   word: string;
   pos: string;
+  topic?: string;
   definition: string;
   example: string;
   active: boolean;

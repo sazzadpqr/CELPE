@@ -24,8 +24,43 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
-const EMPTY: WotdEntryBody = { word: "", pos: "", definition: "", example: "", active: true };
+export const WOTD_TOPICS = [
+  "Alimentação e Nutrição",
+  "Animais Selvagens e Domésticos",
+  "Artes Divinatorias e Esoterismo",
+  "Artes Visuais, Artes Plásticas",
+  "Atividades Físicas e Esportes",
+  "Ciência e Tecnologia",
+  "Cidadania e Direitos Humanos",
+  "Cinema e Fotografia",
+  "Crenças, Valores e Comportamento Social",
+  "Dança",
+  "Direitos Humanos",
+  "Economia",
+  "Educação",
+  "Emoções, Sensações, Sentimentos e Estados de Espírito",
+  "Família",
+  "Lazer e Turismo",
+  "Legislação (leis)",
+  "Literatura e Poesia",
+  "Meio ambiente e Ecologia",
+  "Meios de Comunicação",
+  "Meios de Transporte",
+  "Moda e Vestuário",
+  "Música",
+  "Negócios",
+  "Política",
+  "Religião",
+  "Saúde e Bem-estar",
+];
+
+const EMPTY: WotdEntryBody = { word: "", pos: "", topic: "", definition: "", example: "", active: true };
+
+const POS_OPTIONS = ["verbo", "substantivo", "adjetivo", "advérbio", "locução", "expressão"];
 
 const POS_COLORS: Record<string, string> = {
   verbo: "border-blue-500 text-blue-600 bg-blue-500/10",
@@ -45,6 +80,7 @@ export default function WotdPage() {
   const deleteEntry = useDeleteAdminWotd();
 
   const [search, setSearch] = useState("");
+  const [topicFilter, setTopicFilter] = useState<string>("all");
   const [dialog, setDialog] = useState(false);
   const [editing, setEditing] = useState<WotdEntry | null>(null);
   const [form, setForm] = useState<WotdEntryBody>(EMPTY);
@@ -52,11 +88,15 @@ export default function WotdPage() {
 
   const openEditor = (entry?: WotdEntry) => {
     setEditing(entry ?? null);
-    setForm(entry ? { word: entry.word, pos: entry.pos, definition: entry.definition, example: entry.example, active: entry.active } : EMPTY);
+    setForm(entry
+      ? { word: entry.word, pos: entry.pos, topic: entry.topic ?? "", definition: entry.definition, example: entry.example, active: entry.active }
+      : EMPTY
+    );
     setDialog(true);
   };
 
   const handleSave = () => {
+    const payload: WotdEntryBody = { ...form, topic: form.topic || undefined };
     const onSuccess = () => {
       queryClient.invalidateQueries({ queryKey: getListAdminWotdQueryKey() });
       setDialog(false);
@@ -64,9 +104,9 @@ export default function WotdPage() {
     };
     const onError = () => toast({ title: "Save failed", variant: "destructive" });
     if (editing) {
-      updateEntry.mutate({ id: editing.id, data: form }, { onSuccess, onError });
+      updateEntry.mutate({ id: editing.id, data: payload }, { onSuccess, onError });
     } else {
-      createEntry.mutate({ data: form }, { onSuccess, onError });
+      createEntry.mutate({ data: payload }, { onSuccess, onError });
     }
   };
 
@@ -82,11 +122,15 @@ export default function WotdPage() {
     });
   };
 
-  const filtered = entries?.filter((e) =>
-    e.word.toLowerCase().includes(search.toLowerCase()) ||
-    e.pos.toLowerCase().includes(search.toLowerCase()) ||
-    e.definition.toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  const filtered = (entries ?? []).filter((e) => {
+    const matchSearch =
+      e.word.toLowerCase().includes(search.toLowerCase()) ||
+      e.pos.toLowerCase().includes(search.toLowerCase()) ||
+      e.definition.toLowerCase().includes(search.toLowerCase()) ||
+      (e.topic ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchTopic = topicFilter === "all" || e.topic === topicFilter;
+    return matchSearch && matchTopic;
+  });
 
   const activeCount = entries?.filter((e) => e.active).length ?? 0;
 
@@ -106,11 +150,22 @@ export default function WotdPage() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 max-w-sm">
-        <div className="relative w-full">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search words..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <Select value={topicFilter} onValueChange={setTopicFilter}>
+          <SelectTrigger className="w-60">
+            <SelectValue placeholder="Filter by topic" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All topics</SelectItem>
+            {WOTD_TOPICS.map((t) => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="border rounded-lg overflow-hidden">
@@ -118,7 +173,8 @@ export default function WotdPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Word</TableHead>
-              <TableHead>Part of Speech</TableHead>
+              <TableHead>Class</TableHead>
+              <TableHead>Topic</TableHead>
               <TableHead className="hidden md:table-cell">Definition</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -130,6 +186,7 @@ export default function WotdPage() {
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-48" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                   <TableCell />
@@ -137,8 +194,8 @@ export default function WotdPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                  {search ? "No words match your search." : "No words in the bank yet."}
+                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  {search || topicFilter !== "all" ? "No words match your filters." : "No words in the bank yet."}
                 </TableCell>
               </TableRow>
             ) : filtered.map((entry) => (
@@ -148,6 +205,12 @@ export default function WotdPage() {
                   <Badge variant="outline" className={`text-xs ${POS_COLORS[entry.pos] ?? "text-muted-foreground"}`}>
                     {entry.pos}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {entry.topic
+                    ? <Badge variant="secondary" className="text-xs font-normal">{entry.topic}</Badge>
+                    : <span className="text-xs text-muted-foreground">—</span>
+                  }
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground text-sm max-w-xs">
                   <span className="line-clamp-2">{entry.definition}</span>
@@ -188,8 +251,32 @@ export default function WotdPage() {
               </div>
               <div className="space-y-2">
                 <Label>Part of Speech</Label>
-                <Input value={form.pos} onChange={(e) => setForm({ ...form, pos: e.target.value })} placeholder="e.g. verbo" />
+                <Select value={form.pos} onValueChange={(v) => setForm({ ...form, pos: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {POS_OPTIONS.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>
+                Topic <span className="text-muted-foreground font-normal">(tema Celpe-Bras)</span>
+              </Label>
+              <Select value={form.topic ?? ""} onValueChange={(v) => setForm({ ...form, topic: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select topic..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {WOTD_TOPICS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Definition</Label>

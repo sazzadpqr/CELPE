@@ -9,6 +9,7 @@
 export interface WotdEntryBody {
   word: string;
   pos: string;
+  topic?: string;
   definition: string;
   example: string;
   active: boolean;

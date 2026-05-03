@@ -108,7 +108,7 @@ const QUICK_ACTIONS = [
   { label: "Plano", icon: "calendar" as const, route: "/study", color: "#1D9E75" },
 ];
 
-interface WotdWord { word: string; pos: string; definition: string; example: string; }
+interface WotdWord { word: string; pos: string; topic?: string; definition: string; example: string; }
 
 function getDayOfYear() {
   const now = new Date();
@@ -126,11 +126,11 @@ function WordOfTheDay() {
   useEffect(() => {
     fetch(getApiUrl("/api/content/wotd"))
       .then((r) => r.json())
-      .then((data: Array<{ word: string; pos: string; definition: string; example: string }>) => {
+      .then((data: Array<{ word: string; pos: string; topic?: string; definition: string; example: string }>) => {
         if (data.length > 0) {
           const idx = getDayOfYear() % data.length;
           const w = data[idx]!;
-          setWordData({ word: w.word, pos: w.pos, definition: w.definition, example: w.example });
+          setWordData({ word: w.word, pos: w.pos, topic: w.topic, definition: w.definition, example: w.example });
         }
       })
       .catch(() => {})
@@ -161,6 +161,12 @@ function WordOfTheDay() {
           <Text style={[styles.wotdPos, { color: "#BA7517" }]}>{wordData.pos}</Text>
         </View>
       </View>
+      {wordData.topic ? (
+        <View style={[styles.wotdTopicRow]}>
+          <Feather name="tag" size={11} color={colors.primary} />
+          <Text style={[styles.wotdTopicText, { color: colors.primary }]}>{wordData.topic}</Text>
+        </View>
+      ) : null}
       <Text style={[styles.wotdDef, { color: colors.text }]}>{wordData.definition}</Text>
       <View style={[styles.wotdExampleWrap, { borderLeftColor: colors.primary, backgroundColor: colors.infoBg }]}>
         <Text style={[styles.wotdExample, { color: colors.mutedForeground }]}>
@@ -799,6 +805,8 @@ const styles = StyleSheet.create({
   wotdWord: { fontSize: 22, fontFamily: "Inter_700Bold" },
   wotdPosBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   wotdPos: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  wotdTopicRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  wotdTopicText: { fontSize: 11, fontFamily: "Inter_500Medium" },
   wotdDef: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 20 },
   wotdExampleWrap: { borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 4 },
   wotdExample: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, fontStyle: "italic" },

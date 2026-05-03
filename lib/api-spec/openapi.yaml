@@ -1194,6 +1194,8 @@ components:
           type: string
         pos:
           type: string
+        topic:
+          type: string
         definition:
           type: string
         example:
@@ -1217,6 +1219,8 @@ components:
         word:
           type: string
         pos:
+          type: string
+        topic:
           type: string
         definition:
           type: string
