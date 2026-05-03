@@ -908,4 +908,8 @@ const styles = StyleSheet.create({
   posRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
   posPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   posPillText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  topicsBtn: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, padding: 12 },
+  topicsIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  topicsTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  topicsSub: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 16, marginTop: 2 },
 });

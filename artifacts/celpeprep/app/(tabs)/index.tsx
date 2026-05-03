@@ -104,7 +104,7 @@ const QUICK_ACTIONS = [
   { label: "Pronúncia", icon: "volume-2" as const, route: "/pronunciation", color: "#BA7517" },
   { label: "Conversação", icon: "message-circle" as const, route: "/conversation", color: "#6B21A8" },
   { label: "Progresso", icon: "bar-chart-2" as const, route: "/progress", color: "#BA7517" },
-  { label: "Provas", icon: "archive" as const, route: "/exams", color: "#D85A30" },
+  { label: "Biblioteca", icon: "layers" as const, route: "/library", color: "#185FA5" },
   { label: "Plano", icon: "calendar" as const, route: "/study", color: "#1D9E75" },
 ];
 

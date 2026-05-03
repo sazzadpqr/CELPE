@@ -45,26 +45,67 @@ function getApiUrl(path: string) {
   return domain ? `https://${domain}${path}` : path;
 }
 
+interface GrammarExercise {
+  id: string; categoryId: string; type: string;
+  prompt: string; question: string;
+  options: string[]; correct: number; explanation: string;
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j]!, a[i]!];
+  }
+  return a;
+}
+
 function useQuizCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(getApiUrl("/api/content/quiz"))
-      .then((r) => r.json())
-      .then((data: Array<{
+    Promise.all([
+      fetch(getApiUrl("/api/content/quiz")).then((r) => r.json()),
+      fetch(getApiUrl("/api/content/grammar-exercises")).then((r) => r.json()).catch(() => []),
+    ])
+      .then(([quizData, exercisesData]: [Array<{
         id: string; title: string; icon: string; color: string;
         description: string; questions: Question[];
         lesson?: LessonContent | null;
-      }>) => {
-        setCategories(
-          data.map((c) => ({
-            ...c,
-            icon: (c.icon || "book") as keyof typeof Feather.glyphMap,
-            questions: (c.questions || []),
-            lesson: c.lesson ?? null,
-          }))
-        );
+      }>, GrammarExercise[]]) => {
+        const topicCats = quizData.map((c) => ({
+          ...c,
+          icon: (c.icon || "book") as keyof typeof Feather.glyphMap,
+          questions: (c.questions || []),
+          lesson: c.lesson ?? null,
+        }));
+
+        const allExercises = Array.isArray(exercisesData) ? exercisesData : [];
+        const activeExercises = allExercises.filter((e) => e.options?.length >= 2);
+
+        if (activeExercises.length >= 5) {
+          const count = Math.min(15, Math.max(10, activeExercises.length));
+          const sampled = shuffle(activeExercises).slice(0, count);
+          const freeCategory: Category = {
+            id: "free-practice",
+            title: "Prática Livre",
+            icon: "shuffle" as keyof typeof Feather.glyphMap,
+            color: "#059669",
+            description: `${count} questões variadas de toda a gramática — embaralhadas a cada tentativa`,
+            questions: sampled.map((e) => ({
+              id: e.id,
+              question: e.prompt ? `${e.prompt}\n\n${e.question}` : e.question,
+              options: e.options,
+              correct: e.correct,
+              explanation: e.explanation,
+            })),
+            lesson: null,
+          };
+          setCategories([freeCategory, ...topicCats]);
+        } else {
+          setCategories(topicCats);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));

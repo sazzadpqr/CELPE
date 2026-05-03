@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +12,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+
+function getApiUrl(path: string) {
+  const domain = process.env["EXPO_PUBLIC_DOMAIN"];
+  return domain ? `https://${domain}${path}` : path;
+}
 
 type LibraryItem = {
   id: string;
@@ -26,6 +32,8 @@ type LibrarySection = {
   title: string;
   items: LibraryItem[];
 };
+
+type StudyTopic = { id: string; name: string; active: boolean; order: number };
 
 const SECTIONS: LibrarySection[] = [
   {
@@ -107,14 +115,6 @@ const SECTIONS: LibrarySection[] = [
     title: "Leitura e Escuta",
     items: [
       {
-        id: "exams",
-        title: "Provas Anteriores",
-        description: "Edições passadas do Celpe-Bras com tarefas completas.",
-        icon: "archive",
-        color: "#D85A30",
-        route: "/exams",
-      },
-      {
         id: "listening",
         title: "Compreensão Auditiva",
         description: "Exercícios com áudio e transcrição para treinar escuta.",
@@ -155,6 +155,72 @@ const SECTIONS: LibrarySection[] = [
   },
 ];
 
+function TopicsSection() {
+  const colors = useColors();
+  const [topics, setTopics] = useState<StudyTopic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/content/study-topics"))
+      .then((r) => r.json())
+      .then((data: StudyTopic[]) => {
+        if (Array.isArray(data)) setTopics(data.filter((t) => t.active));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const displayed = expanded ? topics : topics.slice(0, 12);
+
+  return (
+    <View style={styles.topicsSection}>
+      <View style={[styles.topicsHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.topicsIconWrap, { backgroundColor: "#185FA520" }]}>
+          <Feather name="layers" size={18} color="#185FA5" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.topicsTitle, { color: colors.text }]}>Tópicos Celpe-Bras</Text>
+          <Text style={[styles.topicsSub, { color: colors.mutedForeground }]}>
+            Temas recorrentes que aparecem nas provas
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => router.push("/exams" as any)}
+          style={[styles.examsBtn, { backgroundColor: "#D85A3010", borderColor: "#D85A3040" }]}
+        >
+          <Feather name="archive" size={13} color="#D85A30" />
+          <Text style={[styles.examsBtnText, { color: "#D85A30" }]}>Provas</Text>
+        </Pressable>
+      </View>
+
+      {loading ? (
+        <View style={{ alignItems: "center", paddingVertical: 16 }}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      ) : topics.length === 0 ? null : (
+        <View style={styles.topicsWrap}>
+          {displayed.map((topic) => (
+            <View key={topic.id} style={[styles.topicChip, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.topicChipText, { color: colors.text }]}>{topic.name}</Text>
+            </View>
+          ))}
+          {topics.length > 12 && (
+            <Pressable
+              onPress={() => setExpanded(!expanded)}
+              style={[styles.topicChip, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}
+            >
+              <Text style={[styles.topicChipText, { color: colors.primary }]}>
+                {expanded ? "Ver menos" : `+${topics.length - 12} mais`}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
 export default function LibraryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -173,6 +239,8 @@ export default function LibraryScreen() {
       <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
         Todos os recursos de estudo para o Celpe-Bras em um só lugar.
       </Text>
+
+      <TopicsSection />
 
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>
@@ -220,6 +288,16 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4, alignSelf: "flex-start", marginBottom: 4 },
   title: { fontSize: 22, fontFamily: "Inter_700Bold" },
   subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18, marginTop: -2, marginBottom: 8 },
+  topicsSection: { gap: 10, marginBottom: 8 },
+  topicsHeader: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, borderWidth: 1, padding: 14 },
+  topicsIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  topicsTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  topicsSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2, lineHeight: 16 },
+  examsBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
+  examsBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  topicsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  topicChip: { borderRadius: 20, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6 },
+  topicChipText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   section: { gap: 6 },
   sectionTitle: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 1.5, paddingHorizontal: 4 },
   sectionCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },

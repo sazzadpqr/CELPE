@@ -5,7 +5,7 @@ import {
   FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
   Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
   Mic, Volume2, Headphones, MessageCircle, UserCheck, ExternalLink,
-  Video, Users2, ClipboardList, CalendarDays, Lightbulb, Zap,
+  Video, Users2, ClipboardList, CalendarDays, Lightbulb, Zap, Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -48,6 +48,7 @@ const NAV_SECTIONS = [
     items: [
       { href: "/study-plan", label: "Tarefas Semanais", icon: CalendarDays },
       { href: "/study-tips", label: "Dicas de Estudo", icon: Lightbulb },
+      { href: "/study-topics", label: "Tópicos Celpe-Bras", icon: Layers },
       { href: "/quick-actions", label: "Ações Rápidas", icon: Zap },
       { href: "/interest-list", label: "Interesse em Premium", icon: Bell },
     ],

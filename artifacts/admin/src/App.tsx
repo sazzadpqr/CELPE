@@ -38,6 +38,7 @@ import CommunityAdminPage from "@/pages/community-admin";
 import TeacherFeedbackPage from "@/pages/teacher-feedback";
 import StudyPlanAdminPage from "@/pages/study-plan-admin";
 import StudyTipsAdminPage from "@/pages/study-tips-admin";
+import StudyTopicsAdminPage from "@/pages/study-topics-admin";
 import InterestListAdminPage from "@/pages/interest-list-admin";
 import QuickActionsAdminPage from "@/pages/quick-actions-admin";
 import ListeningExercisesPage from "@/pages/listening-exercises";
@@ -129,6 +130,7 @@ function Router() {
       <Route path="/teacher-feedback">{() => <ProtectedRoute component={TeacherFeedbackPage} />}</Route>
       <Route path="/study-plan">{() => <ProtectedRoute component={StudyPlanAdminPage} />}</Route>
       <Route path="/study-tips">{() => <ProtectedRoute component={StudyTipsAdminPage} />}</Route>
+      <Route path="/study-topics">{() => <ProtectedRoute component={StudyTopicsAdminPage} />}</Route>
       <Route path="/interest-list">{() => <ProtectedRoute component={InterestListAdminPage} />}</Route>
       <Route path="/quick-actions">{() => <ProtectedRoute component={QuickActionsAdminPage} />}</Route>
       <Route path="/listening-exercises">{() => <ProtectedRoute component={ListeningExercisesPage} />}</Route>
