@@ -21,6 +21,11 @@ type LimitsConfig = {
   rewardedAdCreditAmount: number;
   rewardedAdMaxPerDay: number;
   practiceTimerSeconds: number;
+  vocabGeneratorFreePerDay: number;
+  vocabGeneratorPremiumPerDay: number;
+  vocabGeneratorMaxWordsFree: number;
+  vocabGeneratorMaxWordsPremium: number;
+  vocabSaveLimitFree: number;
 };
 
 const DEFAULTS: LimitsConfig = {
@@ -36,6 +41,11 @@ const DEFAULTS: LimitsConfig = {
   rewardedAdCreditAmount: 1,
   rewardedAdMaxPerDay: 3,
   practiceTimerSeconds: 1500,
+  vocabGeneratorFreePerDay: 3,
+  vocabGeneratorPremiumPerDay: 20,
+  vocabGeneratorMaxWordsFree: 5,
+  vocabGeneratorMaxWordsPremium: 15,
+  vocabSaveLimitFree: 200,
 };
 
 export default function LimitsPage() {
@@ -119,6 +129,20 @@ export default function LimitsPage() {
             <CardContent className="space-y-4 divide-y divide-border">
               <NumField field="freeVocabularyAiEnrichmentsPerDay" label="Enriquecimentos de vocabulário por IA" suffix="/dia" />
               <div className="pt-4"><NumField field="freeGrammarLessonsPerDay" label="Exercícios de gramática por dia" suffix="/dia" /></div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-mono text-sm">Gerador de Vocabulário por IA</CardTitle>
+              <CardDescription>Usuários digitam um tema e a IA gera palavras com definição e exemplo.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 divide-y divide-border">
+              <NumField field="vocabGeneratorFreePerDay" label="Gerações por dia (gratuito)" suffix="/dia" />
+              <div className="pt-4"><NumField field="vocabGeneratorPremiumPerDay" label="Gerações por dia (premium)" suffix="/dia" /></div>
+              <div className="pt-4"><NumField field="vocabGeneratorMaxWordsFree" label="Máx. palavras por geração (gratuito)" description="Máximo 5 recomendado" suffix="palavras" /></div>
+              <div className="pt-4"><NumField field="vocabGeneratorMaxWordsPremium" label="Máx. palavras por geração (premium)" description="Máximo 15 recomendado" suffix="palavras" /></div>
+              <div className="pt-4"><NumField field="vocabSaveLimitFree" label="Limite de palavras salvas (gratuito)" description="Usuários premium não têm limite" suffix="palavras" /></div>
             </CardContent>
           </Card>
 

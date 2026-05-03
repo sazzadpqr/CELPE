@@ -21,6 +21,11 @@ export interface ServerLimits {
   rewardedAdCreditAmount: number;
   rewardedAdMaxPerDay: number;
   practiceTimerSeconds: number;
+  vocabGeneratorFreePerDay: number;
+  vocabGeneratorPremiumPerDay: number;
+  vocabGeneratorMaxWordsFree: number;
+  vocabGeneratorMaxWordsPremium: number;
+  vocabSaveLimitFree: number;
 }
 
 const DEFAULT_SERVER_LIMITS: ServerLimits = {
@@ -36,6 +41,11 @@ const DEFAULT_SERVER_LIMITS: ServerLimits = {
   rewardedAdCreditAmount: 1,
   rewardedAdMaxPerDay: 3,
   practiceTimerSeconds: 1500,
+  vocabGeneratorFreePerDay: 3,
+  vocabGeneratorPremiumPerDay: 20,
+  vocabGeneratorMaxWordsFree: 5,
+  vocabGeneratorMaxWordsPremium: 15,
+  vocabSaveLimitFree: 200,
 };
 
 export interface UserProfile {

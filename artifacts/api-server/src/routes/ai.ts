@@ -293,4 +293,141 @@ router.post("/ai/chat", async (req, res) => {
   }
 });
 
+// ─── POST /ai/vocab-generate ─────────────────────────────────────────────────
+// In-memory per-device daily counter for rate limiting
+const vocabGenCounters: Map<string, { date: string; count: number }> = new Map();
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getDeviceCount(deviceToken: string): number {
+  const entry = vocabGenCounters.get(deviceToken);
+  if (!entry || entry.date !== todayKey()) return 0;
+  return entry.count;
+}
+
+function incrementDeviceCount(deviceToken: string): void {
+  const today = todayKey();
+  const entry = vocabGenCounters.get(deviceToken);
+  if (!entry || entry.date !== today) {
+    vocabGenCounters.set(deviceToken, { date: today, count: 1 });
+  } else {
+    entry.count += 1;
+  }
+}
+
+router.post("/ai/vocab-generate", async (req, res) => {
+  const { topic, count, deviceToken, isPremium } = req.body as {
+    topic: string;
+    count: number;
+    deviceToken: string;
+    isPremium?: boolean;
+  };
+
+  if (!topic || typeof topic !== "string" || !topic.trim()) {
+    res.status(400).json({ error: "topic is required" });
+    return;
+  }
+
+  if (!deviceToken || typeof deviceToken !== "string") {
+    res.status(400).json({ error: "deviceToken is required" });
+    return;
+  }
+
+  const clampedCount = Math.max(1, Math.min(Number(count) || 5, isPremium ? 15 : 5));
+
+  // Fetch limits from DB
+  let maxPerDay = isPremium ? 20 : 3;
+  try {
+    const { adminLimitsConfig } = await import("@workspace/db/schema");
+    const { db } = await import("@workspace/db");
+    const { eq } = await import("drizzle-orm");
+    const [row] = await db.select().from(adminLimitsConfig).where(eq(adminLimitsConfig.id, "singleton"));
+    if (row) {
+      maxPerDay = isPremium ? row.vocabGeneratorPremiumPerDay : row.vocabGeneratorFreePerDay;
+    }
+  } catch { }
+
+  const usedToday = getDeviceCount(deviceToken);
+  if (usedToday >= maxPerDay) {
+    res.status(429).json({
+      error: "Limite diário atingido",
+      remaining: 0,
+      usedToday,
+      maxPerDay,
+    });
+    return;
+  }
+
+  const systemPrompt = `Você é um especialista em vocabulário do português brasileiro, focado em preparação para o exame Celpe-Bras.
+Gere exatamente ${clampedCount} palavra(s) em português relacionadas ao tema fornecido pelo usuário.
+Para cada palavra, forneça:
+- "word": a palavra em português
+- "definition": uma definição clara e concisa em português (máx. 2 frases)
+- "example": uma frase de exemplo natural e contextualizada usando a palavra (1 frase)
+- "partOfSpeech": classe gramatical (substantivo, verbo, adjetivo, advérbio, locução, etc.)
+- "register": registro linguístico (formal, informal, neutro, técnico, coloquial)
+
+Responda APENAS com um JSON válido no formato:
+{
+  "words": [
+    { "word": "...", "definition": "...", "example": "...", "partOfSpeech": "...", "register": "..." }
+  ]
+}
+
+Gere palavras variadas e úteis para o nível B2–C1, adequadas para a prova Celpe-Bras. Evite palavras muito simples ou raras demais.`;
+
+  const userPrompt = `Tema: ${topic.trim()}
+Quantidade: ${clampedCount} palavra(s)`;
+
+  try {
+    const aiCfg = await loadAiConfig();
+    const completion = await openai.chat.completions.create({
+      model: aiCfg.modelGeneration,
+      max_completion_tokens: 800,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(raw) as {
+      words?: Array<{
+        word: string;
+        definition: string;
+        example: string;
+        partOfSpeech: string;
+        register: string;
+      }>;
+    };
+
+    if (!Array.isArray(parsed.words) || parsed.words.length === 0) {
+      res.status(500).json({ error: "Erro ao gerar vocabulário. Tente novamente." });
+      return;
+    }
+
+    incrementDeviceCount(deviceToken);
+    const remaining = Math.max(0, maxPerDay - getDeviceCount(deviceToken));
+
+    res.json({
+      words: parsed.words.slice(0, clampedCount).map((w) => ({
+        word: w.word ?? "",
+        definition: w.definition ?? "",
+        example: w.example ?? "",
+        partOfSpeech: w.partOfSpeech ?? "substantivo",
+        register: w.register ?? "neutro",
+      })),
+      remaining,
+      usedToday: getDeviceCount(deviceToken),
+      maxPerDay,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Vocab generate error");
+    res.status(500).json({ error: "Erro ao gerar vocabulário. Tente novamente." });
+  }
+});
+
 export default router;

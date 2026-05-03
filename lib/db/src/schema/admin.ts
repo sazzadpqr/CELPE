@@ -83,6 +83,11 @@ export const adminLimitsConfig = pgTable("admin_limits_config", {
   rewardedAdCreditAmount: integer("rewarded_ad_credit_amount").notNull().default(1),
   rewardedAdMaxPerDay: integer("rewarded_ad_max_per_day").notNull().default(3),
   practiceTimerSeconds: integer("practice_timer_seconds").notNull().default(1500),
+  vocabGeneratorFreePerDay: integer("vocab_generator_free_per_day").notNull().default(3),
+  vocabGeneratorPremiumPerDay: integer("vocab_generator_premium_per_day").notNull().default(20),
+  vocabGeneratorMaxWordsFree: integer("vocab_generator_max_words_free").notNull().default(5),
+  vocabGeneratorMaxWordsPremium: integer("vocab_generator_max_words_premium").notNull().default(15),
+  vocabSaveLimitFree: integer("vocab_save_limit_free").notNull().default(200),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

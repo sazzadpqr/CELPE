@@ -3,21 +3,27 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
-  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp, type VocabWord } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+
+function getApiUrl(path: string) {
+  const domain = process.env["EXPO_PUBLIC_DOMAIN"];
+  return domain ? `https://${domain}${path}` : path;
+}
 
 const STATUS_COLORS: Record<VocabWord["status"], string> = {
   learning: "#BA7517",
@@ -29,6 +35,371 @@ const STATUS_LABELS: Record<VocabWord["status"], string> = {
   review: "Para revisar",
   mastered: "Dominado",
 };
+
+// ─── Vocab Generator Modal ─────────────────────────────────────────────────────
+
+interface GeneratedWord {
+  word: string;
+  definition: string;
+  example: string;
+  partOfSpeech: string;
+  register: string;
+}
+
+function VocabGeneratorModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const colors = useColors();
+  const { addVocabWord, vocabWords, profile, serverLimits } = useApp();
+
+  const isPremium = profile.isPremium;
+  const maxWords = isPremium
+    ? (serverLimits.vocabGeneratorMaxWordsPremium || 15)
+    : (serverLimits.vocabGeneratorMaxWordsFree || 5);
+  const maxPerDay = isPremium
+    ? (serverLimits.vocabGeneratorPremiumPerDay || 20)
+    : (serverLimits.vocabGeneratorFreePerDay || 3);
+  const saveLimit = serverLimits.vocabSaveLimitFree || 200;
+
+  const [topic, setTopic] = useState("");
+  const [count, setCount] = useState(Math.min(3, maxWords));
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<GeneratedWord[]>([]);
+  const [saved, setSaved] = useState<Set<number>>(new Set());
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const savedCount = vocabWords.length;
+  const atSaveLimit = !isPremium && savedCount >= saveLimit;
+
+  const handleGenerate = async () => {
+    if (!topic.trim()) {
+      Alert.alert("Campo obrigatório", "Digite um tema para gerar o vocabulário.");
+      return;
+    }
+    setLoading(true);
+    setResults([]);
+    setSaved(new Set());
+    setError(null);
+
+    try {
+      const res = await fetch(getApiUrl("/api/ai/vocab-generate"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: topic.trim(),
+          count,
+          deviceToken: profile.deviceToken,
+          isPremium,
+        }),
+      });
+
+      if (res.status === 429) {
+        const data = await res.json() as { maxPerDay: number };
+        setError(`Limite diário de ${data.maxPerDay} ${data.maxPerDay === 1 ? "geração" : "gerações"} atingido. Volte amanhã!`);
+        setLoading(false);
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json() as { error?: string };
+        setError(data.error ?? "Erro ao gerar. Tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json() as {
+        words: GeneratedWord[];
+        remaining: number;
+        maxPerDay: number;
+      };
+      setResults(data.words ?? []);
+      setRemaining(data.remaining ?? null);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      setError("Sem conexão. Verifique sua internet e tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (word: GeneratedWord, index: number) => {
+    if (atSaveLimit) {
+      Alert.alert(
+        "Limite atingido",
+        `Usuários gratuitos podem salvar até ${saveLimit} palavras. Faça upgrade para o Premium e salve sem limites!`,
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    await addVocabWord({
+      word: word.word,
+      definition: word.definition,
+      example: word.example,
+      partOfSpeech: word.partOfSpeech,
+      register: word.register,
+    });
+    setSaved((prev) => new Set(prev).add(index));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleClose = () => {
+    setTopic("");
+    setCount(Math.min(3, maxWords));
+    setResults([]);
+    setSaved(new Set());
+    setError(null);
+    setRemaining(null);
+    onClose();
+  };
+
+  const countOptions = Array.from({ length: maxWords }, (_, i) => i + 1);
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+      <View style={[genStyles.root, { backgroundColor: colors.background }]}>
+        {/* Header */}
+        <View style={[genStyles.header, { borderBottomColor: colors.border }]}>
+          <Pressable onPress={handleClose} style={genStyles.closeBtn}>
+            <Feather name="x" size={22} color={colors.mutedForeground} />
+          </Pressable>
+          <View style={genStyles.headerCenter}>
+            <Feather name="zap" size={16} color={colors.primary} />
+            <Text style={[genStyles.headerTitle, { color: colors.text }]}>Gerar Vocabulário</Text>
+          </View>
+          <View style={{ width: 30 }} />
+        </View>
+
+        <ScrollView
+          style={genStyles.body}
+          contentContainerStyle={genStyles.bodyContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Usage badge */}
+          <View style={[genStyles.usageBadge, { backgroundColor: colors.infoBg, borderColor: colors.primary + "30" }]}>
+            <Feather name="info" size={13} color={colors.primary} />
+            <Text style={[genStyles.usageText, { color: colors.primary }]}>
+              {isPremium
+                ? `Premium: até ${maxWords} palavras por geração`
+                : `Gratuito: até ${maxWords} palavras · ${maxPerDay} ${maxPerDay === 1 ? "geração" : "gerações"}/dia`}
+            </Text>
+          </View>
+
+          {/* Topic input */}
+          <Text style={[genStyles.label, { color: colors.text }]}>Tema *</Text>
+          <TextInput
+            style={[genStyles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+            value={topic}
+            onChangeText={setTopic}
+            placeholder="Ex: meio ambiente, tecnologia, saúde..."
+            placeholderTextColor={colors.mutedForeground}
+            autoFocus={false}
+            returnKeyType="done"
+            onSubmitEditing={handleGenerate}
+          />
+
+          {/* Count picker */}
+          <Text style={[genStyles.label, { color: colors.text }]}>Quantidade de palavras</Text>
+          <View style={genStyles.countRow}>
+            {countOptions.map((n) => (
+              <Pressable
+                key={n}
+                onPress={() => setCount(n)}
+                style={[
+                  genStyles.countPill,
+                  {
+                    backgroundColor: count === n ? colors.primary : colors.card,
+                    borderColor: count === n ? colors.primary : colors.border,
+                  },
+                ]}
+              >
+                <Text style={[genStyles.countPillText, { color: count === n ? "#fff" : colors.mutedForeground }]}>
+                  {n}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Generate button */}
+          <Pressable
+            style={({ pressed }) => [
+              genStyles.generateBtn,
+              { backgroundColor: colors.primary, opacity: pressed || loading ? 0.85 : 1 },
+            ]}
+            onPress={handleGenerate}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Feather name="zap" size={16} color="#fff" />
+                <Text style={genStyles.generateBtnText}>Gerar com IA</Text>
+              </>
+            )}
+          </Pressable>
+
+          {/* Error */}
+          {error && (
+            <View style={[genStyles.errorBox, { backgroundColor: colors.errorBg, borderColor: colors.destructive + "40" }]}>
+              <Feather name="alert-circle" size={15} color={colors.destructive} />
+              <Text style={[genStyles.errorText, { color: colors.destructive }]}>{error}</Text>
+            </View>
+          )}
+
+          {/* Remaining usage */}
+          {remaining !== null && results.length > 0 && (
+            <View style={[genStyles.remainingRow, { backgroundColor: colors.muted + "60" }]}>
+              <Feather name="refresh-cw" size={12} color={colors.mutedForeground} />
+              <Text style={[genStyles.remainingText, { color: colors.mutedForeground }]}>
+                {remaining === 0
+                  ? "Limite diário atingido — volte amanhã"
+                  : `${remaining} ${remaining === 1 ? "geração" : "gerações"} restante${remaining === 1 ? "" : "s"} hoje`}
+              </Text>
+            </View>
+          )}
+
+          {/* Save limit warning for free users */}
+          {!isPremium && savedCount > 0 && (
+            <View style={[genStyles.remainingRow, { backgroundColor: savedCount >= saveLimit ? colors.errorBg : colors.muted + "40", borderRadius: 8 }]}>
+              <Feather
+                name={savedCount >= saveLimit ? "alert-circle" : "book"}
+                size={12}
+                color={savedCount >= saveLimit ? colors.destructive : colors.mutedForeground}
+              />
+              <Text style={[genStyles.remainingText, { color: savedCount >= saveLimit ? colors.destructive : colors.mutedForeground }]}>
+                {savedCount >= saveLimit
+                  ? `Dicionário cheio (${savedCount}/${saveLimit}) — Premium para salvar mais`
+                  : `${savedCount}/${saveLimit} palavras no dicionário`}
+              </Text>
+            </View>
+          )}
+
+          {/* Results */}
+          {results.length > 0 && (
+            <View style={genStyles.resultsSection}>
+              <Text style={[genStyles.resultsTitle, { color: colors.text }]}>
+                {results.length} {results.length === 1 ? "palavra gerada" : "palavras geradas"}
+              </Text>
+              {results.map((word, idx) => {
+                const isSaved = saved.has(idx);
+                return (
+                  <View
+                    key={idx}
+                    style={[
+                      genStyles.wordCard,
+                      {
+                        backgroundColor: isSaved ? colors.successBg : colors.card,
+                        borderColor: isSaved ? colors.success + "50" : colors.border,
+                      },
+                    ]}
+                  >
+                    {/* Word header */}
+                    <View style={genStyles.wordCardHeader}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[genStyles.wordCardWord, { color: colors.text }]}>{word.word}</Text>
+                        <View style={genStyles.wordBadgeRow}>
+                          <View style={[genStyles.badge, { backgroundColor: colors.primary + "18" }]}>
+                            <Text style={[genStyles.badgeText, { color: colors.primary }]}>{word.partOfSpeech}</Text>
+                          </View>
+                          <View style={[genStyles.badge, { backgroundColor: colors.muted }]}>
+                            <Text style={[genStyles.badgeText, { color: colors.mutedForeground }]}>{word.register}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      <Pressable
+                        onPress={() => !isSaved && handleSave(word, idx)}
+                        style={[
+                          genStyles.saveBtn,
+                          {
+                            backgroundColor: isSaved ? colors.success + "20" : colors.primary,
+                            borderColor: isSaved ? colors.success : colors.primary,
+                          },
+                        ]}
+                      >
+                        <Feather
+                          name={isSaved ? "check" : "bookmark"}
+                          size={14}
+                          color={isSaved ? colors.success : "#fff"}
+                        />
+                        <Text style={[genStyles.saveBtnText, { color: isSaved ? colors.success : "#fff" }]}>
+                          {isSaved ? "Salvo" : "Salvar"}
+                        </Text>
+                      </Pressable>
+                    </View>
+
+                    {/* Definition */}
+                    <View style={[genStyles.defBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                      <Text style={[genStyles.defLabel, { color: colors.mutedForeground }]}>DEFINIÇÃO</Text>
+                      <Text style={[genStyles.defText, { color: colors.text }]}>{word.definition}</Text>
+                    </View>
+
+                    {/* Example */}
+                    {word.example ? (
+                      <View style={[genStyles.exampleBox, { backgroundColor: colors.infoBg, borderColor: colors.primary + "25" }]}>
+                        <Text style={[genStyles.defLabel, { color: colors.primary }]}>EXEMPLO</Text>
+                        <Text style={[genStyles.exampleText, { color: colors.text }]}>"{word.example}"</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {/* Loading skeleton */}
+          {loading && (
+            <View style={genStyles.loadingBox}>
+              <ActivityIndicator color={colors.primary} size="large" />
+              <Text style={[genStyles.loadingText, { color: colors.mutedForeground }]}>
+                Gerando vocabulário sobre "{topic}"...
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+const genStyles = StyleSheet.create({
+  root: { flex: 1 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 14, borderBottomWidth: 1 },
+  closeBtn: { padding: 4 },
+  headerCenter: { flexDirection: "row", alignItems: "center", gap: 6 },
+  headerTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  body: { flex: 1 },
+  bodyContent: { padding: 20, gap: 12, paddingBottom: 60 },
+  usageBadge: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, padding: 10 },
+  usageText: { fontSize: 12, fontFamily: "Inter_500Medium", flex: 1 },
+  label: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginTop: 4 },
+  input: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 12, fontSize: 14, fontFamily: "Inter_400Regular" },
+  countRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  countPill: { width: 44, height: 44, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  countPillText: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  generateBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, paddingVertical: 14, marginTop: 4 },
+  generateBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  errorBox: { flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 10, borderWidth: 1, padding: 12 },
+  errorText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  remainingRow: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 8, padding: 10 },
+  remainingText: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  resultsSection: { gap: 12, marginTop: 4 },
+  resultsTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  wordCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 10 },
+  wordCardHeader: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+  wordCardWord: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  wordBadgeRow: { flexDirection: "row", gap: 6, marginTop: 4, flexWrap: "wrap" },
+  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  badgeText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  saveBtn: { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8, alignSelf: "flex-start" },
+  saveBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  defBox: { borderRadius: 10, borderWidth: 1, padding: 10, gap: 4 },
+  defLabel: { fontSize: 9, fontFamily: "Inter_700Bold", letterSpacing: 0.8 },
+  defText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  exampleBox: { borderRadius: 10, borderWidth: 1, padding: 10, gap: 4 },
+  exampleText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, fontStyle: "italic" },
+  loadingBox: { alignItems: "center", gap: 12, paddingVertical: 24 },
+  loadingText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
+});
 
 // ─── Add Word Modal ────────────────────────────────────────────────────────────
 
@@ -87,13 +458,11 @@ function WordDetailModal({
   visible,
   onClose,
   onUpdate,
-  onDelete,
 }: {
   word: VocabWord | null;
   visible: boolean;
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<VocabWord>) => Promise<void>;
-  onDelete?: (id: string) => void;
 }) {
   const colors = useColors();
   const [fillAnswer, setFillAnswer] = useState("");
@@ -104,7 +473,6 @@ function WordDetailModal({
 
   const statusColor = STATUS_COLORS[word.status];
 
-  // Generate fill-in-the-blank from example
   const fillSentence = word.example
     ? word.example.replace(new RegExp(word.word, "gi"), "___________")
     : null;
@@ -139,7 +507,6 @@ function WordDetailModal({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[detailStyles.root, { backgroundColor: colors.background }]}>
-        {/* Header */}
         <View style={[detailStyles.header, { borderBottomColor: colors.border }]}>
           <Pressable onPress={() => { onClose(); resetFill(); }} style={detailStyles.closeBtn}>
             <Feather name="x" size={22} color={colors.mutedForeground} />
@@ -150,7 +517,6 @@ function WordDetailModal({
         </View>
 
         <ScrollView contentContainerStyle={detailStyles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Word */}
           <View style={detailStyles.wordSection}>
             <Text style={[detailStyles.wordText, { color: colors.text }]}>{word.word}</Text>
             <View style={[detailStyles.posBadge, { backgroundColor: colors.primary + "18" }]}>
@@ -158,7 +524,6 @@ function WordDetailModal({
             </View>
           </View>
 
-          {/* Stats row */}
           <View style={detailStyles.statsRow}>
             <View style={[detailStyles.statItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Text style={[detailStyles.statValue, { color: colors.text }]}>{word.timesReviewed}</Text>
@@ -176,13 +541,11 @@ function WordDetailModal({
             </View>
           </View>
 
-          {/* Definition */}
           <View style={[detailStyles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[detailStyles.sectionLabel, { color: colors.mutedForeground }]}>DEFINIÇÃO</Text>
             <Text style={[detailStyles.defText, { color: colors.text }]}>{word.definition}</Text>
           </View>
 
-          {/* Example */}
           {word.example ? (
             <View style={[detailStyles.section, { backgroundColor: colors.infoBg, borderColor: colors.primary + "30" }]}>
               <Text style={[detailStyles.sectionLabel, { color: colors.primary }]}>EXEMPLO</Text>
@@ -190,7 +553,6 @@ function WordDetailModal({
             </View>
           ) : null}
 
-          {/* Fill-in-the-blank exercise */}
           {hasFill && (
             <View style={[detailStyles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={detailStyles.exerciseTitleRow}>
@@ -234,7 +596,6 @@ function WordDetailModal({
             </View>
           )}
 
-          {/* Next review */}
           <View style={[detailStyles.nextReviewRow, { backgroundColor: colors.muted + "60" }]}>
             <Feather name="clock" size={12} color={colors.mutedForeground} />
             <Text style={[detailStyles.nextReviewText, { color: colors.mutedForeground }]}>
@@ -244,7 +605,6 @@ function WordDetailModal({
             </Text>
           </View>
 
-          {/* Action buttons */}
           <View style={detailStyles.actions}>
             {word.status !== "mastered" && (
               <Pressable style={[detailStyles.actionBtn, { backgroundColor: colors.success + "18", borderColor: colors.success + "40" }]} onPress={handleMarkMastered}>
@@ -339,6 +699,7 @@ export default function VocabScreen() {
   const { vocabWords, updateVocabWord } = useApp();
   const [search, setSearch] = useState("");
   const [addVisible, setAddVisible] = useState(false);
+  const [genVisible, setGenVisible] = useState(false);
   const [selectedWord, setSelectedWord] = useState<VocabWord | null>(null);
   const [filter, setFilter] = useState<"all" | VocabWord["status"]>("all");
   const topPad = Platform.OS === "web" ? 67 : insets.top;
@@ -371,6 +732,15 @@ export default function VocabScreen() {
         <View style={styles.headerTop}>
           <Text style={[styles.screenTitle, { color: colors.text }]}>Vocabulário</Text>
           <View style={styles.headerBtns}>
+            {/* AI Generator button */}
+            <Pressable
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setGenVisible(true); }}
+              style={[styles.genBtn, { backgroundColor: colors.primary + "18", borderColor: colors.primary + "40" }]}
+            >
+              <Feather name="zap" size={15} color={colors.primary} />
+              <Text style={[styles.genBtnText, { color: colors.primary }]}>Gerar</Text>
+            </Pressable>
+            {/* Manual add button */}
             <Pressable onPress={() => setAddVisible(true)} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
               <Feather name="plus" size={18} color="#fff" />
             </Pressable>
@@ -446,12 +816,26 @@ export default function VocabScreen() {
               {search ? "Nenhuma palavra encontrada" : filter !== "all" ? "Nenhuma palavra nesta categoria" : "Nenhuma palavra ainda"}
             </Text>
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              {search ? "Tente outra busca" : filter !== "all" ? "Mude o filtro ou adicione novas palavras" : "Adicione palavras que encontrar durante os estudos"}
+              {search
+                ? "Tente outra busca"
+                : filter !== "all"
+                ? "Mude o filtro ou adicione novas palavras"
+                : "Toque em Gerar para criar palavras com IA, ou em + para adicionar manualmente"}
             </Text>
+            {!search && filter === "all" && (
+              <Pressable
+                onPress={() => setGenVisible(true)}
+                style={[styles.emptyGenBtn, { backgroundColor: colors.primary }]}
+              >
+                <Feather name="zap" size={15} color="#fff" />
+                <Text style={styles.emptyGenBtnText}>Gerar com IA</Text>
+              </Pressable>
+            )}
           </View>
         }
       />
 
+      <VocabGeneratorModal visible={genVisible} onClose={() => setGenVisible(false)} />
       <AddWordModal visible={addVisible} onClose={() => setAddVisible(false)} />
       <WordDetailModal
         word={selectedWord}
@@ -469,6 +853,8 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   screenTitle: { fontSize: 22, fontFamily: "Inter_700Bold" },
   headerBtns: { flexDirection: "row", gap: 10, alignItems: "center" },
+  genBtn: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
+  genBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   addBtn: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   statsRow: { flexDirection: "row", gap: 8 },
   statPill: { flex: 1, borderRadius: 10, padding: 10, alignItems: "center", gap: 2 },
@@ -494,6 +880,8 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", gap: 8, paddingVertical: 48, paddingHorizontal: 24 },
   emptyTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", textAlign: "center" },
   emptyText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 18 },
+  emptyGenBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, marginTop: 8 },
+  emptyGenBtnText: { color: "#fff", fontSize: 14, fontFamily: "Inter_600SemiBold" },
   modalRoot: { flex: 1 },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderBottomWidth: 1 },
   modalTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },

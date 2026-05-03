@@ -334,6 +334,9 @@ const LIMITS_DEFAULTS = {
   freeListeningExercisesPerDay: 3, freeGrammarLessonsPerDay: 3,
   freeWritingCoachUsesPerDay: 3, rewardedAdCreditAmount: 1,
   rewardedAdMaxPerDay: 3, practiceTimerSeconds: 1500,
+  vocabGeneratorFreePerDay: 3, vocabGeneratorPremiumPerDay: 20,
+  vocabGeneratorMaxWordsFree: 5, vocabGeneratorMaxWordsPremium: 15,
+  vocabSaveLimitFree: 200,
 };
 
 async function getLimitsRow() {
@@ -356,6 +359,11 @@ async function getLimitsRow() {
     rewardedAdCreditAmount: r.rewardedAdCreditAmount,
     rewardedAdMaxPerDay: r.rewardedAdMaxPerDay,
     practiceTimerSeconds: r.practiceTimerSeconds,
+    vocabGeneratorFreePerDay: r.vocabGeneratorFreePerDay,
+    vocabGeneratorPremiumPerDay: r.vocabGeneratorPremiumPerDay,
+    vocabGeneratorMaxWordsFree: r.vocabGeneratorMaxWordsFree,
+    vocabGeneratorMaxWordsPremium: r.vocabGeneratorMaxWordsPremium,
+    vocabSaveLimitFree: r.vocabSaveLimitFree,
   };
 }
 
