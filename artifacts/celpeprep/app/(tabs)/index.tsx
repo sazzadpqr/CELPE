@@ -348,10 +348,30 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { profile, attempts, refreshLimits } = useApp();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     refreshLimits();
   }, []);
+
+  // Poll for unread notifications
+  useEffect(() => {
+    const fetchUnread = async () => {
+      if (!profile.deviceToken) return;
+      try {
+        const res = await fetch(getApiUrl("/api/notifications"), {
+          headers: { "x-device-token": profile.deviceToken },
+        });
+        if (res.ok) {
+          const data = await res.json() as Array<{ read: boolean }>;
+          setUnreadCount(data.filter((n) => !n.read).length);
+        }
+      } catch {}
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 60_000);
+    return () => clearInterval(interval);
+  }, [profile.deviceToken]);
 
   const recentAttempts = useMemo(() => attempts.slice(0, 3), [attempts]);
   const avgScore = useMemo(() => {
@@ -374,9 +394,24 @@ export default function HomeScreen() {
           <Text style={[styles.userName, { color: colors.text }]}>{profile.name || "Estudante"}</Text>
           <Text style={[styles.level, { color: colors.primary }]}>{LEVEL_LABELS[profile.level]}</Text>
         </View>
-        <Pressable onPress={() => router.push("/profile")} style={[styles.avatar, { backgroundColor: colors.primary }]}>
-          <Text style={styles.avatarText}>{(profile.name || "E")[0]!.toUpperCase()}</Text>
-        </Pressable>
+        <View style={styles.headerRight}>
+          {/* Bell icon with unread badge */}
+          <Pressable
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/notifications"); }}
+            style={[styles.bellBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <Feather name="bell" size={19} color={unreadCount > 0 ? colors.primary : colors.mutedForeground} />
+            {unreadCount > 0 && (
+              <View style={[styles.badge, { backgroundColor: colors.destructive }]}>
+                <Text style={styles.badgeText}>{unreadCount > 99 ? "99+" : String(unreadCount)}</Text>
+              </View>
+            )}
+          </Pressable>
+          {/* Avatar */}
+          <Pressable onPress={() => router.push("/profile")} style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Text style={styles.avatarText}>{(profile.name || "E")[0]!.toUpperCase()}</Text>
+          </Pressable>
+        </View>
       </View>
 
       <GuestBanner />
@@ -504,6 +539,10 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 13, fontFamily: "Inter_400Regular" },
   userName: { fontSize: 22, fontFamily: "Inter_700Bold", marginTop: 2 },
   level: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 2 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
+  bellBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  badge: { position: "absolute", top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  badgeText: { color: "#fff", fontSize: 10, fontFamily: "Inter_700Bold", lineHeight: 12 },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   avatarText: { color: "#fff", fontSize: 18, fontFamily: "Inter_700Bold" },
   examBanner: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1 },
