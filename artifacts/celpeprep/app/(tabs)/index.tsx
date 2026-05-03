@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import AdBanner from "@/components/ads/AdBanner";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -491,6 +492,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       )}
+      <AdBanner size="adaptive" />
     </ScrollView>
   );
 }

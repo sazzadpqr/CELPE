@@ -17,6 +17,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider, useApp } from "@/context/AppContext";
+import { AdService } from "@/services/AdService";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,6 +29,7 @@ const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 function RootLayoutNav() {
   const { profile, isLoaded, updateProfile } = useApp();
   const { isSignedIn, isLoaded: clerkLoaded, userId } = useAuth();
+  const appOpenTriggered = React.useRef(false);
 
   useEffect(() => {
     if (!isLoaded || !clerkLoaded) return;
@@ -45,6 +47,26 @@ function RootLayoutNav() {
       router.replace("/onboarding");
     }
   }, [isLoaded, clerkLoaded, isSignedIn, profile.onboardingDone, profile.deviceToken, profile.isGuest, userId]);
+
+  useEffect(() => {
+    if (!isLoaded || appOpenTriggered.current) return;
+    appOpenTriggered.current = true;
+    AdService.canShowAppOpen().then(async (canShow) => {
+      if (!canShow) return;
+      await AdService.recordAppOpenShown();
+      /**
+       * In a native EAS build, load and show the App Open ad here:
+       *
+       * import { AppOpenAd, AdEventType } from "react-native-google-mobile-ads";
+       * const unitId = AdService.getAppOpenUnitId();
+       * if (unitId) {
+       *   const appOpen = AppOpenAd.createForAdRequest(unitId, { requestNonPersonalizedAdsOnly: true });
+       *   appOpen.addAdEventListener(AdEventType.LOADED, () => appOpen.show());
+       *   appOpen.load();
+       * }
+       */
+    });
+  }, [isLoaded]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

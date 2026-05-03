@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { AdService } from "@/services/AdService";
 
 export interface ServerLimits {
   freeAiEvaluationsPerMonth: number;
@@ -218,12 +219,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadedProfile = { ...defaultProfile, deviceToken: generateUUID() };
       }
 
-      const limits = await fetchLimits();
+      const [limits, adsConfigRes] = await Promise.all([
+        fetchLimits(),
+        fetch(getApiUrl("/api/content/ads-config")).then((r) => r.ok ? r.json() : null).catch(() => null),
+      ]);
+
       if (limits) {
         setServerLimits(limits);
         if (!loadedProfile.isPremium) {
           loadedProfile.aiCreditsTotal = limits.freeAiEvaluationsPerMonth;
         }
+      }
+
+      if (adsConfigRes) {
+        AdService.configure(adsConfigRes, loadedProfile.isPremium);
       }
 
       AsyncStorage.setItem("celpeprep_profile", JSON.stringify(loadedProfile));

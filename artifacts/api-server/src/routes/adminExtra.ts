@@ -126,6 +126,13 @@ const ADS_DEFAULTS = {
   admobBannerAndroid: "", admobBannerIos: "",
   admobRewardedAndroid: "", admobRewardedIos: "",
   rewardedAdCreditAmount: 1, rewardedAdMaxPerDay: 3,
+  bannerEnabled: false, appOpenEnabled: false, interstitialEnabled: false,
+  rewardedInterstitialEnabled: false, nativeEnabled: false,
+  admobAppOpenAndroid: "", admobAppOpenIos: "",
+  admobInterstitialAndroid: "", admobInterstitialIos: "",
+  admobRewardedInterstitialAndroid: "", admobRewardedInterstitialIos: "",
+  admobNativeAndroid: "", admobNativeIos: "",
+  interstitialFrequencyCapPerDay: 2, appOpenFrequencyCapHours: 4,
 };
 
 async function getAdsRow() {
@@ -144,6 +151,16 @@ async function getAdsRow() {
     admobBannerIos: r.admobBannerIos, admobRewardedAndroid: r.admobRewardedAndroid,
     admobRewardedIos: r.admobRewardedIos, rewardedAdCreditAmount: r.rewardedAdCreditAmount,
     rewardedAdMaxPerDay: r.rewardedAdMaxPerDay,
+    bannerEnabled: r.bannerEnabled, appOpenEnabled: r.appOpenEnabled,
+    interstitialEnabled: r.interstitialEnabled, rewardedInterstitialEnabled: r.rewardedInterstitialEnabled,
+    nativeEnabled: r.nativeEnabled,
+    admobAppOpenAndroid: r.admobAppOpenAndroid, admobAppOpenIos: r.admobAppOpenIos,
+    admobInterstitialAndroid: r.admobInterstitialAndroid, admobInterstitialIos: r.admobInterstitialIos,
+    admobRewardedInterstitialAndroid: r.admobRewardedInterstitialAndroid,
+    admobRewardedInterstitialIos: r.admobRewardedInterstitialIos,
+    admobNativeAndroid: r.admobNativeAndroid, admobNativeIos: r.admobNativeIos,
+    interstitialFrequencyCapPerDay: r.interstitialFrequencyCapPerDay,
+    appOpenFrequencyCapHours: r.appOpenFrequencyCapHours,
   };
 }
 

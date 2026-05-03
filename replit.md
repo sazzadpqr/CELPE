@@ -4,6 +4,25 @@
 
 pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese learning and Celpe-Bras exam preparation app.
 
+## AdMob Integration
+
+All 8 ad formats are implemented as an admin-controlled service layer. `services/AdService.ts` is the central singleton — configure it from the server's `/api/content/ads-config` response.
+
+| Format | Placement | Frequency | Admin toggle |
+|---|---|---|---|
+| App Open | Cold start / foreground | Every N hours (configurable) | `appOpenEnabled` |
+| Adaptive Banner | Home screen bottom | Always visible | `bannerEnabled` |
+| Fixed Size Banner | Included in banner unit | Always visible | `bannerEnabled` |
+| Interstitial | After practice feedback | Max N/day (configurable) | `interstitialEnabled` |
+| Rewarded | Profile screen (earn credits) | User-initiated, max N/day | `rewardedAdsEnabled` |
+| Rewarded Interstitial | Before AI practice | Optional offer | `rewardedInterstitialEnabled` |
+| Native | Courses list (every 5 items) | Passive | `nativeEnabled` |
+| Native Video | Served auto within Native unit | Passive | `nativeEnabled` |
+
+**To activate real ads (EAS native build):** Install `react-native-google-mobile-ads`, configure `app.json` plugin with real App IDs from `adminVaultConfig`, then replace the stub comments in `AdBanner.tsx`, `NativeAdCard.tsx`, `feedback.tsx` (Interstitial), and `_layout.tsx` (App Open) with real SDK calls. All unit IDs are resolved by `AdService` (falls back to Google test IDs when empty). All ads are no-ops on web and for premium users (when `hideAdsForPremium` is true).
+
+**DB table**: `admin_ads_config` — singleton row. 20 new columns added for unit IDs, enable flags, and frequency caps.
+
 ## Artifacts
 
 - **`artifacts/celpeprep`** — Expo (React Native) mobile app, preview path `/celpeprep`

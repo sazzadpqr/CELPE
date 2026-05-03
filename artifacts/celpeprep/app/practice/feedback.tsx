@@ -1,9 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
+import { AdService } from "@/services/AdService";
 
 interface FeedbackData {
   taskType: string;
@@ -69,11 +71,47 @@ function RubricBar({ label, icon, score }: { label: string; icon: keyof typeof F
   );
 }
 
+function InterstitialModal({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
+  const colors = useColors();
+  if (Platform.OS === "web") return null;
+  /**
+   * In a native EAS build, replace this with the real Interstitial from
+   * react-native-google-mobile-ads. Load it at component mount, show it
+   * via interstitial.show() when the user taps the dismiss button.
+   *
+   * unitId = AdService.getInterstitialUnitId()
+   */
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
+      <View style={interStyles.overlay}>
+        <View style={[interStyles.box, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[interStyles.label, { color: colors.mutedForeground }]}>Anúncio</Text>
+          <View style={[interStyles.placeholder, { backgroundColor: colors.muted }]} />
+          <Pressable style={[interStyles.closeBtn, { backgroundColor: colors.primary }]} onPress={onDismiss}>
+            <Text style={interStyles.closeTxt}>Fechar</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const interStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", alignItems: "center", justifyContent: "center" },
+  box: { width: "90%", borderRadius: 16, borderWidth: 1, padding: 20, gap: 14, alignItems: "center" },
+  label: { fontSize: 11, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.5 },
+  placeholder: { width: "100%", height: 250, borderRadius: 10 },
+  closeBtn: { paddingHorizontal: 32, paddingVertical: 12, borderRadius: 10 },
+  closeTxt: { color: "#fff", fontSize: 14, fontFamily: "Inter_600SemiBold" },
+});
+
 export default function FeedbackScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [interstitialVisible, setInterstitialVisible] = useState(false);
+  const interstitialChecked = useRef(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   useEffect(() => {
@@ -81,6 +119,15 @@ export default function FeedbackScreen() {
       const data = await AsyncStorage.getItem("celpeprep_last_feedback");
       if (data) setFeedback(JSON.parse(data));
       setLoading(false);
+
+      if (!interstitialChecked.current) {
+        interstitialChecked.current = true;
+        const canShow = await AdService.canShowInterstitial();
+        if (canShow) {
+          await AdService.recordInterstitialShown();
+          setTimeout(() => setInterstitialVisible(true), 1200);
+        }
+      }
     };
     load();
   }, []);
@@ -109,6 +156,8 @@ export default function FeedbackScreen() {
   const overallColor = feedback.overallScore >= 4 ? colors.success : feedback.overallScore >= 2.5 ? colors.warning : colors.destructive;
 
   return (
+    <>
+    <InterstitialModal visible={interstitialVisible} onDismiss={() => setInterstitialVisible(false)} />
     <ScrollView
       style={[styles.root, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: Platform.OS === "web" ? 34 : 100 }]}
@@ -192,6 +241,7 @@ export default function FeedbackScreen() {
         </Pressable>
       </View>
     </ScrollView>
+    </>
   );
 }
 
