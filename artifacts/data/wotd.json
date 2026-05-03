@@ -1,0 +1,92 @@
+[
+  {
+    "id": "w1",
+    "word": "reivindicar",
+    "pos": "verbo",
+    "definition": "Reclamar como direito próprio; exigir algo a que se tem direito.",
+    "example": "Os trabalhadores reivindicaram melhores condições.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w2",
+    "word": "suscitar",
+    "pos": "verbo",
+    "definition": "Provocar, causar, originar (sentimento, reação ou questão).",
+    "example": "O discurso suscitou grande debate.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w3",
+    "word": "ponderar",
+    "pos": "verbo",
+    "definition": "Considerar atentamente; avaliar com cuidado antes de decidir.",
+    "example": "É preciso ponderar todas as consequências.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w4",
+    "word": "elucidar",
+    "pos": "verbo",
+    "definition": "Esclarecer, tornar mais claro; explicar com detalhes.",
+    "example": "O relatório elucidou os fatos do caso.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w5",
+    "word": "equívoco",
+    "pos": "substantivo",
+    "definition": "Erro resultante de má compreensão; engano, mal-entendido.",
+    "example": "O equívoco causou confusão entre os participantes.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w6",
+    "word": "paradoxo",
+    "pos": "substantivo",
+    "definition": "Situação ou afirmação que parece contraditória mas pode ser verdadeira.",
+    "example": "É um paradoxo que a tecnologia una e isole as pessoas.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w7",
+    "word": "eminente",
+    "pos": "adjetivo",
+    "definition": "De grande destaque; notável, ilustre.",
+    "example": "Um eminente cientista recebeu o prêmio.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w8",
+    "word": "lacuna",
+    "pos": "substantivo",
+    "definition": "Espaço vazio; ausência de algo necessário; falha.",
+    "example": "Há uma lacuna na legislação sobre esse tema.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w9",
+    "word": "mitigar",
+    "pos": "verbo",
+    "definition": "Diminuir a intensidade de; amenizar, suavizar.",
+    "example": "Medidas foram tomadas para mitigar os efeitos da crise.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  },
+  {
+    "id": "w10",
+    "word": "corroborar",
+    "pos": "verbo",
+    "definition": "Confirmar, reforçar (argumento, tese ou afirmação).",
+    "example": "Os estudos corroboram a hipótese apresentada.",
+    "active": true,
+    "createdAt": "2026-05-03T04:42:08.102Z"
+  }
+]

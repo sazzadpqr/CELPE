@@ -1,0 +1,199 @@
+[
+  {
+    "id": "2023-2",
+    "year": 2023,
+    "edition": "2023/2",
+    "title": "Celpe-Bras Novembro 2023",
+    "description": "Segunda edição de 2023. Provas aplicadas em novembro.",
+    "active": true,
+    "order": 1,
+    "createdAt": "2026-05-03T04:42:08.102Z",
+    "tasks": [
+      {
+        "id": "2023-2-t1",
+        "type": "Tarefa 1",
+        "title": "Tarefa 1 — Vídeo",
+        "genre": "Carta",
+        "description": "Baseada em vídeo sobre tecnologia e sociedade.",
+        "order": 1
+      },
+      {
+        "id": "2023-2-t2",
+        "type": "Tarefa 2",
+        "title": "Tarefa 2 — Áudio",
+        "genre": "Resenha",
+        "description": "Texto baseado em áudio sobre questões ambientais.",
+        "order": 2
+      },
+      {
+        "id": "2023-2-t3",
+        "type": "Tarefa 3",
+        "title": "Tarefa 3 — Texto",
+        "genre": "Artigo",
+        "description": "Produção textual sobre impactos do trabalho remoto.",
+        "order": 3
+      },
+      {
+        "id": "2023-2-t4",
+        "type": "Tarefa 4",
+        "title": "Tarefa 4 — Gráfico",
+        "genre": "Análise",
+        "description": "Análise de dados sobre o mercado de trabalho no Brasil.",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "id": "2023-1",
+    "year": 2023,
+    "edition": "2023/1",
+    "title": "Celpe-Bras Abril 2023",
+    "description": "Primeira edição de 2023. Provas aplicadas em abril.",
+    "active": true,
+    "order": 2,
+    "createdAt": "2026-05-03T04:42:08.102Z",
+    "tasks": [
+      {
+        "id": "2023-1-t1",
+        "type": "Tarefa 1",
+        "title": "Tarefa 1 — Vídeo",
+        "genre": "E-mail",
+        "description": "Baseada em vídeo sobre alimentação saudável.",
+        "order": 1
+      },
+      {
+        "id": "2023-1-t2",
+        "type": "Tarefa 2",
+        "title": "Tarefa 2 — Áudio",
+        "genre": "Relatório",
+        "description": "Baseada em áudio sobre migração no Brasil.",
+        "order": 2
+      },
+      {
+        "id": "2023-1-t3",
+        "type": "Tarefa 3",
+        "title": "Tarefa 3 — Texto",
+        "genre": "Crônica",
+        "description": "Tema: memória e identidade cultural.",
+        "order": 3
+      },
+      {
+        "id": "2023-1-t4",
+        "type": "Tarefa 4",
+        "title": "Tarefa 4 — Tabela",
+        "genre": "Proposta",
+        "description": "Dados sobre uso de redes sociais por faixa etária.",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "id": "2022-2",
+    "year": 2022,
+    "edition": "2022/2",
+    "title": "Celpe-Bras Novembro 2022",
+    "description": "Segunda edição de 2022.",
+    "active": true,
+    "order": 3,
+    "createdAt": "2026-05-03T04:42:08.102Z",
+    "tasks": [
+      {
+        "id": "2022-2-t1",
+        "type": "Tarefa 1",
+        "title": "Tarefa 1 — Vídeo",
+        "genre": "Carta",
+        "description": "Vídeo sobre desigualdade social urbana.",
+        "order": 1
+      },
+      {
+        "id": "2022-2-t2",
+        "type": "Tarefa 2",
+        "title": "Tarefa 2 — Áudio",
+        "genre": "Resumo",
+        "description": "Debate sobre saúde mental e trabalho.",
+        "order": 2
+      },
+      {
+        "id": "2022-2-t3",
+        "type": "Tarefa 3",
+        "title": "Tarefa 3 — Texto",
+        "genre": "Artigo",
+        "description": "Texto sobre impacto da pandemia na educação.",
+        "order": 3
+      },
+      {
+        "id": "2022-2-t4",
+        "type": "Tarefa 4",
+        "title": "Tarefa 4 — Gráfico",
+        "genre": "Análise",
+        "description": "Índices de vacinação no Brasil por região.",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "id": "2022-1",
+    "year": 2022,
+    "edition": "2022/1",
+    "title": "Celpe-Bras Abril 2022",
+    "description": "Primeira edição de 2022.",
+    "active": true,
+    "order": 4,
+    "createdAt": "2026-05-03T04:42:08.102Z",
+    "tasks": [
+      {
+        "id": "2022-1-t1",
+        "type": "Tarefa 1",
+        "title": "Tarefa 1 — Vídeo",
+        "genre": "Carta Aberta",
+        "description": "Baseada em vídeo sobre sustentabilidade.",
+        "order": 1
+      },
+      {
+        "id": "2022-1-t2",
+        "type": "Tarefa 2",
+        "title": "Tarefa 2 — Áudio",
+        "genre": "Resenha",
+        "description": "Podcast sobre empreendedorismo feminino.",
+        "order": 2
+      },
+      {
+        "id": "2022-1-t3",
+        "type": "Tarefa 3",
+        "title": "Tarefa 3 — Texto",
+        "genre": "Conto",
+        "description": "Texto literário sobre identidade e pertencimento.",
+        "order": 3
+      },
+      {
+        "id": "2022-1-t4",
+        "type": "Tarefa 4",
+        "title": "Tarefa 4 — Infográfico",
+        "genre": "Análise",
+        "description": "Dados sobre desmatamento no cerrado.",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "id": "inep",
+    "year": 0,
+    "edition": "INEP Oficial",
+    "title": "Materiais Oficiais — INEP",
+    "description": "Acesse provas, gabaritos e materiais oficiais do Celpe-Bras no site do INEP.",
+    "active": true,
+    "order": 5,
+    "createdAt": "2026-05-03T04:42:08.102Z",
+    "tasks": [
+      {
+        "id": "inep-link",
+        "type": "Link Externo",
+        "title": "Site oficial INEP — Celpe-Bras",
+        "genre": "Portal",
+        "description": "Provas anteriores, edital e informações oficiais.",
+        "linkUrl": "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/celpe-bras",
+        "order": 1
+      }
+    ]
+  }
+]

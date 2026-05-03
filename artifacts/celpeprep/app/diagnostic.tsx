@@ -50,6 +50,7 @@ function getApiUrl(path: string) {
 }
 
 const FALLBACK_QUESTIONS: Question[] = [
+  // ── A2 (7) ─────────────────────────────────────────────────────────────────
   {
     id: "a2-v1", level: "A2", category: "verbos",
     question: "Como estudante dedicada, ela ___ sempre pontual.",
@@ -82,6 +83,31 @@ const FALLBACK_QUESTIONS: Question[] = [
     explanation: "'Alunos' é plural → verbo no plural: 'têm sido'. 'Sidos' não existe.",
     grammarRule: "Concordância verbal",
   },
+  {
+    id: "a2-prep1", level: "A2", category: "preposicoes",
+    question: "Todo dia pela manhã, ela vai ___ academia antes do trabalho.",
+    options: ["à", "na", "para", "em"],
+    correct: 0,
+    explanation: "Com verbos de movimento e nomes femininos com artigo definido, usa-se crase: 'à academia'.",
+    grammarRule: "Crase com verbos de movimento",
+  },
+  {
+    id: "a2-vocab1", level: "A2", category: "vocabulario",
+    question: "Na farmácia, o atendente perguntou: 'O senhor tem a ___ médica?' Qual palavra completa corretamente?",
+    options: ["receita", "recibo", "reclamação", "revisão"],
+    correct: 0,
+    explanation: "'Receita' é o documento emitido pelo médico para comprar remédios. 'Recibo' é comprovante de pagamento.",
+    grammarRule: "Vocabulário: contexto de saúde",
+  },
+  {
+    id: "a2-vocab2", level: "A2", category: "vocabulario",
+    question: "No supermercado, vejo o seguinte aviso: 'Este ___ aceita cartões de crédito e débito.' Qual palavra se refere ao local de compra?",
+    options: ["estabelecimento", "argumento", "equipamento", "departamento"],
+    correct: 0,
+    explanation: "'Estabelecimento' refere-se a um local de comércio ou serviço, como supermercado, restaurante ou loja.",
+    grammarRule: "Vocabulário: espaços comerciais",
+  },
+  // ── B1 (8) ─────────────────────────────────────────────────────────────────
   {
     id: "b1-s1", level: "B1", category: "subjuntivo",
     question: "O professor pediu que os alunos ___ o texto com atenção.",
@@ -123,6 +149,31 @@ const FALLBACK_QUESTIONS: Question[] = [
     grammarRule: "Particípios irregulares – voz passiva",
   },
   {
+    id: "b1-prep1", level: "B1", category: "preposicoes",
+    question: "No e-mail corporativo: 'O diretor insistiu ___ aprovação do projeto antes do prazo.' Qual preposição está correta?",
+    options: ["na", "em a", "pela", "para a"],
+    correct: 0,
+    explanation: "'Insistir em' é regência verbal fixa. 'Em' + 'a' = contração 'na'.",
+    grammarRule: "Regência verbal: insistir em",
+  },
+  {
+    id: "b1-vocab1", level: "B1", category: "vocabulario",
+    question: "No e-mail de trabalho: 'Peço que você me encaminhe o relatório com ___ urgência.' Qual palavra reforça a ideia de máxima prioridade?",
+    options: ["extrema", "simples", "relativa", "eventual"],
+    correct: 0,
+    explanation: "'Extrema urgência' é colocação comum em contextos profissionais formais para indicar máxima prioridade.",
+    grammarRule: "Vocabulário: registro formal/profissional",
+  },
+  {
+    id: "b1-vocab2", level: "B1", category: "vocabulario",
+    question: "O artigo disse: 'O governo tomou ___ para conter o aumento dos preços.' Qual palavra indica ações planejadas oficialmente?",
+    options: ["medidas", "tarefas", "promessas", "dúvidas"],
+    correct: 0,
+    explanation: "'Tomar medidas' é colocação fixa que significa implementar ações ou providências planejadas.",
+    grammarRule: "Vocabulário: colocações em contexto formal",
+  },
+  // ── B2 (8) ─────────────────────────────────────────────────────────────────
+  {
     id: "b2-sf1", level: "B2", category: "subjuntivo",
     question: "Quando você ___ os dados, me avise imediatamente.",
     options: ["analisará", "analisa", "analisar", "analisasse"],
@@ -155,13 +206,30 @@ const FALLBACK_QUESTIONS: Question[] = [
     grammarRule: "Regência verbal + crase",
   },
   {
-    id: "b2-prep2", level: "B2", category: "preposicoes",
-    question: "As análises apresentadas foram ___ relevantes para o caso.",
-    options: ["muito", "muitas", "muitos", "muitíssimas"],
-    correct: 0,
-    explanation: "'Muito' como advérbio (modifica adjetivo) é invariável.",
-    grammarRule: "Advérbio invariável vs. pronome indefinido",
+    id: "b2-conc1", level: "B2", category: "concordancia",
+    question: "Junto com os documentos, ___ um formulário de inscrição.",
+    options: ["vinha", "vinham", "vieram", "veio"],
+    correct: 3,
+    explanation: "'Formulário' é o sujeito real; 'junto com' não forma sujeito composto. O verbo concorda com 'formulário' (singular): 'veio'.",
+    grammarRule: "Concordância com 'junto com'",
   },
+  {
+    id: "b2-vocab1", level: "B2", category: "vocabulario",
+    question: "No artigo científico: 'Os resultados ___ a hipótese inicial dos pesquisadores.' Qual verbo indica que os dados confirmam a hipótese?",
+    options: ["corroboram", "descartam", "amenizam", "questionam"],
+    correct: 0,
+    explanation: "'Corroborar' significa confirmar ou reforçar uma hipótese com evidências. 'Descartar' = rejeitar; 'amenizar' = suavizar.",
+    grammarRule: "Vocabulário acadêmico: verbos de argumentação",
+  },
+  {
+    id: "b2-vocab2", level: "B2", category: "vocabulario",
+    question: "Na reportagem: 'As políticas adotadas mostraram-se ___ para combater a desigualdade regional.' Qual adjetivo indica resultado positivo e eficaz?",
+    options: ["profícuas", "inócuas", "ambíguas", "superadas"],
+    correct: 0,
+    explanation: "'Profícuo' significa que produz bons resultados, é frutífero ou eficaz. 'Inócuo' = sem efeito; 'ambíguo' = com dois sentidos.",
+    grammarRule: "Vocabulário: adjetivos de avaliação formal",
+  },
+  // ── C1 (7) ─────────────────────────────────────────────────────────────────
   {
     id: "c1-s1", level: "C1", category: "subjuntivo",
     question: "Era necessário que todos ___ mais conscientes sobre o impacto.",
@@ -177,14 +245,6 @@ const FALLBACK_QUESTIONS: Question[] = [
     correct: 1,
     explanation: "'Contudo' expressa contraste/adversidade — conectivo adversativo.",
     grammarRule: "Conectivos adversativos",
-  },
-  {
-    id: "c1-k2", level: "C1", category: "conectivos",
-    question: "Trata-se de uma das análises mais ___ já conduzidas nessa área.",
-    options: ["abrangente", "abrangentes", "abrangendo", "abrangido"],
-    correct: 1,
-    explanation: "Concordância com 'análises' (plural feminino): 'abrangentes'.",
-    grammarRule: "Superlativo relativo – concordância",
   },
   {
     id: "c1-prep1", level: "C1", category: "preposicoes",
@@ -210,6 +270,22 @@ const FALLBACK_QUESTIONS: Question[] = [
     explanation: "Período hipotético do passado: 'se + imperfeito do subjuntivo + futuro do pretérito'.",
     grammarRule: "Período condicional hipotético (passado)",
   },
+  {
+    id: "c1-vocab1", level: "C1", category: "vocabulario",
+    question: "O texto afirma: 'A ___ entre os dados e as premissas teóricas foi o ponto central da crítica.' Qual substantivo indica falta de coerência entre elementos?",
+    options: ["dissonância", "consonância", "convergência", "redundância"],
+    correct: 0,
+    explanation: "'Dissonância' indica falta de harmonia ou contradição. 'Consonância' e 'convergência' indicam acordo; 'redundância' indica repetição desnecessária.",
+    grammarRule: "Vocabulário sofisticado: relações lógicas e argumentativas",
+  },
+  {
+    id: "c1-vocab2", level: "C1", category: "vocabulario",
+    question: "Na análise política: 'O discurso do candidato foi ___, pois agradou tanto à esquerda quanto à direita sem comprometer nenhuma das posições.' Qual adjetivo descreve essa estratégia?",
+    options: ["ambivalente", "categórico", "explícito", "coeso"],
+    correct: 0,
+    explanation: "'Ambivalente' descreve algo que pode ser interpretado de duas formas ou que satisfaz posições opostas simultaneamente.",
+    grammarRule: "Vocabulário: análise crítica e argumentação",
+  },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -219,6 +295,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   pronomes: "Pronomes",
   conectivos: "Conectivos",
   preposicoes: "Preposições",
+  vocabulario: "Vocabulário",
 };
 
 const CATEGORY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
@@ -228,14 +305,17 @@ const CATEGORY_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
   pronomes: "user",
   conectivos: "link",
   preposicoes: "arrow-right",
+  vocabulario: "book-open",
 };
 
 const GEN_MESSAGES = [
   "Analisando categorias gramaticais...",
-  "Criando questões do cotidiano real...",
+  "Criando questões de vocabulário...",
   "Adaptando aos padrões do Celpe-Bras...",
   "Selecionando contextos autênticos...",
   "Calibrando a dificuldade por nível...",
+  "Montando seu conjunto exclusivo de 30 questões...",
+  "Verificando a distribuição por nível...",
   "Preparando seu diagnóstico único...",
 ];
 
@@ -366,7 +446,7 @@ export default function DiagnosticScreen() {
       });
       if (res.ok) {
         const data = await res.json() as { questions?: Question[] };
-        if (Array.isArray(data.questions) && data.questions.length >= 12) {
+        if (Array.isArray(data.questions) && data.questions.length >= 20) {
           const loaded = data.questions as Question[];
           setQuestions(loaded);
           setAnswers(new Array(loaded.length).fill(null));
@@ -461,7 +541,7 @@ export default function DiagnosticScreen() {
 
   // ── Generating ─────────────────────────────────────────────────────────────
   if (step === "generating") {
-    const categories = ["verbos", "concordancia", "subjuntivo", "pronomes", "conectivos", "preposicoes"];
+    const categories = ["verbos", "concordancia", "subjuntivo", "pronomes", "conectivos", "preposicoes", "vocabulario"];
     return (
       <View style={[S.root, { backgroundColor: colors.background, alignItems: "center", justifyContent: "center", padding: 32 }]}>
         <View style={[S.genCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -518,8 +598,8 @@ export default function DiagnosticScreen() {
 
         <View style={[S.infoGrid, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {[
-            { icon: "clock" as const, label: "Duração estimada", value: "~20 minutos" },
-            { icon: "bar-chart-2" as const, label: "Questões", value: "20 de gramática" },
+            { icon: "clock" as const, label: "Duração estimada", value: "~30 minutos" },
+            { icon: "bar-chart-2" as const, label: "Questões", value: "30 (gramática + vocabulário)" },
             { icon: "layers" as const, label: "Níveis avaliados", value: "A2 · B1 · B2 · C1" },
             { icon: "zap" as const, label: "Resultado", value: "Análise com IA" },
           ].map(item => (

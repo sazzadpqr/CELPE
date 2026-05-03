@@ -250,9 +250,26 @@ router.post("/admin/diagnostic/generate-bulk", async (req, res) => {
 // ─── AI Session Generator (public, mobile) ────────────────────────────────────
 
 router.post("/diagnostic/generate-session", async (req, res) => {
+  const seed = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const topicVariants = [
+    "tecnologia, redes sociais e trabalho remoto",
+    "saúde, alimentação e bem-estar",
+    "educação, carreira e mercado de trabalho",
+    "meio ambiente, sustentabilidade e cidades",
+    "viagens, culturas e relações interpessoais",
+    "economia, consumo e finanças pessoais",
+    "cultura brasileira, esportes e entretenimento",
+    "política, cidadania e direitos",
+  ];
+  const topicTheme = topicVariants[Math.floor(Math.random() * topicVariants.length)];
+
   const prompt = `Você é especialista em ensino de português como língua estrangeira e criação de questões para o exame Celpe-Bras.
 
-Gere EXATAMENTE 20 questões únicas de múltipla escolha para um diagnóstico de nível de português brasileiro.
+Sessão ID: ${seed}
+Tema principal dos contextos: ${topicTheme}
+
+Gere EXATAMENTE 30 questões únicas de múltipla escolha para um diagnóstico de nível de português brasileiro.
+IMPORTANTE: Cada sessão deve ser completamente diferente de outras sessões. Varie tópicos, vocabulário e situações.
 
 Use EXCLUSIVAMENTE contextos autênticos do cotidiano real:
 - Manchetes e trechos de notícias brasileiras
@@ -262,21 +279,30 @@ Use EXCLUSIVAMENTE contextos autênticos do cotidiano real:
 - Documentos e formulários oficiais
 - Conversas de WhatsApp e aplicativos de mensagem
 
-DISTRIBUIÇÃO OBRIGATÓRIA (5 de cada nível):
-- 5 × A2 – básico: conjugações regulares, ser/estar, concordância simples, vocabulário cotidiano
-- 5 × B1 – intermediário: subjuntivo presente, pronomes relativos, conectivos causais/concessivos
-- 5 × B2 – intermediário avançado: futuro do subjuntivo, discurso indireto, regência verbal, crase
-- 5 × C1 – avançado: correlação temporal, subjuntivo imperfeito, verbos impessoais, concordância complexa
+DISTRIBUIÇÃO OBRIGATÓRIA (30 questões no total):
+- 7 × A2 – básico (5 gramática + 2 vocabulário): conjugações regulares, ser/estar, concordância simples; vocabulário do cotidiano
+- 8 × B1 – intermediário (6 gramática + 2 vocabulário): subjuntivo presente, pronomes relativos, conectivos causais/concessivos; vocabulário formal/informal
+- 8 × B2 – intermediário avançado (6 gramática + 2 vocabulário): futuro do subjuntivo, discurso indireto, regência verbal, crase; vocabulário acadêmico e colocações
+- 7 × C1 – avançado (5 gramática + 2 vocabulário): correlação temporal, subjuntivo imperfeito, verbos impessoais, concordância complexa; vocabulário sofisticado e nuançado
 
-Categorias disponíveis: verbos, concordancia, subjuntivo, pronomes, conectivos, preposicoes
+Categorias disponíveis: verbos, concordancia, subjuntivo, pronomes, conectivos, preposicoes, vocabulario
+
+TIPOS DE QUESTÕES DE VOCABULÁRIO (categoria "vocabulario"):
+- Escolher a palavra correta pelo significado em contexto
+- Identificar sinônimo/antônimo mais adequado ao registro
+- Completar colocação lexical fixa (ex: "tomar uma ___ drástica")
+- Reconhecer o significado de expressão idiomática ou vocabulário técnico
+- Distinguir palavras parecidas (ex: iminente vs. eminente)
+Para A2: palavras cotidianas básicas; B1: registro formal básico e coloquial; B2: vocabulário acadêmico e colocações formais; C1: termos sofisticados, nuances semânticas, expressões argumentativas
 
 Regras de qualidade:
 - Cada questão deve ter um mini-contexto real antes do enunciado (ex: "Numa reunião de trabalho, seu colega disse: '...' Qual alternativa completa corretamente?")
 - 4 alternativas plausíveis (distratores baseados em erros reais de aprendizes)
 - Apenas uma resposta correta
 - Explicação didática de 1-2 frases em português
-- Nome da regra gramatical
-- Varie os formatos: lacuna com ___, escolha de conector, identificação de erro, completar fala
+- Nome da regra gramatical ou vocabular
+- Varie os formatos: lacuna com ___, escolha de conector, identificação de erro, completar fala, escolha de palavra pelo significado
+- NÃO repita estruturas similares em questões consecutivas
 
 Responda SOMENTE com JSON válido (sem markdown, sem texto adicional):
 {
@@ -289,7 +315,7 @@ Responda SOMENTE com JSON válido (sem markdown, sem texto adicional):
       "options": ["<A>", "<B>", "<C>", "<D>"],
       "correct": 0,
       "explanation": "<explicação didática>",
-      "grammarRule": "<nome da regra>"
+      "grammarRule": "<nome da regra ou área vocabular>"
     }
   ]
 }`;
@@ -297,14 +323,14 @@ Responda SOMENTE com JSON válido (sem markdown, sem texto adicional):
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-5.1",
-      max_completion_tokens: 8000,
+      max_completion_tokens: 12000,
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
     });
     const raw = completion.choices[0]?.message?.content ?? "{}";
     const parsed = JSON.parse(raw);
     const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
-    req.log.info({ count: questions.length }, "diagnostic session generated");
+    req.log.info({ count: questions.length, seed, theme: topicTheme }, "diagnostic session generated");
     res.json({ questions });
   } catch (err) {
     req.log.error(err, "generate-session error");

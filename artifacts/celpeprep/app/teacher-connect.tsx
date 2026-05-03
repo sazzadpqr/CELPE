@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   teacherHeader: { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 16 },
   teacherAvatar: {
     width: 44, height: 44, borderRadius: 22,
-    alignItems: "center", justifyContent: "center", shrink: 0 as any,
+    alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
   teacherInitials: { fontSize: 16, fontFamily: "Inter_700Bold" },
   teacherName: { fontSize: 15, fontFamily: "Inter_700Bold" },
