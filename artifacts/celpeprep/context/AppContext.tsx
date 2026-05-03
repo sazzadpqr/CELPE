@@ -9,6 +9,9 @@ import React, {
 
 export interface UserProfile {
   name: string;
+  username: string;
+  email: string;
+  avatarEmoji: string;
   level: "A2" | "B1" | "B2" | "C1";
   examDate: string | null;
   dailyGoalMinutes: number;
@@ -65,6 +68,7 @@ export interface StudyTask {
 interface AppContextType {
   profile: UserProfile;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  syncProfileToServer: (updates: Partial<UserProfile>) => Promise<{ ok: boolean; error?: string }>;
   vocabWords: VocabWord[];
   addVocabWord: (word: Omit<VocabWord, "id" | "addedAt" | "timesReviewed" | "easeLevel" | "nextReview" | "status">) => Promise<void>;
   updateVocabWord: (id: string, updates: Partial<VocabWord>) => Promise<void>;
@@ -77,6 +81,9 @@ interface AppContextType {
 
 const defaultProfile: UserProfile = {
   name: "",
+  username: "",
+  email: "",
+  avatarEmoji: "🎓",
   level: "B1",
   examDate: null,
   dailyGoalMinutes: 30,
@@ -112,6 +119,11 @@ function generateUUID(): string {
     const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+}
+
+function getApiUrl(path: string) {
+  const domain = process.env["EXPO_PUBLIC_DOMAIN"];
+  return domain ? `https://${domain}${path}` : path;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -162,6 +174,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  const syncProfileToServer = useCallback(async (updates: Partial<UserProfile>): Promise<{ ok: boolean; error?: string }> => {
+    const currentProfile = await AsyncStorage.getItem("celpeprep_profile");
+    const parsed = currentProfile ? JSON.parse(currentProfile) as UserProfile : profile;
+    const deviceToken = parsed.deviceToken || profile.deviceToken;
+    if (!deviceToken) return { ok: false, error: "No device token" };
+
+    try {
+      const body: Record<string, unknown> = {};
+      if (updates.username !== undefined) body["username"] = updates.username;
+      if (updates.avatarEmoji !== undefined) body["avatarEmoji"] = updates.avatarEmoji;
+      if (updates.name !== undefined) body["displayName"] = updates.name;
+      if (updates.level !== undefined) body["level"] = updates.level;
+      if (updates.examDate !== undefined) body["targetDate"] = updates.examDate;
+      if (updates.dailyGoalMinutes !== undefined) body["dailyGoalMinutes"] = updates.dailyGoalMinutes;
+
+      const res = await fetch(getApiUrl(`/api/profile/${deviceToken}`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.status === 409) {
+        return { ok: false, error: "username_taken" };
+      }
+      if (!res.ok) {
+        return { ok: false, error: "server_error" };
+      }
+
+      await updateProfile(updates);
+      return { ok: true };
+    } catch {
+      await updateProfile(updates);
+      return { ok: true };
+    }
+  }, [profile, updateProfile]);
 
   const addVocabWord = useCallback(async (
     word: Omit<VocabWord, "id" | "addedAt" | "timesReviewed" | "easeLevel" | "nextReview" | "status">
@@ -237,7 +285,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider
-      value={{ profile, updateProfile, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
+      value={{ profile, updateProfile, syncProfileToServer, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
     >
       {children}
     </AppContext.Provider>

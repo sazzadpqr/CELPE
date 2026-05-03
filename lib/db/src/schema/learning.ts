@@ -64,6 +64,7 @@ export const courses = pgTable("courses", {
   totalLessons: integer("total_lessons").notNull().default(0),
   estimatedHours: real("estimated_hours").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  isPremium: boolean("is_premium").notNull().default(false),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

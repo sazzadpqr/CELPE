@@ -20,6 +20,7 @@ type VaultConfig = {
   sessionSecret: string;
   admobAndroidAppId: string;
   admobIosAppId: string;
+  aboutUrl: string;
 };
 
 const DEFAULTS: VaultConfig = {
@@ -33,6 +34,7 @@ const DEFAULTS: VaultConfig = {
   sessionSecret: "",
   admobAndroidAppId: "",
   admobIosAppId: "",
+  aboutUrl: "",
 };
 
 export default function Vault() {
@@ -198,6 +200,29 @@ export default function Vault() {
                   onChange={(e) => set("admobIosAppId", e.target.value)}
                   className="font-mono text-xs bg-muted/50"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-mono text-sm flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-sky-500" /> App — Sobre / About
+              </CardTitle>
+              <CardDescription>Link externo exibido na opção "Sobre o app" no perfil do usuário no app.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label className="text-xs font-mono text-muted-foreground">URL da página "Sobre o app"</Label>
+                <Input
+                  placeholder="https://seusite.com/sobre"
+                  value={config.aboutUrl}
+                  onChange={(e) => set("aboutUrl", e.target.value)}
+                  className="font-mono text-xs bg-muted/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Quando o usuário tocar em "Sobre o app" no perfil, este link será aberto no navegador externo. Se vazio, exibe uma mensagem padrão.
+                </p>
               </div>
             </CardContent>
           </Card>

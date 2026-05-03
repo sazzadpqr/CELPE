@@ -65,7 +65,7 @@ router.get("/admin/vault", async (req, res) => {
     const row = rows[0] ?? null;
     if (!row) {
       await db.insert(adminVaultConfig).values({ id: "singleton" });
-      res.json({ openaiModel: "gpt-4o", paddleEnv: "sandbox", paddleApiKey: "", paddleMonthlyPriceId: "", paddleYearlyPriceId: "", paddleWebhookSecret: "", resendApiKey: "", sessionSecret: "", admobAndroidAppId: "", admobIosAppId: "" });
+      res.json({ openaiModel: "gpt-4o", paddleEnv: "sandbox", paddleApiKey: "", paddleMonthlyPriceId: "", paddleYearlyPriceId: "", paddleWebhookSecret: "", resendApiKey: "", sessionSecret: "", admobAndroidAppId: "", admobIosAppId: "", aboutUrl: "" });
       return;
     }
     res.json({
@@ -79,6 +79,7 @@ router.get("/admin/vault", async (req, res) => {
       sessionSecret: row.sessionSecret,
       admobAndroidAppId: row.admobAndroidAppId,
       admobIosAppId: row.admobIosAppId,
+      aboutUrl: row.aboutUrl,
     });
   } catch (err) {
     res.status(500).json({ error: "Database error" });
@@ -90,13 +91,26 @@ router.put("/admin/vault", async (req, res) => {
   try {
     const body = req.body as Record<string, string>;
     const updateData: Record<string, string | Date> = { updatedAt: new Date() };
-    const allowed = ["openaiModel","paddleEnv","paddleApiKey","paddleMonthlyPriceId","paddleYearlyPriceId","paddleWebhookSecret","resendApiKey","sessionSecret","admobAndroidAppId","admobIosAppId"];
-    for (const key of allowed) {
+    const secretFields = ["openaiModel","paddleEnv","paddleApiKey","paddleMonthlyPriceId","paddleYearlyPriceId","paddleWebhookSecret","resendApiKey","sessionSecret","admobAndroidAppId","admobIosAppId"];
+    const clearableFields = ["aboutUrl"];
+    for (const key of secretFields) {
       if (body[key] !== undefined && body[key] !== "") updateData[key] = body[key]!;
+    }
+    for (const key of clearableFields) {
+      if (body[key] !== undefined) updateData[key] = body[key]!;
     }
     await db.insert(adminVaultConfig).values({ id: "singleton", ...updateData })
       .onConflictDoUpdate({ target: adminVaultConfig.id, set: updateData });
     res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+router.get("/content/app-info", async (_req, res) => {
+  try {
+    const rows = await db.select({ aboutUrl: adminVaultConfig.aboutUrl }).from(adminVaultConfig).where(eq(adminVaultConfig.id, "singleton"));
+    res.json({ aboutUrl: rows[0]?.aboutUrl ?? "" });
   } catch {
     res.status(500).json({ error: "Database error" });
   }

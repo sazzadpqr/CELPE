@@ -12,6 +12,7 @@ export const adminVaultConfig = pgTable("admin_vault_config", {
   sessionSecret: text("session_secret").notNull().default(""),
   admobAndroidAppId: text("admob_android_app_id").notNull().default(""),
   admobIosAppId: text("admob_ios_app_id").notNull().default(""),
+  aboutUrl: text("about_url").notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

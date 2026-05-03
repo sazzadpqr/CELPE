@@ -41,6 +41,7 @@ router.post("/admin/courses", async (req, res) => {
       totalLessons: 0,
       estimatedHours: b.estimatedHours ?? 0,
       active: b.active ?? false,
+      isPremium: b.isPremium ?? false,
       order: b.order ?? 0,
     }).returning();
     res.status(201).json(row);
@@ -55,7 +56,7 @@ router.put("/admin/courses/:id", async (req, res) => {
       .set({
         title: b.title, subtitle: b.subtitle, description: b.description, level: b.level,
         category: b.category, thumbnailUrl: b.thumbnailUrl,
-        estimatedHours: b.estimatedHours, active: b.active, order: b.order,
+        estimatedHours: b.estimatedHours, active: b.active, isPremium: b.isPremium, order: b.order,
       })
       .where(eq(courses.id, req.params.id!)).returning();
     if (!row) { res.status(404).json({ error: "Not found" }); return; }

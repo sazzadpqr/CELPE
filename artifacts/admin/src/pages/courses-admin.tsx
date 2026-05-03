@@ -35,6 +35,7 @@ type Course = {
   totalLessons: number;
   estimatedHours: number;
   active: boolean;
+  isPremium: boolean;
   order: number;
   lessons: Lesson[];
 };
@@ -48,6 +49,7 @@ const BLANK_COURSE: Omit<Course, "id" | "lessons" | "totalLessons"> = {
   thumbnailUrl: null,
   estimatedHours: 0,
   active: false,
+  isPremium: false,
   order: 0,
 };
 
@@ -238,6 +240,16 @@ export default function CoursesAdminPage() {
                 <Label className="text-xs">Ativo</Label>
               </div>
             </div>
+            <div className="flex gap-6 items-center py-1">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={editCourse.isPremium ?? false}
+                  onCheckedChange={(v) => setEditCourse((c) => ({ ...c!, isPremium: v }))}
+                />
+                <Label className="text-xs">Exclusivo Premium</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">Usuários gratuitos verão este curso bloqueado e serão direcionados ao paywall.</p>
+            </div>
             <div className="space-y-1">
               <Label className="text-xs">Thumbnail URL (opcional)</Label>
               <Input
@@ -283,6 +295,9 @@ export default function CoursesAdminPage() {
                         {course.active ? "Ativo" : "Inativo"}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">{course.level}</Badge>
+                      {course.isPremium && (
+                        <Badge className="text-[10px] bg-violet-600 hover:bg-violet-700">⭐ Premium</Badge>
+                      )}
                       {course.category && (
                         <Badge variant="outline" className="text-[10px]">{course.category}</Badge>
                       )}

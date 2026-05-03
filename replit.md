@@ -104,6 +104,8 @@ Quiz lesson content is served embedded in `GET /api/content/quiz` (each category
 - `app/(tabs)/vocab.tsx` — Vocabulary list + flashcard CTA
 - `app/vocab/flashcards.tsx` — SRS flashcard session (SM2 algorithm)
 - `app/(tabs)/study.tsx` — Study plan + weakness dashboard
+- `app/(tabs)/profile.tsx` — Redesigned profile: emoji/avatar picker, unique @handle username, read-only email, stats, "Sobre o app" link
+- `app/courses.tsx` — Course list with premium gating (lock icon + purple badge), plan banner, redirects free users to paywall
 - `app/diagnostic.tsx` — 15-question grammar diagnostic
 - `app/paywall.tsx` — Premium paywall with Paddle checkout
 - `app/practice/session.tsx` — 25-min timed writing session
@@ -114,6 +116,28 @@ Quiz lesson content is served embedded in `GET /api/content/quiz` (each category
 - `app/listening.tsx` — Listening comprehension
 - `app/notifications.tsx` — In-app notifications list with read/mark-all
 - `app/grammar.tsx` — Grammar quiz with lesson phase; lesson content fetched from `/api/content/quiz` (`lesson` field per category)
+
+## Premium Course Gating
+
+- DB: `courses.is_premium` boolean column
+- `GET /api/content/courses` returns `isPremium` field for each course
+- Free users see locked courses with lock icon + purple "Premium" badge; tapping redirects to `/paywall`
+- Admin `/courses` page shows ⭐ Premium badge in course list; form has "Exclusivo Premium" toggle switch
+
+## User Profile (username + avatar)
+
+- DB: `profiles.username` (unique text), `profiles.avatar_emoji` (text)
+- `GET /api/profile/:deviceToken` — returns `username`, `avatarEmoji`, `email`, and all other profile fields
+- `PUT /api/profile/:deviceToken` — upserts profile incl. username (409 on conflict) + avatarEmoji
+- `GET /api/profile/check-username?username=&deviceToken=` — returns `{ available, handle, reason? }`
+- `AppContext` carries `username`, `email`, `avatarEmoji`; `syncProfileToServer()` persists to API
+
+## About App / About URL
+
+- DB: `admin_vault_config.about_url` column (clearable, unlike other vault fields which skip empty)
+- `GET /api/content/app-info` — public endpoint returning `{ aboutUrl }`
+- Admin `/vault` — "App — Sobre / About" card with URL field
+- Profile screen "Sobre o app" row opens URL via `expo-linking` if set, otherwise hidden
 
 ## Admin Auth
 

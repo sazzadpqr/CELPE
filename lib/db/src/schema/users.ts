@@ -3,6 +3,8 @@ import { pgTable, text, boolean, integer, real, jsonb, timestamp } from "drizzle
 export const profiles = pgTable("profiles", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   deviceToken: text("device_token").notNull().unique(),
+  username: text("username").unique(),
+  avatarEmoji: text("avatar_emoji").notNull().default("🎓"),
   displayName: text("display_name"),
   email: text("email"),
   level: text("level").notNull().default("B1"),

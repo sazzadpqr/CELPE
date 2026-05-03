@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
+import { useApp } from "@/context/AppContext";
 
 function getApiUrl(path: string) {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
@@ -27,6 +28,7 @@ type Course = {
   totalLessons: number;
   estimatedHours: number;
   thumbnailUrl: string | null;
+  isPremium: boolean;
 };
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -48,6 +50,7 @@ function courseColor(course: Course): string {
 export default function CoursesScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
+  const { profile } = useApp();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("Todos");
@@ -62,6 +65,14 @@ export default function CoursesScreen() {
 
   const levels = ["Todos", "A2", "B1", "B2", "C1"];
   const filtered = filter === "Todos" ? courses : courses.filter((c) => c.level === filter);
+
+  const handleCoursePress = (course: Course) => {
+    if (course.isPremium && !profile.isPremium) {
+      router.push("/paywall");
+      return;
+    }
+    router.push({ pathname: "/course/[id]", params: { id: course.id } });
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -80,6 +91,20 @@ export default function CoursesScreen() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Plan info banner */}
+        {!profile.isPremium && courses.some((c) => c.isPremium) && (
+          <Pressable
+            onPress={() => router.push("/paywall")}
+            style={[styles.planBanner, { backgroundColor: "#7c3aed14", borderColor: "#7c3aed30" }]}
+          >
+            <Feather name="lock" size={14} color="#7c3aed" />
+            <Text style={[styles.planBannerText, { color: "#7c3aed" }]}>
+              Alguns cursos são exclusivos do plano Premium. Toque para desbloquear.
+            </Text>
+            <Feather name="chevron-right" size={14} color="#7c3aed" />
+          </Pressable>
+        )}
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={styles.filterContent}>
           {levels.map((lvl) => (
             <Pressable
@@ -113,15 +138,26 @@ export default function CoursesScreen() {
         ) : (
           filtered.map((course) => {
             const accent = courseColor(course);
+            const isLocked = course.isPremium && !profile.isPremium;
             return (
               <Pressable
                 key={course.id}
-                onPress={() => router.push({ pathname: "/course/[id]", params: { id: course.id } })}
-                style={({ pressed }) => [styles.card, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
+                onPress={() => handleCoursePress(course)}
+                style={({ pressed }) => [
+                  styles.card,
+                  { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
+                  isLocked && { opacity: 0.85 },
+                ]}
               >
                 <View style={[styles.cardBanner, { backgroundColor: accent + "22", borderBottomColor: accent + "30" }]}>
                   <View style={styles.cardBannerInner}>
-                    <Feather name="play-circle" size={28} color={accent} />
+                    {isLocked ? (
+                      <View style={[styles.lockIcon, { backgroundColor: "#7c3aed22" }]}>
+                        <Feather name="lock" size={22} color="#7c3aed" />
+                      </View>
+                    ) : (
+                      <Feather name="play-circle" size={28} color={accent} />
+                    )}
                     <View style={{ flex: 1 }}>
                       <View style={styles.badges}>
                         <View style={[styles.badge, { backgroundColor: accent + "22" }]}>
@@ -132,34 +168,55 @@ export default function CoursesScreen() {
                             <Text style={[styles.badgeText, { color: colors.mutedForeground }]}>{course.category}</Text>
                           </View>
                         ) : null}
+                        {course.isPremium && (
+                          <View style={[styles.badge, { backgroundColor: "#7c3aed22" }]}>
+                            <Feather name="star" size={9} color="#7c3aed" />
+                            <Text style={[styles.badgeText, { color: "#7c3aed" }]}>Premium</Text>
+                          </View>
+                        )}
                       </View>
                     </View>
                   </View>
                 </View>
                 <View style={styles.cardBody}>
-                  <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={2}>{course.title}</Text>
+                  <View style={styles.cardTitleRow}>
+                    <Text style={[styles.cardTitle, { color: isLocked ? colors.mutedForeground : colors.text }]} numberOfLines={2}>
+                      {course.title}
+                    </Text>
+                    {isLocked && <Feather name="lock" size={14} color={colors.mutedForeground} style={{ marginTop: 3 }} />}
+                  </View>
                   {course.subtitle ? (
-                    <Text style={[styles.cardSubtitle, { color: accent }]} numberOfLines={1}>{course.subtitle}</Text>
+                    <Text style={[styles.cardSubtitle, { color: isLocked ? colors.mutedForeground : accent }]} numberOfLines={1}>
+                      {course.subtitle}
+                    </Text>
                   ) : null}
-                  {course.description ? (
+                  {course.description && !isLocked ? (
                     <Text style={[styles.cardDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{course.description}</Text>
                   ) : null}
-                  <View style={styles.cardFooter}>
-                    <View style={styles.stat}>
-                      <Feather name="layers" size={12} color={colors.mutedForeground} />
-                      <Text style={[styles.statText, { color: colors.mutedForeground }]}>{course.totalLessons} aulas</Text>
+                  {isLocked ? (
+                    <View style={[styles.lockedCallout, { backgroundColor: "#7c3aed14", borderColor: "#7c3aed20" }]}>
+                      <Text style={[styles.lockedCalloutText, { color: "#7c3aed" }]}>
+                        🔒 Desbloqueie com o plano Premium
+                      </Text>
                     </View>
-                    {course.estimatedHours > 0 && (
+                  ) : (
+                    <View style={styles.cardFooter}>
                       <View style={styles.stat}>
-                        <Feather name="clock" size={12} color={colors.mutedForeground} />
-                        <Text style={[styles.statText, { color: colors.mutedForeground }]}>{course.estimatedHours}h estimadas</Text>
+                        <Feather name="layers" size={12} color={colors.mutedForeground} />
+                        <Text style={[styles.statText, { color: colors.mutedForeground }]}>{course.totalLessons} aulas</Text>
                       </View>
-                    )}
-                    <View style={styles.startBtn}>
-                      <Text style={[styles.startBtnText, { color: accent }]}>Ver curso</Text>
-                      <Feather name="chevron-right" size={13} color={accent} />
+                      {course.estimatedHours > 0 && (
+                        <View style={styles.stat}>
+                          <Feather name="clock" size={12} color={colors.mutedForeground} />
+                          <Text style={[styles.statText, { color: colors.mutedForeground }]}>{course.estimatedHours}h estimadas</Text>
+                        </View>
+                      )}
+                      <View style={styles.startBtn}>
+                        <Text style={[styles.startBtnText, { color: accent }]}>Ver curso</Text>
+                        <Feather name="chevron-right" size={13} color={accent} />
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
               </Pressable>
             );
@@ -178,6 +235,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontFamily: "Inter_700Bold" },
   subtitle: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
   scroll: { padding: 16, gap: 14 },
+  planBanner: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 12, borderWidth: 1 },
+  planBannerText: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18 },
   filterRow: { marginBottom: 4 },
   filterContent: { paddingHorizontal: 0, gap: 8, paddingVertical: 4 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
@@ -188,13 +247,17 @@ const styles = StyleSheet.create({
   card: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
   cardBanner: { borderBottomWidth: 1, padding: 14 },
   cardBannerInner: { flexDirection: "row", alignItems: "center", gap: 12 },
+  lockIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   badges: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
-  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, flexDirection: "row", alignItems: "center", gap: 3 },
   badgeText: { fontSize: 10, fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.5 },
   cardBody: { padding: 14, gap: 4 },
-  cardTitle: { fontSize: 16, fontFamily: "Inter_700Bold", lineHeight: 22 },
+  cardTitleRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  cardTitle: { flex: 1, fontSize: 16, fontFamily: "Inter_700Bold", lineHeight: 22 },
   cardSubtitle: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   cardDesc: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18, marginTop: 2 },
+  lockedCallout: { borderWidth: 1, borderRadius: 8, padding: 10, marginTop: 4 },
+  lockedCalloutText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   cardFooter: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 8 },
   stat: { flexDirection: "row", alignItems: "center", gap: 4 },
   statText: { fontSize: 11, fontFamily: "Inter_400Regular" },
