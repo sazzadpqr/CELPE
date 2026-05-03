@@ -980,11 +980,21 @@ components:
           type: string
         promptGenerationSystemPrompt:
           type: string
-        adminPasswordHash:
+        modelFeedback:
           type: string
+        modelGeneration:
+          type: string
+        maxTokensFeedback:
+          type: number
+        maxTokensGeneration:
+          type: number
       required:
         - feedbackSystemPrompt
         - promptGenerationSystemPrompt
+        - modelFeedback
+        - modelGeneration
+        - maxTokensFeedback
+        - maxTokensGeneration
 
     QuizCategory:
       type: object

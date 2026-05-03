@@ -1,5 +1,8 @@
 import { Router } from "express";
 import OpenAI from "openai";
+import { db } from "@workspace/db";
+import { adminAiConfig } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -10,6 +13,50 @@ const openai = new OpenAI({
 
 // In-memory cache for word of the day
 let wordCache: { date: string; data: unknown } | null = null;
+
+// In-memory cache for AI config (refreshed every 5 minutes)
+let aiConfigCache: {
+  systemPromptFeedback: string;
+  systemPromptGeneration: string;
+  modelFeedback: string;
+  modelGeneration: string;
+  maxTokensFeedback: number;
+  maxTokensGeneration: number;
+  fetchedAt: number;
+} | null = null;
+
+const AI_CONFIG_TTL_MS = 5 * 60 * 1000;
+
+async function loadAiConfig() {
+  const now = Date.now();
+  if (aiConfigCache && now - aiConfigCache.fetchedAt < AI_CONFIG_TTL_MS) {
+    return aiConfigCache;
+  }
+  try {
+    const [row] = await db.select().from(adminAiConfig).where(eq(adminAiConfig.id, "singleton"));
+    if (row) {
+      aiConfigCache = {
+        systemPromptFeedback: row.systemPromptFeedback,
+        systemPromptGeneration: row.systemPromptGeneration,
+        modelFeedback: row.modelFeedback,
+        modelGeneration: row.modelGeneration,
+        maxTokensFeedback: row.maxTokensFeedback,
+        maxTokensGeneration: row.maxTokensGeneration,
+        fetchedAt: now,
+      };
+      return aiConfigCache;
+    }
+  } catch { }
+  return {
+    systemPromptFeedback: "",
+    systemPromptGeneration: "",
+    modelFeedback: "gpt-4o",
+    modelGeneration: "gpt-4o-mini",
+    maxTokensFeedback: 1024,
+    maxTokensGeneration: 512,
+    fetchedAt: now,
+  };
+}
 
 // ─── POST /ai/feedback ──────────────────────────────────────────────────────
 router.post("/ai/feedback", async (req, res) => {
@@ -28,7 +75,9 @@ router.post("/ai/feedback", async (req, res) => {
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
   const expiredNote = time_expired ? "\n\nNOTA: O texto foi submetido após o tempo esgotado." : "";
 
-  const systemPrompt = `Você é um avaliador especialista do exame Celpe-Bras. 
+  const aiCfg = await loadAiConfig();
+
+  const defaultFeedbackPrompt = `Você é um avaliador especialista do exame Celpe-Bras. 
 Avalie o texto do candidato com base nos 4 critérios oficiais do Celpe-Bras:
 1. Adequação ao tema e ao propósito comunicativo (0-5)
 2. Adequação ao gênero discursivo (0-5)
@@ -47,6 +96,8 @@ Responda APENAS com um JSON válido no formato:
 
 Seja justo, específico e educativo. Mencione exemplos do texto quando possível.`;
 
+  const systemPrompt = aiCfg.systemPromptFeedback || defaultFeedbackPrompt;
+
   const userPrompt = `Tipo de tarefa: ${task_type}
 Gênero esperado: ${genre}
 Número de palavras: ${wordCount}${expiredNote}
@@ -56,8 +107,8 @@ ${text}`;
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
-      max_completion_tokens: 1024,
+      model: aiCfg.modelFeedback,
+      max_completion_tokens: aiCfg.maxTokensFeedback,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -113,7 +164,9 @@ router.post("/ai/prompt", async (req, res) => {
     return;
   }
 
-  const systemPrompt = `Você é um criador de questões para o exame Celpe-Bras.
+  const aiCfg2 = await loadAiConfig();
+
+  const defaultGenerationPrompt = `Você é um criador de questões para o exame Celpe-Bras.
 Gere um novo prompt de prática realista e inédito para o tipo de tarefa especificado.
 
 Responda APENAS com JSON no formato:
@@ -125,12 +178,13 @@ Responda APENAS com JSON no formato:
 O tema deve ser relevante, contemporâneo e brasileiro. Evite temas repetidos.
 Alguns temas sugeridos: sustentabilidade, saúde pública, tecnologia e sociedade, desigualdade, cultura, mercado de trabalho, educação, urbanização.`;
 
+  const systemPrompt = aiCfg2.systemPromptGeneration || defaultGenerationPrompt;
   const userPrompt = `Tipo de tarefa: ${task_type}\nGênero esperado: ${genre}`;
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
-      max_completion_tokens: 512,
+      model: aiCfg2.modelGeneration,
+      max_completion_tokens: aiCfg2.maxTokensGeneration,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },

@@ -625,7 +625,10 @@ export const GetContentWotdResponse = zod.array(GetContentWotdResponseItem);
 export const GetAdminConfigResponse = zod.object({
   feedbackSystemPrompt: zod.string(),
   promptGenerationSystemPrompt: zod.string(),
-  adminPasswordHash: zod.string().optional(),
+  modelFeedback: zod.string(),
+  modelGeneration: zod.string(),
+  maxTokensFeedback: zod.number(),
+  maxTokensGeneration: zod.number(),
 });
 
 /**
@@ -634,11 +637,17 @@ export const GetAdminConfigResponse = zod.object({
 export const UpdateAdminConfigBody = zod.object({
   feedbackSystemPrompt: zod.string(),
   promptGenerationSystemPrompt: zod.string(),
-  adminPasswordHash: zod.string().optional(),
+  modelFeedback: zod.string(),
+  modelGeneration: zod.string(),
+  maxTokensFeedback: zod.number(),
+  maxTokensGeneration: zod.number(),
 });
 
 export const UpdateAdminConfigResponse = zod.object({
   feedbackSystemPrompt: zod.string(),
   promptGenerationSystemPrompt: zod.string(),
-  adminPasswordHash: zod.string().optional(),
+  modelFeedback: zod.string(),
+  modelGeneration: zod.string(),
+  maxTokensFeedback: zod.number(),
+  maxTokensGeneration: zod.number(),
 });

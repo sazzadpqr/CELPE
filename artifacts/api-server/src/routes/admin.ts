@@ -1,5 +1,8 @@
 import { Router } from "express";
 import crypto from "crypto";
+import { db } from "@workspace/db";
+import { adminAiConfig } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
 import {
   getStats,
   getRequestLogs,
@@ -7,8 +10,6 @@ import {
   savePrompts,
   getGrammarTopics,
   saveGrammarTopics,
-  getConfig,
-  saveConfig,
   getStoredPasswordHash,
   savePasswordHash,
   getSecurityEvents,
@@ -34,6 +35,26 @@ import {
   type ExamTask,
   type WotdEntry,
 } from "../lib/adminStore.js";
+
+const AI_CONFIG_DEFAULTS = {
+  systemPromptFeedback: "",
+  systemPromptGeneration: "",
+  modelFeedback: "gpt-4o",
+  modelGeneration: "gpt-4o-mini",
+  maxTokensFeedback: 1024,
+  maxTokensGeneration: 512,
+};
+
+async function getAiConfig() {
+  try {
+    const [row] = await db.select().from(adminAiConfig).where(eq(adminAiConfig.id, "singleton"));
+    if (row) return row;
+    const [inserted] = await db.insert(adminAiConfig).values({ id: "singleton", ...AI_CONFIG_DEFAULTS }).returning();
+    return inserted ?? { id: "singleton", ...AI_CONFIG_DEFAULTS, updatedAt: new Date() };
+  } catch {
+    return { id: "singleton", ...AI_CONFIG_DEFAULTS, updatedAt: new Date() };
+  }
+}
 
 const router = Router();
 
@@ -289,26 +310,68 @@ router.delete("/admin/grammar/:id", (req, res) => {
 });
 
 // ─── GET /admin/config ────────────────────────────────────────────────────────
-router.get("/admin/config", (req, res) => {
+router.get("/admin/config", async (req, res) => {
   if (!checkAuth(req, res)) return;
-  res.json(getConfig());
+  const cfg = await getAiConfig();
+  res.json({
+    feedbackSystemPrompt: cfg.systemPromptFeedback,
+    promptGenerationSystemPrompt: cfg.systemPromptGeneration,
+    modelFeedback: cfg.modelFeedback,
+    modelGeneration: cfg.modelGeneration,
+    maxTokensFeedback: cfg.maxTokensFeedback,
+    maxTokensGeneration: cfg.maxTokensGeneration,
+  });
 });
 
 // ─── PUT /admin/config ────────────────────────────────────────────────────────
-router.put("/admin/config", (req, res) => {
+router.put("/admin/config", async (req, res) => {
   if (!checkAuth(req, res)) return;
   const body = req.body as {
     feedbackSystemPrompt?: string;
     promptGenerationSystemPrompt?: string;
+    modelFeedback?: string;
+    modelGeneration?: string;
+    maxTokensFeedback?: number;
+    maxTokensGeneration?: number;
   };
-  const current = getConfig();
-  const updated = {
-    feedbackSystemPrompt: body.feedbackSystemPrompt ?? current.feedbackSystemPrompt,
-    promptGenerationSystemPrompt:
-      body.promptGenerationSystemPrompt ?? current.promptGenerationSystemPrompt,
-  };
-  saveConfig(updated);
-  res.json(updated);
+  try {
+    const current = await getAiConfig();
+    const [row] = await db
+      .insert(adminAiConfig)
+      .values({
+        id: "singleton",
+        systemPromptFeedback: body.feedbackSystemPrompt ?? current.systemPromptFeedback,
+        systemPromptGeneration: body.promptGenerationSystemPrompt ?? current.systemPromptGeneration,
+        modelFeedback: body.modelFeedback ?? current.modelFeedback,
+        modelGeneration: body.modelGeneration ?? current.modelGeneration,
+        maxTokensFeedback: body.maxTokensFeedback ?? current.maxTokensFeedback,
+        maxTokensGeneration: body.maxTokensGeneration ?? current.maxTokensGeneration,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: adminAiConfig.id,
+        set: {
+          systemPromptFeedback: body.feedbackSystemPrompt ?? current.systemPromptFeedback,
+          systemPromptGeneration: body.promptGenerationSystemPrompt ?? current.systemPromptGeneration,
+          modelFeedback: body.modelFeedback ?? current.modelFeedback,
+          modelGeneration: body.modelGeneration ?? current.modelGeneration,
+          maxTokensFeedback: body.maxTokensFeedback ?? current.maxTokensFeedback,
+          maxTokensGeneration: body.maxTokensGeneration ?? current.maxTokensGeneration,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    res.json({
+      feedbackSystemPrompt: row!.systemPromptFeedback,
+      promptGenerationSystemPrompt: row!.systemPromptGeneration,
+      modelFeedback: row!.modelFeedback,
+      modelGeneration: row!.modelGeneration,
+      maxTokensFeedback: row!.maxTokensFeedback,
+      maxTokensGeneration: row!.maxTokensGeneration,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed to save config" });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

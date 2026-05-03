@@ -3,28 +3,12 @@
     "id": "2023-2",
     "year": 2023,
     "edition": "2023/2",
-    "title": "Celpe-Bras Novembro 2023",
+    "title": "Celpe-Bras Novembro 2023   bbbbbbbbbbbbbbbb",
     "description": "Segunda edição de 2023. Provas aplicadas em novembro.",
     "active": true,
     "order": 1,
     "createdAt": "2026-05-03T04:42:08.102Z",
     "tasks": [
-      {
-        "id": "2023-2-t1",
-        "type": "Tarefa 1",
-        "title": "Tarefa 1 — Vídeo",
-        "genre": "Carta",
-        "description": "Baseada em vídeo sobre tecnologia e sociedade.",
-        "order": 1
-      },
-      {
-        "id": "2023-2-t2",
-        "type": "Tarefa 2",
-        "title": "Tarefa 2 — Áudio",
-        "genre": "Resenha",
-        "description": "Texto baseado em áudio sobre questões ambientais.",
-        "order": 2
-      },
       {
         "id": "2023-2-t3",
         "type": "Tarefa 3",
@@ -39,6 +23,22 @@
         "title": "Tarefa 4 — Gráfico",
         "genre": "Análise",
         "description": "Análise de dados sobre o mercado de trabalho no Brasil.",
+        "order": 4
+      },
+      {
+        "id": "task-1777788707125",
+        "type": "Tarefa 1",
+        "title": "",
+        "genre": "",
+        "description": "",
+        "order": 3
+      },
+      {
+        "id": "task-1777788707900",
+        "type": "Tarefa 1",
+        "title": "",
+        "genre": "",
+        "description": "",
         "order": 4
       }
     ]

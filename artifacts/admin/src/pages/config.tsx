@@ -7,7 +7,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { Save, History, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Save, History, KeyRound, Eye, EyeOff, Bot, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const OPENAI_MODELS = [
+  { value: "gpt-4o", label: "GPT-4o (best quality)" },
+  { value: "gpt-4o-mini", label: "GPT-4o Mini (fast & cheap)" },
+  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+  { value: "gpt-4", label: "GPT-4" },
+  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo (fastest)" },
+];
 
 export default function Config() {
   const queryClient = useQueryClient();
@@ -29,7 +38,11 @@ export default function Config() {
 
   const [formData, setFormData] = useState<AdminConfig>({
     feedbackSystemPrompt: "",
-    promptGenerationSystemPrompt: ""
+    promptGenerationSystemPrompt: "",
+    modelFeedback: "gpt-4o",
+    modelGeneration: "gpt-4o-mini",
+    maxTokensFeedback: 1024,
+    maxTokensGeneration: 512,
   });
 
   const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
@@ -40,7 +53,11 @@ export default function Config() {
     if (config) {
       setFormData({
         feedbackSystemPrompt: config.feedbackSystemPrompt,
-        promptGenerationSystemPrompt: config.promptGenerationSystemPrompt
+        promptGenerationSystemPrompt: config.promptGenerationSystemPrompt,
+        modelFeedback: config.modelFeedback,
+        modelGeneration: config.modelGeneration,
+        maxTokensFeedback: config.maxTokensFeedback,
+        maxTokensGeneration: config.maxTokensGeneration,
       });
     }
   }, [config]);
@@ -62,7 +79,11 @@ export default function Config() {
     if (config) {
       setFormData({
         feedbackSystemPrompt: config.feedbackSystemPrompt,
-        promptGenerationSystemPrompt: config.promptGenerationSystemPrompt
+        promptGenerationSystemPrompt: config.promptGenerationSystemPrompt,
+        modelFeedback: config.modelFeedback,
+        modelGeneration: config.modelGeneration,
+        maxTokensFeedback: config.maxTokensFeedback,
+        maxTokensGeneration: config.maxTokensGeneration,
       });
       toast({ title: "Restored to last saved configuration" });
     }
@@ -97,7 +118,11 @@ export default function Config() {
 
   const isDirty = config && (
     formData.feedbackSystemPrompt !== config.feedbackSystemPrompt ||
-    formData.promptGenerationSystemPrompt !== config.promptGenerationSystemPrompt
+    formData.promptGenerationSystemPrompt !== config.promptGenerationSystemPrompt ||
+    formData.modelFeedback !== config.modelFeedback ||
+    formData.modelGeneration !== config.modelGeneration ||
+    formData.maxTokensFeedback !== config.maxTokensFeedback ||
+    formData.maxTokensGeneration !== config.maxTokensGeneration
   );
 
   const pwValid = pwForm.current && pwForm.next && pwForm.confirm && pwForm.next === pwForm.confirm && pwForm.next.length >= 8;
@@ -107,7 +132,7 @@ export default function Config() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight font-mono">System Configuration</h1>
-          <p className="text-muted-foreground text-sm">Tune the core prompts driving the CelpePrep AI.</p>
+          <p className="text-muted-foreground text-sm">Tune the core prompts and AI models driving CelpePrep.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleReset} disabled={!isDirty || updateConfig.isPending}>
@@ -121,6 +146,7 @@ export default function Config() {
       </div>
 
       <div className="space-y-6">
+        {/* ── Password ── */}
         <Card className="border-yellow-900/40">
           <CardHeader>
             <CardTitle className="font-mono flex items-center gap-2">
@@ -199,11 +225,111 @@ export default function Config() {
           </CardFooter>
         </Card>
 
+        {/* ── AI Model Settings ── */}
+        <Card className="border-blue-900/40">
+          <CardHeader>
+            <CardTitle className="font-mono flex items-center gap-2">
+              <Bot className="h-4 w-4 text-blue-400" />
+              AI Model Settings
+            </CardTitle>
+            <CardDescription>
+              Choose which OpenAI models power feedback evaluation and prompt generation. These settings are stored in the database and take effect within 5 minutes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Feedback Model */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-mono font-medium flex items-center gap-1">
+                      <Zap className="h-3 w-3 text-orange-400" /> Feedback Model
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Used to evaluate student writing against the Celpe-Bras rubric.</p>
+                  </div>
+                  <Select
+                    value={formData.modelFeedback}
+                    onValueChange={(v) => setFormData({ ...formData, modelFeedback: v })}
+                  >
+                    <SelectTrigger className="font-mono bg-muted/50 border-muted-foreground/20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OPENAI_MODELS.map((m) => (
+                        <SelectItem key={m.value} value={m.value} className="font-mono text-sm">
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-mono text-muted-foreground">Max Tokens (feedback)</Label>
+                    <Input
+                      type="number"
+                      min={256}
+                      max={4096}
+                      step={128}
+                      value={formData.maxTokensFeedback}
+                      onChange={(e) => setFormData({ ...formData, maxTokensFeedback: Number(e.target.value) })}
+                      className="font-mono bg-muted/50 border-muted-foreground/20"
+                    />
+                    <p className="text-xs text-muted-foreground">256–4096. Higher = more detailed feedback, more cost.</p>
+                  </div>
+                </div>
+
+                {/* Generation Model */}
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-mono font-medium flex items-center gap-1">
+                      <Zap className="h-3 w-3 text-green-400" /> Generation Model
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Used to generate new practice prompts and scenarios.</p>
+                  </div>
+                  <Select
+                    value={formData.modelGeneration}
+                    onValueChange={(v) => setFormData({ ...formData, modelGeneration: v })}
+                  >
+                    <SelectTrigger className="font-mono bg-muted/50 border-muted-foreground/20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OPENAI_MODELS.map((m) => (
+                        <SelectItem key={m.value} value={m.value} className="font-mono text-sm">
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-mono text-muted-foreground">Max Tokens (generation)</Label>
+                    <Input
+                      type="number"
+                      min={128}
+                      max={2048}
+                      step={128}
+                      value={formData.maxTokensGeneration}
+                      onChange={(e) => setFormData({ ...formData, maxTokensGeneration: Number(e.target.value) })}
+                      className="font-mono bg-muted/50 border-muted-foreground/20"
+                    />
+                    <p className="text-xs text-muted-foreground">128–2048. Controls length of generated scenarios.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Feedback System Prompt ── */}
         <Card>
           <CardHeader>
             <CardTitle className="font-mono">Feedback System Prompt</CardTitle>
             <CardDescription>
-              This prompt instructs the AI on how to evaluate student audio responses against the Celpe-Bras rubric.
+              Instructs the AI on how to evaluate student responses against the Celpe-Bras rubric. Leave blank to use the built-in default prompt.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -213,6 +339,7 @@ export default function Config() {
               <div className="space-y-2">
                 <Textarea 
                   className="min-h-[300px] font-mono text-xs leading-relaxed bg-muted/50 border-muted-foreground/20" 
+                  placeholder="Leave blank to use the built-in default prompt…"
                   value={formData.feedbackSystemPrompt} 
                   onChange={(e) => setFormData({ ...formData, feedbackSystemPrompt: e.target.value })} 
                 />
@@ -221,11 +348,12 @@ export default function Config() {
           </CardContent>
         </Card>
 
+        {/* ── Prompt Generation System Prompt ── */}
         <Card>
           <CardHeader>
             <CardTitle className="font-mono">Prompt Generation System Prompt</CardTitle>
             <CardDescription>
-              This prompt instructs the AI on how to dynamically generate new scenarios and roleplay situations for students.
+              Instructs the AI on how to dynamically generate new scenarios and roleplay situations for students. Leave blank to use the built-in default prompt.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -235,6 +363,7 @@ export default function Config() {
               <div className="space-y-2">
                 <Textarea 
                   className="min-h-[300px] font-mono text-xs leading-relaxed bg-muted/50 border-muted-foreground/20" 
+                  placeholder="Leave blank to use the built-in default prompt…"
                   value={formData.promptGenerationSystemPrompt} 
                   onChange={(e) => setFormData({ ...formData, promptGenerationSystemPrompt: e.target.value })} 
                 />

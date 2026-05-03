@@ -103,7 +103,10 @@ export interface GrammarTopicBody {
 export interface AdminConfig {
   feedbackSystemPrompt: string;
   promptGenerationSystemPrompt: string;
-  adminPasswordHash?: string;
+  modelFeedback: string;
+  modelGeneration: string;
+  maxTokensFeedback: number;
+  maxTokensGeneration: number;
 }
 
 export interface QuizCategory {
