@@ -485,6 +485,40 @@ function MobileAppCard() {
   );
 }
 
+function FutureFeatureCard({
+  icon,
+  label,
+  sublabel,
+  color,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  sublabel: string;
+  color: string;
+  onPress?: () => void;
+}) {
+  const colors = useColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.featureCard,
+        { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      <View style={[styles.featureIcon, { backgroundColor: color + "18" }]}>
+        <Text style={styles.featureEmoji}>{icon}</Text>
+      </View>
+      <View style={styles.featureMeta}>
+        <Text style={[styles.featureLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.featureSub, { color: colors.mutedForeground }]}>{sublabel}</Text>
+      </View>
+      <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+    </Pressable>
+  );
+}
+
 function DiagnosticBanner() {
   const colors = useColors();
   return (
@@ -636,6 +670,50 @@ export default function HomeScreen() {
           {featureFlags["manual_teacher_feedback_enabled"] && (
             <FeatureCard icon="✍️" label="Feedback de Professor" sublabel="Envie sua produção para revisão personalizada" color="#6B21A8"
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/teacher-feedback" as any); }} />
+          )}
+        </>
+      )}
+
+      {(featureFlags["mobile_app_mode_enabled"]
+        || featureFlags["offline_mode_enabled"]
+        || featureFlags["content_import_enabled"]
+        || featureFlags["certificates_enabled"]) && (
+        <>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recursos</Text>
+          {featureFlags["mobile_app_mode_enabled"] && (
+            <FutureFeatureCard
+              icon="📱"
+              label="Modo Mobile"
+              sublabel="Acesso otimizado para uso no celular"
+              color="#185FA5"
+              onPress={() => router.push("/profile")}
+            />
+          )}
+          {featureFlags["offline_mode_enabled"] && (
+            <FutureFeatureCard
+              icon="📴"
+              label="Modo Offline"
+              sublabel="Baixe conteúdo para estudar sem internet"
+              color="#1D9E75"
+              onPress={() => router.push("/library")}
+            />
+          )}
+          {featureFlags["content_import_enabled"] && (
+            <FutureFeatureCard
+              icon="📦"
+              label="Importar Conteúdo"
+              sublabel="Ferramenta interna do admin, sem tela pública"
+              color="#BA7517"
+            />
+          )}
+          {featureFlags["certificates_enabled"] && (
+            <FutureFeatureCard
+              icon="🏅"
+              label="Certificados"
+              sublabel="Visualize conclusões e trilhas finalizadas"
+              color="#6B21A8"
+              onPress={() => router.push("/progress")}
+            />
           )}
         </>
       )}
