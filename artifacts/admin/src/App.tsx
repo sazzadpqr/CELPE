@@ -40,6 +40,7 @@ import StudyPlanAdminPage from "@/pages/study-plan-admin";
 import StudyTipsAdminPage from "@/pages/study-tips-admin";
 import InterestListAdminPage from "@/pages/interest-list-admin";
 import QuickActionsAdminPage from "@/pages/quick-actions-admin";
+import ListeningExercisesPage from "@/pages/listening-exercises";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -130,6 +131,7 @@ function Router() {
       <Route path="/study-tips">{() => <ProtectedRoute component={StudyTipsAdminPage} />}</Route>
       <Route path="/interest-list">{() => <ProtectedRoute component={InterestListAdminPage} />}</Route>
       <Route path="/quick-actions">{() => <ProtectedRoute component={QuickActionsAdminPage} />}</Route>
+      <Route path="/listening-exercises">{() => <ProtectedRoute component={ListeningExercisesPage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

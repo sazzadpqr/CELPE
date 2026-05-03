@@ -39,6 +39,7 @@ const NAV_SECTIONS = [
       { href: "/oral-tasks", label: "Tarefas Orais", icon: Mic },
       { href: "/pronunciation-content", label: "Pronúncia", icon: Volume2 },
       { href: "/listening-content", label: "Compreensão Auditiva", icon: Headphones },
+      { href: "/listening-exercises", label: "Exercícios Auditivos", icon: Headphones },
       { href: "/conversation-scenarios", label: "Cenários de Conversa", icon: MessageCircle },
     ],
   },

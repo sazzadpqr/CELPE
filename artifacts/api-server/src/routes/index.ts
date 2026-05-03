@@ -21,6 +21,7 @@ import socialRouter from "./social";
 import adminSocialRouter from "./adminSocial";
 import feedbackRouter from "./feedbackRoutes";
 import studyContentRouter from "./studyContent";
+import listeningExercisesRouter from "./listeningExercises";
 
 const router: IRouter = Router();
 
@@ -46,5 +47,6 @@ router.use(socialRouter);
 router.use(adminSocialRouter);
 router.use(feedbackRouter);
 router.use(studyContentRouter);
+router.use(listeningExercisesRouter);
 
 export default router;
