@@ -56,6 +56,12 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Encerrado",
 };
 
+function normalizeTeacherResponse(content: string) {
+  const trimmed = content.trim();
+  if (!trimmed) return "O professor não conseguiu anexar um link ou texto.";
+  return trimmed;
+}
+
 export default function TeacherFeedbackScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -201,7 +207,7 @@ export default function TeacherFeedbackScreen() {
                             <Feather name="message-square" size={13} color="#1D9E75" />
                             <Text style={[styles.boxLabel, { color: "#1D9E75" }]}>Resposta do professor:</Text>
                           </View>
-                          <Text style={[styles.boxText, { color: colors.text }]}>{req.teacherResponse}</Text>
+                          <Text style={[styles.boxText, { color: colors.text }]}>{normalizeTeacherResponse(req.teacherResponse)}</Text>
                         </View>
                       ) : (
                         <View style={[styles.pendingBox, { backgroundColor: "#BA751710", borderColor: "#BA751740" }]}>
@@ -274,6 +280,7 @@ export default function TeacherFeedbackScreen() {
             multiline
             numberOfLines={10}
             textAlignVertical="top"
+            autoCapitalize="sentences"
           />
           <Text style={[styles.charCount, { color: colors.mutedForeground }]}>{content.length} caracteres</Text>
 
