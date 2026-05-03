@@ -137,20 +137,20 @@ router.delete("/admin/study-materials/:id", async (req, res) => {
 // ─── FEATURE FLAGS ────────────────────────────────────────────────────────────
 
 const FLAGS_SEED = [
+  { flagKey: "hearts_enabled", title: "Sistema de Corações", description: "Ativa corações/energia ao errar exercícios", enabled: true, category: "learning" },
   { flagKey: "gamification_enabled", title: "Gamificação (XP/Streak)", description: "Ativa sistema de XP e streak de estudos", enabled: true, category: "learning" },
-  { flagKey: "hearts_enabled", title: "Sistema de Corações", description: "Ativa corações/energia ao errar exercícios", enabled: false, category: "learning" },
-  { flagKey: "leaderboards_enabled", title: "Ranking (Leaderboard)", description: "Ativa ranking público de usuários", enabled: false, category: "social" },
-  { flagKey: "external_course_links_enabled", title: "Cursos e Links Externos", description: "Mostra seção de recursos e cursos externos", enabled: true, category: "content" },
   { flagKey: "resource_collections_enabled", title: "Coleções de Recursos", description: "Ativa coleções/playlists de recursos externos", enabled: true, category: "content" },
+  { flagKey: "external_course_links_enabled", title: "Cursos e Links Externos", description: "Mostra seção de recursos e cursos externos", enabled: true, category: "content" },
+  { flagKey: "placement_test_v2_enabled", title: "Nivelamento v2", description: "Usa nova versão do teste de nivelamento", enabled: false, category: "features" },
+  { flagKey: "leaderboards_enabled", title: "Ranking (Leaderboard)", description: "Ativa ranking público de usuários", enabled: true, category: "social" },
+  { flagKey: "content_import_enabled", title: "Importação de Conteúdo", description: "Ativa ferramentas de importação de conteúdo em massa", enabled: true, category: "admin" },
+  { flagKey: "mobile_app_mode_enabled", title: "Modo App Mobile", description: "Ativa recursos exclusivos do app mobile", enabled: false, category: "future" },
+  { flagKey: "offline_mode_enabled", title: "Modo Offline", description: "Permite uso parcial sem conexão", enabled: false, category: "future" },
+  { flagKey: "manual_teacher_feedback_enabled", title: "Feedback Manual de Professor", description: "Professor pode revisar e comentar redações", enabled: false, category: "future" },
   { flagKey: "teacher_marketplace_enabled", title: "Marketplace de Professores", description: "Ativa busca e agendamento com professores", enabled: false, category: "future" },
   { flagKey: "live_lessons_enabled", title: "Aulas Ao Vivo", description: "Ativa módulo de aulas ao vivo", enabled: false, category: "future" },
   { flagKey: "community_enabled", title: "Comunidade", description: "Ativa fórum e comunidade de usuários", enabled: false, category: "future" },
   { flagKey: "certificates_enabled", title: "Certificados de Conclusão", description: "Emite certificados de conclusão de trilhas", enabled: false, category: "future" },
-  { flagKey: "placement_test_v2_enabled", title: "Nivelamento v2", description: "Usa nova versão do teste de nivelamento", enabled: false, category: "features" },
-  { flagKey: "mobile_app_mode_enabled", title: "Modo App Mobile", description: "Ativa recursos exclusivos do app mobile", enabled: false, category: "future" },
-  { flagKey: "offline_mode_enabled", title: "Modo Offline", description: "Permite uso parcial sem conexão", enabled: false, category: "future" },
-  { flagKey: "content_import_enabled", title: "Importação de Conteúdo", description: "Ativa ferramentas de importação de conteúdo em massa", enabled: false, category: "admin" },
-  { flagKey: "manual_teacher_feedback_enabled", title: "Feedback Manual de Professor", description: "Professor pode revisar e comentar redações", enabled: false, category: "future" },
 ];
 
 async function seedFlags() {

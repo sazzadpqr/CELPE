@@ -9,6 +9,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
+import featureFlagsRoutes from "./routes/featureFlags.js";
 import { logger } from "./lib/logger";
 import { recordRequest } from "./lib/adminStore.js";
 
@@ -66,5 +67,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", router);
+app.use("/api", featureFlagsRoutes);
 
 export default app;
