@@ -35,6 +35,7 @@ import TeacherLoginPage from "@/pages/teacher-login";
 import TeacherPortalPage from "@/pages/teacher-portal";
 import LiveEventsPage from "@/pages/live-events";
 import CommunityAdminPage from "@/pages/community-admin";
+import TeacherFeedbackPage from "@/pages/teacher-feedback";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -120,6 +121,7 @@ function Router() {
       <Route path="/teacher-portal" component={TeacherPortalPage} />
       <Route path="/live-events">{() => <ProtectedRoute component={LiveEventsPage} />}</Route>
       <Route path="/community">{() => <ProtectedRoute component={CommunityAdminPage} />}</Route>
+      <Route path="/teacher-feedback">{() => <ProtectedRoute component={TeacherFeedbackPage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

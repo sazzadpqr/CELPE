@@ -5,7 +5,7 @@ import {
   FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
   Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
   Mic, Volume2, Headphones, MessageCircle, UserCheck, ExternalLink,
-  Video, Users2,
+  Video, Users2, ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -50,6 +50,7 @@ const NAV_SECTIONS = [
       { href: "/feature-flags", label: "Feature Flags", icon: Flag },
       { href: "/live-events", label: "Aulas ao Vivo", icon: Video },
       { href: "/community", label: "Comunidade", icon: Users2 },
+      { href: "/teacher-feedback", label: "Feedback de Alunos", icon: ClipboardList },
     ],
   },
   {

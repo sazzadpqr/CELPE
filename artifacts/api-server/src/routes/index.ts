@@ -19,6 +19,7 @@ import studentTeacherRouter from "./studentTeacher";
 import profileRouter from "./profile";
 import socialRouter from "./social";
 import adminSocialRouter from "./adminSocial";
+import feedbackRouter from "./feedbackRoutes";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(studentTeacherRouter);
 router.use(profileRouter);
 router.use(socialRouter);
 router.use(adminSocialRouter);
+router.use(feedbackRouter);
 
 export default router;

@@ -599,13 +599,13 @@ export default function ProfileScreen() {
       </View>
 
       {/* ── Feature-flag sections ── */}
-      {(featureFlags["certificates_enabled"] || featureFlags["teacher_marketplace_enabled"]) && (
+      {(featureFlags["certificates_enabled"] || featureFlags["teacher_marketplace_enabled"] || featureFlags["manual_teacher_feedback_enabled"] || featureFlags["placement_test_v2_enabled"]) && (
         <>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Recursos</Text>
           <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {featureFlags["certificates_enabled"] && (
               <Pressable
-                style={[styles.settingsRow, { borderBottomColor: colors.border, borderBottomWidth: featureFlags["teacher_marketplace_enabled"] ? 1 : 0 }]}
+                style={[styles.settingsRow, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}
                 onPress={() => router.push("/certificates" as any)}
               >
                 <View style={[styles.settingsIcon, { backgroundColor: "#BA751718" }]}>
@@ -615,6 +615,40 @@ export default function ProfileScreen() {
                   <Text style={[styles.settingsLabel, { color: colors.text }]}>Certificados</Text>
                   <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
                     Conquistas e certificados de conclusão
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+            {featureFlags["manual_teacher_feedback_enabled"] && (
+              <Pressable
+                style={[styles.settingsRow, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}
+                onPress={() => router.push("/teacher-feedback" as any)}
+              >
+                <View style={[styles.settingsIcon, { backgroundColor: "#6B21A818" }]}>
+                  <Feather name="edit-3" size={16} color="#6B21A8" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingsLabel, { color: colors.text }]}>Feedback de Professor</Text>
+                  <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
+                    Envie sua produção para revisão personalizada
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+            {featureFlags["placement_test_v2_enabled"] && (
+              <Pressable
+                style={[styles.settingsRow, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}
+                onPress={() => router.push("/diagnostic" as any)}
+              >
+                <View style={[styles.settingsIcon, { backgroundColor: "#185FA518" }]}>
+                  <Feather name="activity" size={16} color="#185FA5" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingsLabel, { color: colors.text }]}>Refazer Nivelamento</Text>
+                  <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
+                    Reavalie seu nível atual do Celpe-Bras
                   </Text>
                 </View>
                 <Feather name="chevron-right" size={16} color={colors.mutedForeground} />

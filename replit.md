@@ -42,6 +42,41 @@ All 8 ad formats are implemented as an admin-controlled service layer. `services
 - **AI**: OpenAI via Replit AI Integrations (env vars: AI_INTEGRATIONS_OPENAI_BASE_URL, AI_INTEGRATIONS_OPENAI_API_KEY)
 - **Build**: esbuild
 
+## Feature Flags System
+
+All 14 feature flags are stored in the `feature_flags` DB table and served at `/api/content/feature-flags`. The `AppContext` fetches them on startup and exposes `featureFlags: Record<string, boolean>` to all screens. Toggling any flag in the admin immediately affects the mobile app on next load.
+
+| Flag | Category | Mobile Effect | Admin Page |
+|---|---|---|---|
+| `gamification_enabled` | learning | XP/streak UI visible | Feature Flags |
+| `hearts_enabled` | learning | HeartsBar on home | Feature Flags |
+| `leaderboards_enabled` | social | Ranking card on home → `/leaderboard` | Feature Flags |
+| `community_enabled` | social | Community card on home → `/community` | App & CMS → Comunidade |
+| `live_lessons_enabled` | social | Live Events card on home → `/live-events` | App & CMS → Aulas ao Vivo |
+| `certificates_enabled` | social | Certificados link on profile → `/certificates` | Feature Flags |
+| `placement_test_v2_enabled` | features | "Refazer Nivelamento" card on home → `/diagnostic` | Feature Flags |
+| `manual_teacher_feedback_enabled` | features | "Feedback de Professor" card on home → `/teacher-feedback` | App & CMS → Feedback de Alunos |
+| `offline_mode_enabled` | features | Offline cache card on home (pre-downloads quiz+vocab) | Feature Flags |
+| `mobile_app_mode_enabled` | features | App Store/Play Store download CTA on home | Feature Flags |
+| `teacher_marketplace_enabled` | features | "Conectar Professor" card on home → `/teacher-connect` | Professores |
+| `external_course_links_enabled` | content | External course links visible | Feature Flags |
+| `resource_collections_enabled` | content | Resource collections visible | Feature Flags |
+| `content_import_enabled` | admin | Content import tools in admin | Feature Flags |
+
+### Teacher Feedback System
+- **DB table**: `teacher_feedback_requests`
+- **Student routes**: `POST /api/student/feedback-requests`, `GET /api/student/feedback-requests?deviceToken=...`
+- **Admin routes**: `GET /api/admin/feedback-requests`, `PUT /api/admin/feedback-requests/:id/respond`, `DELETE /api/admin/feedback-requests/:id`
+- **Mobile screen**: `artifacts/celpeprep/app/teacher-feedback.tsx` — submit text (escrita/oral/geral), view responses
+- **Admin page**: `artifacts/admin/src/pages/teacher-feedback.tsx` — review all submissions, write/send responses, change status
+
+### Social Features (community, leaderboard, live events, certificates)
+- **DB tables**: `community_posts`, `community_post_likes`, `user_certificates`, `live_events`
+- **Public routes**: `social.ts` — leaderboard, community CRUD, certificates, live-events
+- **Admin routes**: `adminSocial.ts` — CRUD for all above
+- **Mobile screens**: `leaderboard.tsx`, `community.tsx`, `certificates.tsx`, `live-events.tsx`
+- **Admin pages**: `live-events.tsx`, `community-admin.tsx`, `teacher-feedback.tsx`
+
 ## Teacher Management System
 
 - **DB tables**: `teachers`, `teacher_invite_codes`, `teacher_students`, `teacher_classes`

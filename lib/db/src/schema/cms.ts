@@ -117,6 +117,18 @@ export const userCertificates = pgTable("user_certificates", {
   issuedAt: timestamp("issued_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const teacherFeedbackRequests = pgTable("teacher_feedback_requests", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token").notNull(),
+  studentName: text("student_name").notNull().default(""),
+  content: text("content").notNull(),
+  requestType: text("request_type").notNull().default("escrita"),
+  teacherResponse: text("teacher_response").notNull().default(""),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  respondedAt: timestamp("responded_at", { withTimezone: true }),
+});
+
 export const liveEvents = pgTable("live_events", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),

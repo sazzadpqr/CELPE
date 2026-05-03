@@ -2,8 +2,9 @@ import { Feather } from "@expo/vector-icons";
 import AdBanner from "@/components/ads/AdBanner";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
+import * as Linking from "expo-linking";
 import { router } from "expo-router";
-import React, { useMemo, useEffect, useState, useRef } from "react";
+import React, { useMemo, useEffect, useState, useRef, useCallback } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -383,6 +384,101 @@ function AICreditsBar({ used, total }: { used: number; total: number }) {
   );
 }
 
+const OFFLINE_CACHE_KEY = "celpeprep_offline_cache_v1";
+
+function OfflineModeCard() {
+  const colors = useColors();
+  const [cached, setCached] = useState(false);
+  const [caching, setCaching] = useState(false);
+  const [lastCached, setLastCached] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(OFFLINE_CACHE_KEY).then((v) => {
+      if (v) { setCached(true); setLastCached(v); }
+    });
+  }, []);
+
+  const handleCache = useCallback(async () => {
+    setCaching(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      const [quiz, wotd] = await Promise.all([
+        fetch(getApiUrl("/api/content/quiz")).then((r) => r.json()).catch(() => []),
+        fetch(getApiUrl("/api/content/wotd")).then((r) => r.json()).catch(() => []),
+      ]);
+      await AsyncStorage.setItem("celpeprep_offline_quiz", JSON.stringify(quiz));
+      await AsyncStorage.setItem("celpeprep_offline_wotd", JSON.stringify(wotd));
+      const ts = new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+      await AsyncStorage.setItem(OFFLINE_CACHE_KEY, ts);
+      setCached(true);
+      setLastCached(ts);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error); }
+    setCaching(false);
+  }, []);
+
+  return (
+    <View style={[styles.offlineCard, { backgroundColor: cached ? "#1D9E7510" : colors.card, borderColor: cached ? "#1D9E7530" : colors.border }]}>
+      <View style={styles.offlineRow}>
+        <View style={[styles.offlineIcon, { backgroundColor: (cached ? "#1D9E75" : colors.primary) + "20" }]}>
+          <Feather name={cached ? "check-circle" : "wifi-off"} size={20} color={cached ? "#1D9E75" : colors.primary} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.offlineTitle, { color: colors.text }]}>Modo Offline</Text>
+          <Text style={[styles.offlineSub, { color: colors.mutedForeground }]}>
+            {cached ? `Atualizado: ${lastCached}` : "Pré-carregue o conteúdo para estudar sem internet"}
+          </Text>
+        </View>
+        <Pressable
+          style={[styles.offlineBtn, { backgroundColor: cached ? "#1D9E75" : colors.primary, opacity: caching ? 0.7 : 1 }]}
+          onPress={handleCache}
+          disabled={caching}
+        >
+          {caching
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <Text style={styles.offlineBtnText}>{cached ? "Atualizar" : "Baixar"}</Text>
+          }
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function MobileAppCard() {
+  const colors = useColors();
+  return (
+    <View style={[styles.appCard, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "30" }]}>
+      <View style={styles.appCardRow}>
+        <View style={[styles.appCardIcon, { backgroundColor: colors.primary + "20" }]}>
+          <Text style={{ fontSize: 22 }}>📱</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.appCardTitle, { color: colors.text }]}>Baixe o App CelpePrep</Text>
+          <Text style={[styles.appCardSub, { color: colors.mutedForeground }]}>
+            Estude em qualquer lugar, mesmo sem internet
+          </Text>
+        </View>
+      </View>
+      <View style={styles.appCardBtns}>
+        <Pressable
+          style={[styles.storePill, { backgroundColor: colors.text }]}
+          onPress={() => Linking.openURL("https://apps.apple.com")}
+        >
+          <Feather name="smartphone" size={13} color={colors.background} />
+          <Text style={[styles.storePillText, { color: colors.background }]}>App Store</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.storePill, { backgroundColor: colors.text }]}
+          onPress={() => Linking.openURL("https://play.google.com")}
+        >
+          <Feather name="smartphone" size={13} color={colors.background} />
+          <Text style={[styles.storePillText, { color: colors.background }]}>Google Play</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 function DiagnosticBanner() {
   const colors = useColors();
   return (
@@ -510,48 +606,49 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Feature-flag-gated feature entry cards */}
+      {/* Social feature cards */}
       {(featureFlags["leaderboards_enabled"] || featureFlags["community_enabled"] || featureFlags["live_lessons_enabled"] || featureFlags["teacher_marketplace_enabled"]) && (
         <>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Comunidade</Text>
           {featureFlags["leaderboards_enabled"] && (
-            <FeatureCard
-              icon="🏆"
-              label="Ranking"
-              sublabel="Veja os alunos mais dedicados"
-              color="#BA7517"
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/leaderboard" as any); }}
-            />
+            <FeatureCard icon="🏆" label="Ranking" sublabel="Veja os alunos mais dedicados" color="#BA7517"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/leaderboard" as any); }} />
           )}
           {featureFlags["community_enabled"] && (
-            <FeatureCard
-              icon="💬"
-              label="Comunidade"
-              sublabel="Tire dúvidas e compartilhe dicas"
-              color="#1D9E75"
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/community" as any); }}
-            />
+            <FeatureCard icon="💬" label="Comunidade" sublabel="Tire dúvidas e compartilhe dicas" color="#1D9E75"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/community" as any); }} />
           )}
           {featureFlags["live_lessons_enabled"] && (
-            <FeatureCard
-              icon="📹"
-              label="Aulas ao Vivo"
-              sublabel="Sessões ao vivo com professores"
-              color="#185FA5"
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/live-events" as any); }}
-            />
+            <FeatureCard icon="📹" label="Aulas ao Vivo" sublabel="Sessões ao vivo com professores" color="#185FA5"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/live-events" as any); }} />
           )}
           {featureFlags["teacher_marketplace_enabled"] && (
-            <FeatureCard
-              icon="👩‍🏫"
-              label="Conectar Professor"
-              sublabel="Receba feedback de um professor"
-              color="#6B21A8"
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/teacher-connect" as any); }}
-            />
+            <FeatureCard icon="👩‍🏫" label="Conectar Professor" sublabel="Receba feedback de um professor" color="#6B21A8"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/teacher-connect" as any); }} />
           )}
         </>
       )}
+
+      {/* Extra features section */}
+      {(featureFlags["placement_test_v2_enabled"] || featureFlags["manual_teacher_feedback_enabled"]) && (
+        <>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Ferramentas</Text>
+          {featureFlags["placement_test_v2_enabled"] && (
+            <FeatureCard icon="🎯" label="Refazer Nivelamento" sublabel="Descubra seu nível atual do Celpe-Bras" color="#185FA5"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/diagnostic" as any); }} />
+          )}
+          {featureFlags["manual_teacher_feedback_enabled"] && (
+            <FeatureCard icon="✍️" label="Feedback de Professor" sublabel="Envie sua produção para revisão personalizada" color="#6B21A8"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/teacher-feedback" as any); }} />
+          )}
+        </>
+      )}
+
+      {/* Offline mode card */}
+      {featureFlags["offline_mode_enabled"] && <OfflineModeCard />}
+
+      {/* Mobile app download card */}
+      {featureFlags["mobile_app_mode_enabled"] && <MobileAppCard />}
 
       {/* Progress summary */}
       {avgScore && (
@@ -734,6 +831,21 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
   startBtn: { marginTop: 8, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10 },
   startBtnText: { color: "#fff", fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  offlineCard: { borderRadius: 14, borderWidth: 1, padding: 14 },
+  offlineRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  offlineIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  offlineTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  offlineSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  offlineBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
+  offlineBtnText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  appCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 12 },
+  appCardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  appCardIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  appCardTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  appCardSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  appCardBtns: { flexDirection: "row", gap: 10 },
+  storePill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20, flex: 1, justifyContent: "center" },
+  storePillText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   heartsCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10 },
   heartsLeft: { flexDirection: "row", alignItems: "center", gap: 5 },
   heartsLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
