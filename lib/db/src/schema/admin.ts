@@ -91,6 +91,26 @@ export const adminLimitsConfig = pgTable("admin_limits_config", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const adminPricingConfig = pgTable("admin_pricing_config", {
+  id: text("id").primaryKey().default("singleton"),
+  freePlanTitle: text("free_plan_title").notNull().default("Gratuito"),
+  freePlanSubtitle: text("free_plan_subtitle").notNull().default("Para experimentar"),
+  freePlanPriceLabel: text("free_plan_price_label").notNull().default("R$ 0"),
+  monthlyPlanTitle: text("monthly_plan_title").notNull().default("Mensal"),
+  monthlyPlanSubtitle: text("monthly_plan_subtitle").notNull().default("Acesso completo"),
+  monthlyPlanPriceLabel: text("monthly_plan_price_label").notNull().default("R$ 44,99"),
+  annualPlanTitle: text("annual_plan_title").notNull().default("Anual"),
+  annualPlanSubtitle: text("annual_plan_subtitle").notNull().default("Melhor custo-benefício"),
+  annualPlanPriceLabel: text("annual_plan_price_label").notNull().default("R$ 479,88"),
+  annualPlanBadge: text("annual_plan_badge").notNull().default("Mais Popular"),
+  annualSavingsLabel: text("annual_savings_label").notNull().default("2 meses grátis"),
+  freeBenefits: jsonb("free_benefits").$type<string[]>().notNull().default([]),
+  premiumBenefits: jsonb("premium_benefits").$type<string[]>().notNull().default([]),
+  freeLimitsJson: jsonb("free_limits_json").$type<Record<string, unknown>>().notNull().default({}),
+  premiumLimitsJson: jsonb("premium_limits_json").$type<Record<string, unknown>>().notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const adminAiConfig = pgTable("admin_ai_config", {
   id: text("id").primaryKey().default("singleton"),
   systemPromptFeedback: text("system_prompt_feedback").notNull().default(""),
