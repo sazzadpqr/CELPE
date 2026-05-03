@@ -191,14 +191,13 @@ export default function ExamsAdminPage() {
         ))}
       </div>
 
-      {/* Editor Dialog */}
       <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 py-4 border-b">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b shrink-0">
             <DialogTitle>{editing ? "Edit Exam Edition" : "New Exam Edition"}</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-5">
+          <ScrollArea className="max-h-[calc(90vh-9rem)] flex-1">
+            <div className="px-6 py-6 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Year</Label>
@@ -224,11 +223,10 @@ export default function ExamsAdminPage() {
                 </div>
               </div>
 
-              {/* Tasks */}
               <div className="space-y-3 pt-2 border-t">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <Label className="text-base">Tasks</Label>
-                  <Button variant="outline" size="sm" onClick={addTask}>
+                  <Button type="button" variant="outline" size="sm" onClick={addTask}>
                     <Plus className="h-3.5 w-3.5 mr-1" /> Add Task
                   </Button>
                 </div>
@@ -237,6 +235,7 @@ export default function ExamsAdminPage() {
                 ) : form.tasks.map((task, idx) => (
                   <div key={task.id || idx} className="border rounded-lg p-4 space-y-3 relative">
                     <Button
+                      type="button"
                       variant="ghost" size="icon"
                       className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-destructive"
                       onClick={() => removeTask(idx)}
@@ -284,9 +283,9 @@ export default function ExamsAdminPage() {
               </div>
             </div>
           </ScrollArea>
-          <DialogFooter className="px-6 py-4 border-t">
-            <Button variant="outline" onClick={() => setDialog(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={createExam.isPending || updateExam.isPending}>
+          <DialogFooter className="px-6 py-4 border-t shrink-0 bg-background">
+            <Button type="button" variant="outline" onClick={() => setDialog(false)}>Cancel</Button>
+            <Button type="button" onClick={handleSave} disabled={createExam.isPending || updateExam.isPending}>
               {createExam.isPending || updateExam.isPending ? "Saving..." : "Save Edition"}
             </Button>
           </DialogFooter>
