@@ -25,6 +25,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const EMPTY_TASK: Omit<ExamTask, "id"> = { type: "Tarefa 1", title: "", genre: "", description: "", order: 1 };
 
@@ -243,7 +246,16 @@ export default function ExamsAdminPage() {
                     <div className="grid grid-cols-2 gap-3 pr-8">
                       <div className="space-y-1">
                         <Label className="text-xs">Type</Label>
-                        <Input value={task.type} onChange={(e) => updateTask(idx, { type: e.target.value })} placeholder="Tarefa 1" className="h-8 text-sm" />
+                        <Select value={task.type} onValueChange={(v) => updateTask(idx, { type: v })}>
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.keys(TASK_COLORS).map((t) => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Genre</Label>
