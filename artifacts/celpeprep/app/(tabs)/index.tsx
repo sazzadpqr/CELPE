@@ -559,20 +559,10 @@ export default function HomeScreen() {
           <Text style={[styles.level, { color: colors.primary }]}>{LEVEL_LABELS[profile.level]}</Text>
         </View>
         <View style={styles.headerRight}>
-          {/* Bell icon with unread badge */}
           <Pressable
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/notifications"); }}
-            style={[styles.bellBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/profile"); }}
+            style={[styles.profileBtn, { backgroundColor: colors.primary }]}
           >
-            <Feather name="bell" size={19} color={unreadCount > 0 ? colors.primary : colors.mutedForeground} />
-            {unreadCount > 0 && (
-              <View style={[styles.badge, { backgroundColor: colors.destructive }]}>
-                <Text style={styles.badgeText}>{unreadCount > 99 ? "99+" : String(unreadCount)}</Text>
-              </View>
-            )}
-          </Pressable>
-          {/* Avatar */}
-          <Pressable onPress={() => router.push("/profile")} style={[styles.avatar, { backgroundColor: colors.primary }]}>
             <Text style={styles.avatarText}>{(profile.name || "E")[0]!.toUpperCase()}</Text>
           </Pressable>
         </View>
@@ -749,10 +739,8 @@ const styles = StyleSheet.create({
   userName: { fontSize: 22, fontFamily: "Inter_700Bold", marginTop: 2 },
   level: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 2 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
-  bellBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  badge: { position: "absolute", top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
-  badgeText: { color: "#fff", fontSize: 10, fontFamily: "Inter_700Bold", lineHeight: 12 },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  profileBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   avatarText: { color: "#fff", fontSize: 18, fontFamily: "Inter_700Bold" },
   examBanner: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1 },
   examBannerText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
