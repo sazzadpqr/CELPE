@@ -44,6 +44,20 @@ interface QuickAction {
   route: string; desc: string; order: number; active: boolean;
 }
 
+interface GrammarExercise {
+  id: string;
+  categoryId: string;
+  type: "multiple_choice" | "fill_blank" | "rewrite" | "error_find";
+  prompt: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  order: number;
+  active: boolean;
+  createdAt: string;
+}
+
 const DEFAULT_TASKS: StudyTask[] = [
   { id: "t1",  title: "Praticar Tarefa 3",          type: "practice",  durationMins: 30, dayOfWeek: 1, order: 0, active: true },
   { id: "t2",  title: "Revisar vocabulário",         type: "vocab",     durationMins: 15, dayOfWeek: 1, order: 1, active: true },
@@ -77,6 +91,24 @@ const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   { id: "oral",      label: "Oral",        icon: "mic",        color: "#7c3aed", route: "/oral",      desc: "Prática de fala",     order: 3, active: true },
   { id: "listening", label: "Escuta",      icon: "headphones", color: "#BA7517", route: "/listening", desc: "Áudios e questões",   order: 4, active: true },
   { id: "exams",     label: "Simulados",   icon: "clipboard",  color: "#DC2626", route: "/exams",     desc: "Provas anteriores",   order: 5, active: true },
+];
+
+const DEFAULT_GRAMMAR_EXERCISES: GrammarExercise[] = [
+  { id: "g1", categoryId: "subjuntivo", type: "multiple_choice", prompt: "Escolha a forma correta.", question: "Espero que ele ___ cedo.", options: ["chega", "chegue", "chegou", "chegaria"], correct: 1, explanation: "Após 'esperar que', usa-se o presente do subjuntivo.", order: 1, active: true, createdAt: new Date().toISOString() },
+  { id: "g2", categoryId: "subjuntivo", type: "fill_blank", prompt: "Complete com a forma verbal correta.", question: "Se eu ___ mais tempo, estudaria tudo.", options: ["tiver", "tinha", "tivesse", "terei"], correct: 2, explanation: "Em hipótese contrária à realidade, usa-se o imperfeito do subjuntivo.", order: 2, active: true, createdAt: new Date().toISOString() },
+  { id: "g3", categoryId: "concordancia", type: "error_find", prompt: "Aponte a alternativa com erro de concordância.", question: "Marque a frase incorreta.", options: ["Havia muitas pessoas na rua.", "A maioria dos alunos chegou.", "Fazem dois anos que saí.", "Os meninos cantaram bem."], correct: 2, explanation: "Com sentido de tempo, 'fazer' é impessoal e fica no singular: 'Faz dois anos'.", order: 3, active: true, createdAt: new Date().toISOString() },
+  { id: "g4", categoryId: "concordancia", type: "rewrite", prompt: "Escolha a forma correta.", question: "Qual frase está correta?", options: ["Haviam problemas.", "Havia problemas.", "Houveram problemas.", "Tiveram problemas."], correct: 1, explanation: "'Haver' com sentido de existir é impessoal e singular.", order: 4, active: true, createdAt: new Date().toISOString() },
+  { id: "g5", categoryId: "preposicoes", type: "multiple_choice", prompt: "Escolha a opção correta.", question: "Ele se referiu ___ pesquisa.", options: ["a", "à", "em", "de"], correct: 0, explanation: "'Referir-se a' exige preposição 'a'.", order: 5, active: true, createdAt: new Date().toISOString() },
+  { id: "g6", categoryId: "preposicoes", type: "fill_blank", prompt: "Complete com crase quando necessário.", question: "Vou ___ escola amanhã.", options: ["a", "à", "ao", "na"], correct: 1, explanation: "Há crase na fusão de 'a' + 'a escola'.", order: 6, active: true, createdAt: new Date().toISOString() },
+  { id: "g7", categoryId: "pronomes", type: "multiple_choice", prompt: "Escolha a colocação correta.", question: "___ vi ontem no mercado.", options: ["Te", "Vi-te", "A vi", "Te vi"], correct: 3, explanation: "Em português brasileiro, a próclise é comum após ausência de fator de atração em fala informal: 'Te vi'.", order: 7, active: true, createdAt: new Date().toISOString() },
+  { id: "g8", categoryId: "pronomes", type: "error_find", prompt: "Encontre a frase correta.", question: "Marque a forma adequada.", options: ["Me disseram a verdade.", "Disseram-me a verdade.", "Disseram me a verdade.", "Disseram à me a verdade."], correct: 1, explanation: "Na norma-padrão, a ênclise 'disseram-me' é a forma esperada.", order: 8, active: true, createdAt: new Date().toISOString() },
+  { id: "g9", categoryId: "ortografia", type: "multiple_choice", prompt: "Escolha a grafia correta.", question: "Qual palavra está correta?", options: ["excessão", "exceção", "execessão", "excessao"], correct: 1, explanation: "A forma correta é 'exceção'.", order: 9, active: true, createdAt: new Date().toISOString() },
+  { id: "g10", categoryId: "ortografia", type: "fill_blank", prompt: "Complete corretamente.", question: "O professor pediu uma ___ clara.", options: ["análise", "analize", "anallise", "análize"], correct: 0, explanation: "A palavra correta é 'análise'.", order: 10, active: true, createdAt: new Date().toISOString() },
+  { id: "g11", categoryId: "subjuntivo", type: "rewrite", prompt: "Escolha a frase melhor escrita.", question: "Selecione a forma adequada.", options: ["Embora ele está cansado, saiu.", "Embora ele estivesse cansado, saiu.", "Embora ele esteve cansado, saiu.", "Embora ele estáva cansado, saiu."], correct: 1, explanation: "Após 'embora', usa-se subjuntivo.", order: 11, active: true, createdAt: new Date().toISOString() },
+  { id: "g12", categoryId: "concordancia", type: "multiple_choice", prompt: "Escolha a concordância correta.", question: "___ cinco horas quando chegamos.", options: ["Era", "Eram", "Foi", "Foram"], correct: 1, explanation: "Com horas no plural, o verbo concorda: 'Eram cinco horas'.", order: 12, active: true, createdAt: new Date().toISOString() },
+  { id: "g13", categoryId: "preposicoes", type: "multiple_choice", prompt: "Escolha a preposição correta.", question: "Ele obedeceu ___ regras.", options: ["as", "às", "a", "de"], correct: 2, explanation: "'Obedecer' rege a preposição 'a'.", order: 13, active: true, createdAt: new Date().toISOString() },
+  { id: "g14", categoryId: "pronomes", type: "fill_blank", prompt: "Complete a frase.", question: "Não ___ disseram nada.", options: ["me", "mim", "eu", "lhe"], correct: 0, explanation: "Com palavra negativa antes do verbo, usa-se próclise: 'não me disseram'.", order: 14, active: true, createdAt: new Date().toISOString() },
+  { id: "g15", categoryId: "ortografia", type: "error_find", prompt: "Escolha a alternativa correta.", question: "Marque a frase correta.", options: ["A idéia dele é boa.", "A ideia dele é boa.", "A idêia dele é boa.", "A idéia dele e boa."], correct: 1, explanation: "Após o Acordo Ortográfico, escreve-se 'ideia' sem acento.", order: 15, active: true, createdAt: new Date().toISOString() },
 ];
 
 const router = Router();
@@ -213,6 +245,11 @@ router.put("/admin/quick-actions/:id", (req, res) => {
 router.get("/content/quick-actions", (_req, res) => {
   const qa = readData<QuickAction[]>("quick-actions.json", DEFAULT_QUICK_ACTIONS);
   res.json(qa.filter(a => a.active).sort((a, b) => a.order - b.order));
+});
+
+router.get("/content/grammar-exercises", (_req, res) => {
+  const exercises = readData<GrammarExercise[]>("grammar-exercises.json", DEFAULT_GRAMMAR_EXERCISES);
+  res.json(exercises.filter((e) => e.active).sort((a, b) => a.order - b.order));
 });
 
 export default router;

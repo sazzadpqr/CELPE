@@ -20,6 +20,8 @@ import {
   saveQuizQuestions,
   getQuizLessons,
   saveQuizLessons,
+  getGrammarExercises,
+  saveGrammarExercises,
   getExams,
   saveExams,
   getWotdEntries,
@@ -29,6 +31,7 @@ import {
   type QuizCategory,
   type QuizQuestion,
   type QuizLesson,
+  type GrammarExercise,
   type LessonExample,
   type LessonMistake,
   type ExamEdition,
@@ -306,6 +309,53 @@ router.delete("/admin/grammar/:id", (req, res) => {
     return;
   }
   saveGrammarTopics(filtered);
+  res.status(204).send();
+});
+
+router.get("/admin/grammar-exercises", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  res.json(getGrammarExercises());
+});
+
+router.post("/admin/grammar-exercises", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const body = req.body as Omit<GrammarExercise, "id" | "createdAt">;
+  const exercises = getGrammarExercises();
+  const created: GrammarExercise = {
+    id: crypto.randomUUID(),
+    categoryId: body.categoryId ?? "subjuntivo",
+    type: body.type ?? "multiple_choice",
+    prompt: body.prompt ?? "",
+    question: body.question ?? "",
+    options: Array.isArray(body.options) ? body.options : ["", "", "", ""],
+    correct: typeof body.correct === "number" ? body.correct : 0,
+    explanation: body.explanation ?? "",
+    order: body.order ?? exercises.length + 1,
+    active: body.active ?? true,
+    createdAt: new Date().toISOString(),
+  };
+  exercises.push(created);
+  saveGrammarExercises(exercises);
+  res.status(201).json(created);
+});
+
+router.put("/admin/grammar-exercises/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const body = req.body as Partial<GrammarExercise>;
+  const exercises = getGrammarExercises();
+  const idx = exercises.findIndex((e) => e.id === req.params.id);
+  if (idx === -1) { res.status(404).json({ error: "Not found" }); return; }
+  exercises[idx] = { ...exercises[idx]!, ...body, id: req.params.id, createdAt: exercises[idx]!.createdAt };
+  saveGrammarExercises(exercises);
+  res.json(exercises[idx]);
+});
+
+router.delete("/admin/grammar-exercises/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const exercises = getGrammarExercises();
+  const filtered = exercises.filter((e) => e.id !== req.params.id);
+  if (filtered.length === exercises.length) { res.status(404).json({ error: "Not found" }); return; }
+  saveGrammarExercises(filtered);
   res.status(204).send();
 });
 
