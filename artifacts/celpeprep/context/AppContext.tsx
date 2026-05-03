@@ -124,6 +124,7 @@ interface AppContextType {
   addAttempt: (attempt: Omit<PracticeAttempt, "id" | "createdAt">) => Promise<void>;
   studyTasks: StudyTask[];
   toggleStudyTask: (id: string) => Promise<void>;
+  loadStudyTasksFromServer: (serverTasks: Omit<StudyTask, "completed" | "completedDate">[]) => void;
   isLoaded: boolean;
 }
 
@@ -405,9 +406,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const loadStudyTasksFromServer = useCallback((serverTasks: Omit<StudyTask, "completed" | "completedDate">[]) => {
+    setStudyTasks((prev) => {
+      const completionMap: Record<string, { completed: boolean; completedDate: string | null }> = {};
+      prev.forEach((t) => { completionMap[t.id] = { completed: t.completed, completedDate: t.completedDate }; });
+      const merged: StudyTask[] = serverTasks.map((st) => ({
+        ...st,
+        completed: completionMap[st.id]?.completed ?? false,
+        completedDate: completionMap[st.id]?.completedDate ?? null,
+      }));
+      AsyncStorage.setItem("celpeprep_tasks", JSON.stringify(merged));
+      return merged;
+    });
+  }, []);
+
   return (
     <AppContext.Provider
-      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, serverLimits, refreshLimits, featureFlags, refreshFeatureFlags, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
+      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, serverLimits, refreshLimits, featureFlags, refreshFeatureFlags, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, loadStudyTasksFromServer, isLoaded }}
     >
       {children}
     </AppContext.Provider>

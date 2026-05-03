@@ -1,0 +1,50 @@
+[
+  {
+    "id": "tip1",
+    "text": "Leia textos autênticos em português todos os dias — jornais, blogs, artigos.",
+    "active": true,
+    "order": 0
+  },
+  {
+    "id": "tip2",
+    "text": "Grave-se falando português e ouça para identificar pontos a melhorar.",
+    "active": true,
+    "order": 1
+  },
+  {
+    "id": "tip3",
+    "text": "Pratique escrever em diferentes gêneros: e-mail, carta, artigo de opinião.",
+    "active": true,
+    "order": 2
+  },
+  {
+    "id": "tip4",
+    "text": "Estude conectivos e operadores argumentativos — são essenciais no Celpe-Bras.",
+    "active": true,
+    "order": 3
+  },
+  {
+    "id": "tip5",
+    "text": "Faça uma redação completa toda semana e revise com o critério do exame.",
+    "active": true,
+    "order": 4
+  },
+  {
+    "id": "tip6",
+    "text": "Assista a programas de TV ou vídeos em português com foco na entonação.",
+    "active": true,
+    "order": 5
+  },
+  {
+    "id": "tip7",
+    "text": "Pratique responder às tarefas no tempo real da prova (90 min total).",
+    "active": true,
+    "order": 6
+  },
+  {
+    "id": "tip8",
+    "text": "Estude temas recorrentes do Celpe-Bras: meio ambiente, tecnologia, cidadania.",
+    "active": true,
+    "order": 7
+  }
+]

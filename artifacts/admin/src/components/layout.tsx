@@ -5,7 +5,7 @@ import {
   FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
   Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
   Mic, Volume2, Headphones, MessageCircle, UserCheck, ExternalLink,
-  Video, Users2, ClipboardList,
+  Video, Users2, ClipboardList, CalendarDays, Lightbulb, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -40,6 +40,15 @@ const NAV_SECTIONS = [
       { href: "/pronunciation-content", label: "Pronúncia", icon: Volume2 },
       { href: "/listening-content", label: "Compreensão Auditiva", icon: Headphones },
       { href: "/conversation-scenarios", label: "Cenários de Conversa", icon: MessageCircle },
+    ],
+  },
+  {
+    label: "Plano de Estudo",
+    items: [
+      { href: "/study-plan", label: "Tarefas Semanais", icon: CalendarDays },
+      { href: "/study-tips", label: "Dicas de Estudo", icon: Lightbulb },
+      { href: "/quick-actions", label: "Ações Rápidas", icon: Zap },
+      { href: "/interest-list", label: "Interesse em Premium", icon: Bell },
     ],
   },
   {

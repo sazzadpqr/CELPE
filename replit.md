@@ -23,6 +23,22 @@ All 8 ad formats are implemented as an admin-controlled service layer. `services
 
 **DB table**: `admin_ads_config` — singleton row. 20 new columns added for unit IDs, enable flags, and frequency caps.
 
+## Study Plan Backend Integration
+
+All study plan content in the mobile app is now server-driven. The admin can manage:
+
+| Feature | Admin page | Public API | Admin API |
+|---|---|---|---|
+| Weekly study tasks | `/admin/study-plan` | `GET /api/content/study-tasks` | CRUD `/api/admin/study-tasks[/:id]` |
+| Study tips (Dica do dia) | `/admin/study-tips` | `GET /api/content/study-tips` | CRUD `/api/admin/study-tips[/:id]` |
+| Quick action grid | `/admin/quick-actions` | `GET /api/content/quick-actions` | `PUT /api/admin/quick-actions[/:id]` |
+| Premium interest list | `/admin/interest-list` | — | `GET /api/admin/interest-list` |
+
+- Data stored as JSON files in `artifacts/api-server/data/` (`study-tasks.json`, `study-tips.json`, `quick-actions.json`)
+- Mobile `study.tsx` fetches all three on mount with `Promise.allSettled` — falls back to hardcoded defaults on error
+- `AppContext.loadStudyTasksFromServer()` merges server task definitions with local completion state (AsyncStorage)
+- Admin nav: new **"Plano de Estudo"** section with 4 items
+
 ## Artifacts
 
 - **`artifacts/celpeprep`** — Expo (React Native) mobile app, preview path `/celpeprep`

@@ -36,6 +36,10 @@ import TeacherPortalPage from "@/pages/teacher-portal";
 import LiveEventsPage from "@/pages/live-events";
 import CommunityAdminPage from "@/pages/community-admin";
 import TeacherFeedbackPage from "@/pages/teacher-feedback";
+import StudyPlanAdminPage from "@/pages/study-plan-admin";
+import StudyTipsAdminPage from "@/pages/study-tips-admin";
+import InterestListAdminPage from "@/pages/interest-list-admin";
+import QuickActionsAdminPage from "@/pages/quick-actions-admin";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient({
@@ -122,6 +126,10 @@ function Router() {
       <Route path="/live-events">{() => <ProtectedRoute component={LiveEventsPage} />}</Route>
       <Route path="/community">{() => <ProtectedRoute component={CommunityAdminPage} />}</Route>
       <Route path="/teacher-feedback">{() => <ProtectedRoute component={TeacherFeedbackPage} />}</Route>
+      <Route path="/study-plan">{() => <ProtectedRoute component={StudyPlanAdminPage} />}</Route>
+      <Route path="/study-tips">{() => <ProtectedRoute component={StudyTipsAdminPage} />}</Route>
+      <Route path="/interest-list">{() => <ProtectedRoute component={InterestListAdminPage} />}</Route>
+      <Route path="/quick-actions">{() => <ProtectedRoute component={QuickActionsAdminPage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

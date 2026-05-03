@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -15,6 +15,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp, type PracticeAttempt, type StudyTask } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+
+function getApiUrl(path: string) {
+  const domain = process.env["EXPO_PUBLIC_DOMAIN"];
+  return domain ? `https://${domain}${path}` : path;
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -43,16 +48,18 @@ const TYPE_ROUTES: Record<StudyTask["type"], string> = {
   grammar: "/grammar",
 };
 
-const QUICK_ACTIONS = [
-  { label: "Praticar", icon: "edit-3" as const, color: "#185FA5", route: "/practice", desc: "Tarefas escritas" },
-  { label: "Gramática", icon: "code" as const, color: "#D85A30", route: "/grammar", desc: "Exercícios e regras" },
-  { label: "Vocabulário", icon: "book-open" as const, color: "#1D9E75", route: "/vocab", desc: "Flashcards SRS" },
-  { label: "Oral", icon: "mic" as const, color: "#7c3aed", route: "/oral", desc: "Prática de fala" },
-  { label: "Escuta", icon: "headphones" as const, color: "#BA7517", route: "/listening", desc: "Áudios e questões" },
-  { label: "Simulados", icon: "clipboard" as const, color: "#DC2626", route: "/exams", desc: "Provas anteriores" },
-] as const;
+type QuickAction = { id: string; label: string; icon: string; color: string; route: string; desc: string; order: number; active: boolean };
 
-const STUDY_TIPS = [
+const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
+  { id: "practice",  label: "Praticar",    icon: "edit-3",     color: "#185FA5", route: "/practice",  desc: "Tarefas escritas",    order: 0, active: true },
+  { id: "grammar",   label: "Gramática",   icon: "code",       color: "#D85A30", route: "/grammar",   desc: "Exercícios e regras", order: 1, active: true },
+  { id: "vocab",     label: "Vocabulário", icon: "book-open",  color: "#1D9E75", route: "/vocab",     desc: "Flashcards SRS",      order: 2, active: true },
+  { id: "oral",      label: "Oral",        icon: "mic",        color: "#7c3aed", route: "/oral",      desc: "Prática de fala",     order: 3, active: true },
+  { id: "listening", label: "Escuta",      icon: "headphones", color: "#BA7517", route: "/listening", desc: "Áudios e questões",   order: 4, active: true },
+  { id: "exams",     label: "Simulados",   icon: "clipboard",  color: "#DC2626", route: "/exams",     desc: "Provas anteriores",   order: 5, active: true },
+];
+
+const DEFAULT_STUDY_TIPS = [
   "Leia textos autênticos em português todos os dias — jornais, blogs, artigos.",
   "Grave-se falando português e ouça para identificar pontos a melhorar.",
   "Pratique escrever em diferentes gêneros: e-mail, carta, artigo de opinião.",
@@ -285,11 +292,41 @@ const hmStyles = StyleSheet.create({
 export default function StudyScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { studyTasks, toggleStudyTask, profile, attempts, updateProfile } = useApp();
+  const { studyTasks, toggleStudyTask, loadStudyTasksFromServer, profile, attempts, updateProfile } = useApp();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
+  const [quickActions, setQuickActions] = useState<QuickAction[]>(DEFAULT_QUICK_ACTIONS);
+  const [studyTips, setStudyTips] = useState<string[]>(DEFAULT_STUDY_TIPS);
+
+  useEffect(() => {
+    const fetchServerContent = async () => {
+      try {
+        const [tasksRes, tipsRes, actionsRes] = await Promise.allSettled([
+          fetch(getApiUrl("/api/content/study-tasks")),
+          fetch(getApiUrl("/api/content/study-tips")),
+          fetch(getApiUrl("/api/content/quick-actions")),
+        ]);
+
+        if (tasksRes.status === "fulfilled" && tasksRes.value.ok) {
+          const tasks = await tasksRes.value.json();
+          if (Array.isArray(tasks) && tasks.length > 0) loadStudyTasksFromServer(tasks);
+        }
+        if (tipsRes.status === "fulfilled" && tipsRes.value.ok) {
+          const tips = await tipsRes.value.json() as Array<{ text: string }>;
+          if (Array.isArray(tips) && tips.length > 0) setStudyTips(tips.map(t => t.text));
+        }
+        if (actionsRes.status === "fulfilled" && actionsRes.value.ok) {
+          const actions = await actionsRes.value.json();
+          if (Array.isArray(actions) && actions.length > 0) setQuickActions(actions);
+        }
+      } catch {
+      }
+    };
+    fetchServerContent();
+  }, []);
+
   const today = new Date().getDay();
-  const todayTip = STUDY_TIPS[new Date().getDate() % STUDY_TIPS.length]!;
+  const todayTip = studyTips[new Date().getDate() % studyTips.length]!;
 
   const tasksByDay = useMemo(() => {
     const map: Record<number, StudyTask[]> = {};
@@ -393,9 +430,9 @@ export default function StudyScreen() {
       <View>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Começar agora</Text>
         <View style={styles.quickGrid}>
-          {QUICK_ACTIONS.map((action) => (
+          {quickActions.map((action) => (
             <Pressable
-              key={action.route}
+              key={action.id}
               style={[styles.quickCard, { backgroundColor: action.color + "10", borderColor: action.color + "30" }]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -403,7 +440,7 @@ export default function StudyScreen() {
               }}
             >
               <View style={[styles.quickIcon, { backgroundColor: action.color + "20" }]}>
-                <Feather name={action.icon} size={20} color={action.color} />
+                <Feather name={action.icon as keyof typeof Feather.glyphMap} size={20} color={action.color} />
               </View>
               <Text style={[styles.quickLabel, { color: action.color }]}>{action.label}</Text>
               <Text style={[styles.quickDesc, { color: colors.mutedForeground }]} numberOfLines={1}>{action.desc}</Text>

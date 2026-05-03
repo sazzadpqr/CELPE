@@ -20,6 +20,7 @@ import profileRouter from "./profile";
 import socialRouter from "./social";
 import adminSocialRouter from "./adminSocial";
 import feedbackRouter from "./feedbackRoutes";
+import studyContentRouter from "./studyContent";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(profileRouter);
 router.use(socialRouter);
 router.use(adminSocialRouter);
 router.use(feedbackRouter);
+router.use(studyContentRouter);
 
 export default router;
