@@ -322,11 +322,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (res.status === 409) {
         return { ok: false, error: "username_taken" };
       }
+
+      await updateProfile(updates);
       if (!res.ok) {
         return { ok: false, error: "server_error" };
       }
-
-      await updateProfile(updates);
       return { ok: true };
     } catch {
       await updateProfile(updates);

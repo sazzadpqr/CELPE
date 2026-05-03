@@ -74,6 +74,22 @@ function EmojiPickerModal({ visible, current, onSelect, onClose }: {
   onClose: () => void;
 }) {
   const colors = useColors();
+  const [selected, setSelected] = React.useState(current);
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (visible) { setSelected(current); setSaving(false); }
+  }, [visible, current]);
+
+  const handleSave = async () => {
+    if (selected === current) { onClose(); return; }
+    setSaving(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await onSelect(selected);
+    setSaving(false);
+    onClose();
+  };
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[styles.modalRoot, { backgroundColor: colors.background }]}>
@@ -84,24 +100,65 @@ function EmojiPickerModal({ visible, current, onSelect, onClose }: {
           <Text style={[styles.epHeaderTitle, { color: colors.text }]}>Escolher avatar</Text>
           <View style={{ width: 34 }} />
         </View>
+
+        {/* Preview of selected emoji */}
+        <View style={[styles.emojiPreview, { borderBottomColor: colors.border }]}>
+          <View style={[styles.emojiPreviewCircle, { backgroundColor: colors.primary + "18", borderColor: colors.primary + "40" }]}>
+            <Text style={styles.emojiPreviewText}>{selected}</Text>
+          </View>
+          <Text style={[styles.emojiPreviewLabel, { color: colors.mutedForeground }]}>
+            {selected === current ? "Avatar atual" : "Novo avatar selecionado"}
+          </Text>
+        </View>
+
         <ScrollView contentContainerStyle={styles.emojiGrid}>
-          <Text style={[styles.emojiGridLabel, { color: colors.mutedForeground }]}>Selecione um emoji para o seu perfil</Text>
+          <Text style={[styles.emojiGridLabel, { color: colors.mutedForeground }]}>Toque para selecionar</Text>
           <View style={styles.emojiRow}>
             {AVATAR_EMOJIS.map((emoji) => (
               <Pressable
                 key={emoji}
-                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onSelect(emoji); onClose(); }}
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setSelected(emoji); }}
                 style={[
                   styles.emojiCell,
-                  { backgroundColor: emoji === current ? colors.primary + "22" : colors.muted },
-                  emoji === current && { borderWidth: 2, borderColor: colors.primary },
+                  { backgroundColor: emoji === selected ? colors.primary + "22" : colors.muted },
+                  emoji === selected && { borderWidth: 2, borderColor: colors.primary },
                 ]}
               >
                 <Text style={styles.emojiCellText}>{emoji}</Text>
+                {emoji === selected && (
+                  <View style={[styles.emojiCheck, { backgroundColor: colors.primary }]}>
+                    <Feather name="check" size={8} color="#fff" />
+                  </View>
+                )}
               </Pressable>
             ))}
           </View>
         </ScrollView>
+
+        {/* Save button */}
+        <View style={[styles.emojiSaveWrap, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
+          <Pressable
+            onPress={handleSave}
+            disabled={saving}
+            style={({ pressed }) => [
+              styles.emojiSaveBtn,
+              { backgroundColor: selected === current ? colors.muted : colors.primary, opacity: pressed || saving ? 0.8 : 1 },
+            ]}
+          >
+            {saving ? (
+              <Text style={[styles.emojiSaveBtnText, { color: selected === current ? colors.mutedForeground : "#fff" }]}>
+                Salvando...
+              </Text>
+            ) : (
+              <>
+                <Feather name="check" size={16} color={selected === current ? colors.mutedForeground : "#fff"} />
+                <Text style={[styles.emojiSaveBtnText, { color: selected === current ? colors.mutedForeground : "#fff" }]}>
+                  {selected === current ? "Nenhuma alteração" : "Salvar avatar"}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );
@@ -1107,10 +1164,18 @@ const styles = StyleSheet.create({
   epSaveBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 16, marginTop: 12 },
   epSaveBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_700Bold" },
 
-  emojiGrid: { padding: 20 },
+  emojiPreview: { alignItems: "center", paddingVertical: 20, gap: 8, borderBottomWidth: 1 },
+  emojiPreviewCircle: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  emojiPreviewText: { fontSize: 36 },
+  emojiPreviewLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  emojiSaveWrap: { padding: 16, borderTopWidth: 1 },
+  emojiSaveBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 15, borderRadius: 14 },
+  emojiSaveBtnText: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  emojiCheck: { position: "absolute", top: 4, right: 4, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  emojiGrid: { padding: 20, paddingBottom: 10 },
   emojiGridLabel: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", marginBottom: 20 },
   emojiRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "center" },
-  emojiCell: { width: 60, height: 60, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  emojiCell: { width: 60, height: 60, borderRadius: 14, alignItems: "center", justifyContent: "center", position: "relative" },
   emojiCellText: { fontSize: 30 },
 
   adOverlay: { flex: 1, backgroundColor: "#000a", alignItems: "center", justifyContent: "center", padding: 24 },
