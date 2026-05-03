@@ -108,6 +108,16 @@ export interface StudyTask {
   completedDate: string | null;
 }
 
+export interface StudyPlanMeta {
+  generatedAt: string | null;
+  durationDays: number;
+  isGenerated: boolean;
+  isPremiumLocked: boolean;
+  summary: string;
+  strengths: string[];
+  improvements: string[];
+}
+
 interface AppContextType {
   profile: UserProfile;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
@@ -126,6 +136,8 @@ interface AppContextType {
   studyTasks: StudyTask[];
   toggleStudyTask: (id: string) => Promise<void>;
   loadStudyTasksFromServer: (serverTasks: Omit<StudyTask, "completed" | "completedDate">[]) => void;
+  studyPlanMeta: StudyPlanMeta;
+  setStudyPlanMeta: (meta: Partial<StudyPlanMeta>) => Promise<void>;
   isLoaded: boolean;
 }
 
@@ -165,6 +177,16 @@ const defaultStudyTasks: StudyTask[] = [
   { id: "12", title: "Revisão semanal", type: "reading", durationMins: 30, dayOfWeek: 0, completed: false, completedDate: null },
 ];
 
+const defaultStudyPlanMeta: StudyPlanMeta = {
+  generatedAt: null,
+  durationDays: 30,
+  isGenerated: false,
+  isPremiumLocked: true,
+  summary: "Gere um plano de estudo personalizado com IA para 30, 90 ou 180 dias.",
+  strengths: [],
+  improvements: [],
+};
+
 function generateUUID(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -185,6 +207,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [vocabWords, setVocabWords] = useState<VocabWord[]>([]);
   const [attempts, setAttempts] = useState<PracticeAttempt[]>([]);
   const [studyTasks, setStudyTasks] = useState<StudyTask[]>(defaultStudyTasks);
+  const [studyPlanMeta, setStudyPlanMetaState] = useState<StudyPlanMeta>(defaultStudyPlanMeta);
   const [serverLimits, setServerLimits] = useState<ServerLimits>(DEFAULT_SERVER_LIMITS);
   const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
   const [isLoaded, setIsLoaded] = useState(false);
@@ -232,11 +255,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const loadAll = async () => {
     try {
-      const [profileStr, vocabStr, attemptsStr, tasksStr] = await AsyncStorage.multiGet([
+      const [profileStr, vocabStr, attemptsStr, tasksStr, planStr] = await AsyncStorage.multiGet([
         "celpeprep_profile",
         "celpeprep_vocab",
         "celpeprep_attempts",
         "celpeprep_tasks",
+        "celpeprep_study_plan_meta",
       ]);
 
       let loadedProfile: UserProfile;
@@ -275,6 +299,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (vocabStr[1]) setVocabWords(JSON.parse(vocabStr[1]));
       if (attemptsStr[1]) setAttempts(JSON.parse(attemptsStr[1]));
       if (tasksStr[1]) setStudyTasks(JSON.parse(tasksStr[1]));
+      if (planStr[1]) setStudyPlanMetaState({ ...defaultStudyPlanMeta, ...(JSON.parse(planStr[1]) as Partial<StudyPlanMeta>) });
     } catch (_) {}
     setIsLoaded(true);
   };
@@ -432,9 +457,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setStudyPlanMeta = useCallback(async (meta: Partial<StudyPlanMeta>) => {
+    setStudyPlanMetaState((prev) => {
+      const next = { ...prev, ...meta };
+      AsyncStorage.setItem("celpeprep_study_plan_meta", JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   return (
     <AppContext.Provider
-      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, serverLimits, refreshLimits, featureFlags, refreshFeatureFlags, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, loadStudyTasksFromServer, isLoaded }}
+      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, serverLimits, refreshLimits, featureFlags, refreshFeatureFlags, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, loadStudyTasksFromServer, studyPlanMeta, setStudyPlanMeta, isLoaded }}
     >
       {children}
     </AppContext.Provider>
