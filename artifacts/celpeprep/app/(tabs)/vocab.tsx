@@ -747,6 +747,20 @@ export default function VocabScreen() {
           </View>
         </View>
 
+        <Pressable
+          onPress={() => router.push("/library")}
+          style={[styles.topicsBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
+          <View style={[styles.topicsIcon, { backgroundColor: colors.primary + "18" }]}>
+            <Feather name="layers" size={16} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.topicsTitle, { color: colors.text }]}>Tópicos Celpe-Bras</Text>
+            <Text style={[styles.topicsSub, { color: colors.mutedForeground }]}>Veja os temas necessários e fundamentais</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+        </Pressable>
+
         {/* Stats bar */}
         <View style={styles.statsRow}>
           <View style={[styles.statPill, { backgroundColor: colors.warningBg }]}>

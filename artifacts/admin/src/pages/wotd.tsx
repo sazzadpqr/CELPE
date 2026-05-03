@@ -58,6 +58,36 @@ export const WOTD_TOPICS = [
   "Saúde e Bem-estar",
 ];
 
+export const STUDY_TOPICS = [
+  "Alimentação e Nutrição",
+  "Artes Divinatórias e Esoterismo",
+  "Atividades Físicas e Esportes",
+  "Ciência e Tecnologia",
+  "Crenças, Valores e Comportamento Social",
+  "Direitos Humanos",
+  "Educação",
+  "Família",
+  "Legislação (leis)",
+  "Meio ambiente e Ecologia",
+  "Meios de Transporte",
+  "Música",
+  "Política",
+  "Saúde e Bem-estar",
+  "Animais Selvagens e Domésticos",
+  "Artes Visuais, Artes Plásticas",
+  "Cidadania e Direitos Humanos",
+  "Cinema e Fotografia",
+  "Dança",
+  "Economia",
+  "Emoções, Sensações, Sentimentos e Estados de Espírito",
+  "Lazer e Turismo",
+  "Literatura e Poesia",
+  "Meios de Comunicação",
+  "Moda e Vestuário",
+  "Negócios",
+  "Religião",
+];
+
 const EMPTY: WotdEntryBody = { word: "", pos: "", topic: "", definition: "", example: "", active: true };
 
 const POS_OPTIONS = ["verbo", "substantivo", "adjetivo", "advérbio", "locução", "expressão"];

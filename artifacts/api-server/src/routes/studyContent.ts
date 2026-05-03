@@ -44,6 +44,14 @@ interface QuickAction {
   route: string; desc: string; order: number; active: boolean;
 }
 
+interface StudyTopic {
+  id: string;
+  name: string;
+  active: boolean;
+  order: number;
+  createdAt: string;
+}
+
 interface GrammarExercise {
   id: string;
   categoryId: string;
@@ -91,6 +99,36 @@ const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   { id: "oral",      label: "Oral",        icon: "mic",        color: "#7c3aed", route: "/oral",      desc: "Prática de fala",     order: 3, active: true },
   { id: "listening", label: "Escuta",      icon: "headphones", color: "#BA7517", route: "/listening", desc: "Áudios e questões",   order: 4, active: true },
   { id: "exams",     label: "Simulados",   icon: "clipboard",  color: "#DC2626", route: "/exams",     desc: "Provas anteriores",   order: 5, active: true },
+];
+
+const DEFAULT_STUDY_TOPICS: StudyTopic[] = [
+  { id: "t1", name: "Alimentação e Nutrição", active: true, order: 1, createdAt: new Date().toISOString() },
+  { id: "t2", name: "Artes Divinatórias e Esoterismo", active: true, order: 2, createdAt: new Date().toISOString() },
+  { id: "t3", name: "Atividades Físicas e Esportes", active: true, order: 3, createdAt: new Date().toISOString() },
+  { id: "t4", name: "Ciência e Tecnologia", active: true, order: 4, createdAt: new Date().toISOString() },
+  { id: "t5", name: "Crenças, Valores e Comportamento Social", active: true, order: 5, createdAt: new Date().toISOString() },
+  { id: "t6", name: "Direitos Humanos", active: true, order: 6, createdAt: new Date().toISOString() },
+  { id: "t7", name: "Educação", active: true, order: 7, createdAt: new Date().toISOString() },
+  { id: "t8", name: "Família", active: true, order: 8, createdAt: new Date().toISOString() },
+  { id: "t9", name: "Legislação (leis)", active: true, order: 9, createdAt: new Date().toISOString() },
+  { id: "t10", name: "Meio ambiente e Ecologia", active: true, order: 10, createdAt: new Date().toISOString() },
+  { id: "t11", name: "Meios de Transporte", active: true, order: 11, createdAt: new Date().toISOString() },
+  { id: "t12", name: "Música", active: true, order: 12, createdAt: new Date().toISOString() },
+  { id: "t13", name: "Política", active: true, order: 13, createdAt: new Date().toISOString() },
+  { id: "t14", name: "Saúde e Bem-estar", active: true, order: 14, createdAt: new Date().toISOString() },
+  { id: "t15", name: "Animais Selvagens e Domésticos", active: true, order: 15, createdAt: new Date().toISOString() },
+  { id: "t16", name: "Artes Visuais, Artes Plásticas", active: true, order: 16, createdAt: new Date().toISOString() },
+  { id: "t17", name: "Cidadania e Direitos Humanos", active: true, order: 17, createdAt: new Date().toISOString() },
+  { id: "t18", name: "Cinema e Fotografia", active: true, order: 18, createdAt: new Date().toISOString() },
+  { id: "t19", name: "Dança", active: true, order: 19, createdAt: new Date().toISOString() },
+  { id: "t20", name: "Economia", active: true, order: 20, createdAt: new Date().toISOString() },
+  { id: "t21", name: "Emoções, Sensações, Sentimentos e Estados de Espírito", active: true, order: 21, createdAt: new Date().toISOString() },
+  { id: "t22", name: "Lazer e Turismo", active: true, order: 22, createdAt: new Date().toISOString() },
+  { id: "t23", name: "Literatura e Poesia", active: true, order: 23, createdAt: new Date().toISOString() },
+  { id: "t24", name: "Meios de Comunicação", active: true, order: 24, createdAt: new Date().toISOString() },
+  { id: "t25", name: "Moda e Vestuário", active: true, order: 25, createdAt: new Date().toISOString() },
+  { id: "t26", name: "Negócios", active: true, order: 26, createdAt: new Date().toISOString() },
+  { id: "t27", name: "Religião", active: true, order: 27, createdAt: new Date().toISOString() },
 ];
 
 const DEFAULT_GRAMMAR_EXERCISES: GrammarExercise[] = [
@@ -245,6 +283,52 @@ router.put("/admin/quick-actions/:id", (req, res) => {
 router.get("/content/quick-actions", (_req, res) => {
   const qa = readData<QuickAction[]>("quick-actions.json", DEFAULT_QUICK_ACTIONS);
   res.json(qa.filter(a => a.active).sort((a, b) => a.order - b.order));
+});
+
+router.get("/content/study-topics", (_req, res) => {
+  const topics = readData<StudyTopic[]>("study-topics.json", DEFAULT_STUDY_TOPICS);
+  res.json(topics.filter((t) => t.active).sort((a, b) => a.order - b.order));
+});
+
+router.get("/admin/study-topics", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const topics = readData<StudyTopic[]>("study-topics.json", DEFAULT_STUDY_TOPICS);
+  res.json(topics.sort((a, b) => a.order - b.order));
+});
+
+router.post("/admin/study-topics", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const topics = readData<StudyTopic[]>("study-topics.json", DEFAULT_STUDY_TOPICS);
+  const body = req.body as Partial<StudyTopic>;
+  const topic: StudyTopic = {
+    id: uuid(),
+    name: body.name ?? "",
+    active: body.active ?? true,
+    order: body.order ?? topics.length + 1,
+    createdAt: new Date().toISOString(),
+  };
+  topics.push(topic);
+  writeData("study-topics.json", topics);
+  res.status(201).json(topic);
+});
+
+router.put("/admin/study-topics/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const topics = readData<StudyTopic[]>("study-topics.json", DEFAULT_STUDY_TOPICS);
+  const idx = topics.findIndex((t) => t.id === req.params.id);
+  if (idx < 0) { res.status(404).json({ error: "Not found" }); return; }
+  topics[idx] = { ...topics[idx]!, ...req.body as Partial<StudyTopic>, id: req.params.id! };
+  writeData("study-topics.json", topics);
+  res.json(topics[idx]);
+});
+
+router.delete("/admin/study-topics/:id", (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const topics = readData<StudyTopic[]>("study-topics.json", DEFAULT_STUDY_TOPICS);
+  const filtered = topics.filter((t) => t.id !== req.params.id);
+  if (filtered.length === topics.length) { res.status(404).json({ error: "Not found" }); return; }
+  writeData("study-topics.json", filtered);
+  res.status(204).send();
 });
 
 router.get("/content/grammar-exercises", (_req, res) => {
