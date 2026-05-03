@@ -26,6 +26,14 @@ type OralTask = {
   color: string;
 };
 
+type OralAiPack = {
+  title: string;
+  description: string;
+  prepTips: string[];
+  instructions: string[];
+  followUps: string[];
+};
+
 const FALLBACK_TASKS: OralTask[] = [
   {
     id: "oral1",
@@ -114,6 +122,8 @@ export default function OralSimulatorScreen() {
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [phase, setPhase] = useState<"select" | "prep" | "recording" | "done">("select");
   const [selectedTask, setSelectedTask] = useState<OralTask | null>(null);
+  const [aiPack, setAiPack] = useState<OralAiPack | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [remaining, setRemaining] = useState(0);
   const [prepRemaining, setPrepRemaining] = useState(60);
   const startedAt = useRef<number>(0);
@@ -147,6 +157,35 @@ export default function OralSimulatorScreen() {
         startRecording(task);
       }
     }, 500);
+  };
+
+  const startAiSimulation = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setAiLoading(true);
+    try {
+      const r = await fetch(getApiUrl("/api/ai/oral-simulator"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ level: profile.level, topic: "Celpe-Bras cotidiano", mode: "oral" }),
+      });
+      if (r.ok) {
+        const data = await r.json() as OralAiPack;
+        setAiPack(data);
+        setSelectedTask({
+          id: "ai-oral",
+          title: data.title,
+          description: data.description,
+          instructions: [...data.instructions, ...data.followUps].slice(0, 5),
+          durationSeconds: 300,
+          icon: "mic",
+          color: "#7C3AED",
+        });
+        setPhase("prep");
+      }
+    } catch {}
+    finally {
+      setAiLoading(false);
+    }
   };
 
   const startRecording = useCallback((task: OralTask) => {
@@ -212,6 +251,18 @@ export default function OralSimulatorScreen() {
             Cada tarefa oral tem 1 min de preparação + 5 min de resposta. Grave com o microfone do seu dispositivo para praticar de forma autêntica.
           </Text>
         </View>
+
+        <Pressable
+          onPress={startAiSimulation}
+          style={({ pressed }) => [
+            styles.aiBtn,
+            { backgroundColor: "#7C3AED", opacity: pressed || aiLoading ? 0.75 : 1 },
+          ]}
+          disabled={aiLoading}
+        >
+          {aiLoading ? <ActivityIndicator color="#fff" /> : <Feather name="zap" size={16} color="#fff" />}
+          <Text style={styles.aiBtnText}>Gerar Simulação com IA</Text>
+        </Pressable>
 
         {loadingTasks ? (
           <View style={{ alignItems: "center", paddingVertical: 32 }}>
@@ -346,6 +397,14 @@ export default function OralSimulatorScreen() {
           <Text style={[styles.doneTip, { color: colors.text }]}>
             Para melhorar ainda mais, grave-se com um aplicativo de voz, ouça a gravação e compare com exemplos do nível B2/C1.
           </Text>
+          {aiPack && (
+            <View style={styles.aiReview}>
+              <Text style={[styles.aiReviewTitle, { color: colors.text }]}>Dicas geradas pela IA</Text>
+              {aiPack.prepTips.map((tip) => (
+                <Text key={tip} style={[styles.aiReviewItem, { color: colors.mutedForeground }]}>• {tip}</Text>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.doneActions}>
@@ -391,6 +450,8 @@ const styles = StyleSheet.create({
   instText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
   primaryBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 14 },
   primaryBtnText: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#fff" },
+  aiBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, borderRadius: 14 },
+  aiBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff" },
   recordingContent: { flex: 1, alignItems: "center", paddingHorizontal: 24, gap: 20 },
   timerRing: { width: 200, height: 200, borderRadius: 100, borderWidth: 6, alignItems: "center", justifyContent: "center" },
   timerText: { fontSize: 48, fontFamily: "Inter_700Bold" },
@@ -409,6 +470,9 @@ const styles = StyleSheet.create({
   doneSubtitle: { fontSize: 14, fontFamily: "Inter_400Regular" },
   doneCard: { alignSelf: "stretch", borderRadius: 14, borderWidth: 1, padding: 16 },
   doneTip: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  aiReview: { marginTop: 14, gap: 6 },
+  aiReviewTitle: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  aiReviewItem: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
   doneActions: { flexDirection: "row", gap: 12, flexWrap: "wrap", justifyContent: "center" },
   outlineBtn: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5 },
   outlineBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },

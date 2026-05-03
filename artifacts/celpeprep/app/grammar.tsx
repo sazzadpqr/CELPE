@@ -40,6 +40,13 @@ interface Category {
   lesson?: LessonContent | null;
 }
 
+type AiGrammarPack = {
+  rule: string;
+  examples: { sentence: string; highlight: string; note: string }[];
+  mistake: { wrong: string; right: string; reason: string };
+  tip: string;
+};
+
 function getApiUrl(path: string) {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   return domain ? `https://${domain}${path}` : path;
@@ -112,6 +119,36 @@ function useQuizCategories() {
   }, []);
 
   return { categories, loading };
+}
+
+async function loadAiGrammar(categoryTitle: string): Promise<AiGrammarPack | null> {
+  try {
+    const r = await fetch(getApiUrl("/api/ai/prompt"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task_type: "grammar", genre: categoryTitle }),
+    });
+    if (!r.ok) return null;
+    const data = await r.json() as { prompt?: string; source?: string };
+    return {
+      rule: data.prompt || "Pratique a regra com atenção.",
+      examples: [
+        {
+          sentence: data.source || "Exemplo gerado pela IA.",
+          highlight: categoryTitle,
+          note: "Observe como a regra aparece no contexto.",
+        },
+      ],
+      mistake: {
+        wrong: "Frase sem a estrutura correta.",
+        right: "Frase com a forma adequada.",
+        reason: "A revisão reforça o padrão correto.",
+      },
+      tip: "Escreva 3 frases próprias usando esta regra antes de fazer o quiz.",
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ─── Lesson Phase ──────────────────────────────────────────────────────────────
@@ -237,11 +274,17 @@ export default function GrammarScreen() {
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [aiPack, setAiPack] = useState<Record<string, AiGrammarPack>>({});
 
   const startLesson = (cat: Category) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedCategory(cat);
     setPhase("lesson");
+    if (!cat.lesson && !aiPack[cat.id]) {
+      loadAiGrammar(cat.title).then((pack) => {
+        if (pack) setAiPack((prev) => ({ ...prev, [cat.id]: pack }));
+      });
+    }
   };
 
   const startQuiz = () => {
@@ -341,7 +384,7 @@ export default function GrammarScreen() {
   if (phase === "lesson" && selectedCategory) {
     return (
       <LessonPhase
-        category={selectedCategory}
+        category={{ ...selectedCategory, lesson: selectedCategory.lesson ?? aiPack[selectedCategory.id] ?? null }}
         onStart={startQuiz}
         onBack={reset}
       />
@@ -518,6 +561,7 @@ const styles = StyleSheet.create({
   lessonSection: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10 },
   lessonSectionHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
   lessonSectionLabel: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.8 },
+  aiLessonNote: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
   ruleText: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21 },
   exampleItem: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
   exampleNum: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 },

@@ -205,6 +205,77 @@ Alguns temas sugeridos: sustentabilidade, saúde pública, tecnologia e sociedad
   }
 });
 
+router.post("/ai/oral-simulator", async (req, res) => {
+  const { level, topic, mode } = req.body as {
+    level?: string;
+    topic?: string;
+    mode?: string;
+  };
+
+  const aiCfg = await loadAiConfig();
+  const systemPrompt = `Você é um criador de simulações orais para o exame Celpe-Bras.
+Gere um cenário autêntico, útil e desafiador para treino oral em português brasileiro.
+
+Responda APENAS com JSON no formato:
+{
+  "title": "<título curto e forte>",
+  "description": "<1 frase explicando a tarefa>",
+  "prepTips": ["<dica 1>", "<dica 2>", "<dica 3>", "<dica 4>"],
+  "instructions": ["<instrução 1>", "<instrução 2>", "<instrução 3>", "<instrução 4>", "<instrução 5>"],
+  "followUps": ["<pergunta 1>", "<pergunta 2>", "<pergunta 3>"]
+}
+
+O cenário deve ser apropriado para nível ${level || "B1"} e modo ${mode || "simulação"}.
+Tema sugerido: ${topic || "vida cotidiana, trabalho, estudo, cultura ou serviços públicos"}.`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: aiCfg.modelGeneration,
+      max_completion_tokens: 700,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Gere uma nova simulação oral inédita agora.` },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(raw) as {
+      title?: string;
+      description?: string;
+      prepTips?: string[];
+      instructions?: string[];
+      followUps?: string[];
+    };
+
+    res.json({
+      title: parsed.title || "Simulação Oral",
+      description: parsed.description || "Treine sua resposta oral com um cenário realista.",
+      prepTips: Array.isArray(parsed.prepTips) && parsed.prepTips.length > 0 ? parsed.prepTips.slice(0, 4) : [
+        "Organize a resposta em abertura, desenvolvimento e fechamento.",
+        "Use conectivos para ganhar fluência.",
+        "Dê exemplos concretos.",
+        "Mantenha o registro adequado ao contexto.",
+      ],
+      instructions: Array.isArray(parsed.instructions) && parsed.instructions.length > 0 ? parsed.instructions.slice(0, 5) : [
+        "Leia o cenário com atenção.",
+        "Fale com clareza e naturalidade.",
+        "Desenvolva argumentos com exemplos.",
+        "Responda às perguntas de acompanhamento.",
+        "Conclua com uma ideia forte.",
+      ],
+      followUps: Array.isArray(parsed.followUps) && parsed.followUps.length > 0 ? parsed.followUps.slice(0, 3) : [
+        "Quais seriam os principais desafios?",
+        "Como você resolveria isso na prática?",
+        "Que exemplo brasileiro ajuda a entender melhor o tema?",
+      ],
+    });
+  } catch (err) {
+    req.log.error({ err }, "AI oral simulator error");
+    res.status(503).json({ error: "Simulação oral indisponível" });
+  }
+});
+
 // ─── GET /ai/word-of-day ─────────────────────────────────────────────────────
 router.get("/ai/word-of-day", async (req, res) => {
   const today = new Date().toISOString().split("T")[0];
