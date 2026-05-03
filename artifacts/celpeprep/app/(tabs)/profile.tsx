@@ -77,10 +77,12 @@ function EmojiPickerModal({ visible, current, onSelect, onClose }: {
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[styles.modalRoot, { backgroundColor: colors.background }]}>
-        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-          <Pressable onPress={onClose}><Text style={[styles.modalCancel, { color: colors.mutedForeground }]}>Cancelar</Text></Pressable>
-          <Text style={[styles.modalTitle, { color: colors.text }]}>Escolher avatar</Text>
-          <View style={{ width: 60 }} />
+        <View style={[styles.epHeader, { borderBottomColor: colors.border }]}>
+          <Pressable onPress={onClose} style={[styles.epCloseBtn, { backgroundColor: colors.muted }]}>
+            <Feather name="x" size={16} color={colors.mutedForeground} />
+          </Pressable>
+          <Text style={[styles.epHeaderTitle, { color: colors.text }]}>Escolher avatar</Text>
+          <View style={{ width: 34 }} />
         </View>
         <ScrollView contentContainerStyle={styles.emojiGrid}>
           <Text style={[styles.emojiGridLabel, { color: colors.mutedForeground }]}>Selecione um emoji para o seu perfil</Text>
@@ -105,6 +107,8 @@ function EmojiPickerModal({ visible, current, onSelect, onClose }: {
   );
 }
 
+const DAILY_GOAL_OPTIONS = [10, 15, 20, 30, 45, 60];
+
 function EditProfileModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const colors = useColors();
   const { profile, syncProfileToServer } = useApp();
@@ -112,9 +116,11 @@ function EditProfileModal({ visible, onClose }: { visible: boolean; onClose: () 
   const [username, setUsername] = useState(profile.username || "");
   const [level, setLevel] = useState(profile.level);
   const [examDate, setExamDate] = useState(profile.examDate || "");
-  const [dailyGoal, setDailyGoal] = useState(String(profile.dailyGoalMinutes));
+  const [dailyGoal, setDailyGoal] = useState(profile.dailyGoalMinutes || 30);
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState("");
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [localEmoji, setLocalEmoji] = useState(profile.avatarEmoji || "🎓");
 
   useEffect(() => {
     if (visible) {
@@ -122,7 +128,8 @@ function EditProfileModal({ visible, onClose }: { visible: boolean; onClose: () 
       setUsername(profile.username || "");
       setLevel(profile.level);
       setExamDate(profile.examDate || "");
-      setDailyGoal(String(profile.dailyGoalMinutes));
+      setDailyGoal(profile.dailyGoalMinutes || 30);
+      setLocalEmoji(profile.avatarEmoji || "🎓");
       setUsernameError("");
     }
   }, [visible]);
@@ -135,7 +142,8 @@ function EditProfileModal({ visible, onClose }: { visible: boolean; onClose: () 
       username: username.trim().toLowerCase(),
       level,
       examDate: examDate || null,
-      dailyGoalMinutes: Number(dailyGoal) || 30,
+      dailyGoalMinutes: dailyGoal,
+      avatarEmoji: localEmoji,
     });
     setSaving(false);
     if (!result.ok && result.error === "username_taken") {
@@ -146,72 +154,309 @@ function EditProfileModal({ visible, onClose }: { visible: boolean; onClose: () 
     onClose();
   };
 
+  const levelMeta: Record<string, { label: string; color: string }> = {
+    A1: { label: "Iniciante", color: "#22c55e" },
+    A2: { label: "Básico", color: "#84cc16" },
+    B1: { label: "Intermediário", color: "#f59e0b" },
+    B2: { label: "Avançado", color: "#f97316" },
+    C1: { label: "Proficiente", color: "#ef4444" },
+    C2: { label: "Fluente", color: "#7c3aed" },
+  };
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[styles.modalRoot, { backgroundColor: colors.background }]}>
-        <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-          <Pressable onPress={onClose}><Text style={[styles.modalCancel, { color: colors.mutedForeground }]}>Cancelar</Text></Pressable>
-          <Text style={[styles.modalTitle, { color: colors.text }]}>Editar perfil</Text>
-          <Pressable onPress={handleSave} disabled={saving}>
-            <Text style={[styles.modalSave, { color: saving ? colors.mutedForeground : colors.primary }]}>
-              {saving ? "..." : "Salvar"}
-            </Text>
+
+        {/* ── Header ── */}
+        <View style={[styles.epHeader, { borderBottomColor: colors.border }]}>
+          <Pressable
+            onPress={onClose}
+            style={[styles.epCloseBtn, { backgroundColor: colors.muted }]}
+            hitSlop={10}
+          >
+            <Feather name="x" size={16} color={colors.mutedForeground} />
           </Pressable>
+          <Text style={[styles.epHeaderTitle, { color: colors.text }]}>Editar perfil</Text>
+          <View style={{ width: 34 }} />
         </View>
-        <ScrollView contentContainerStyle={styles.modalBody}>
-          <Text style={[styles.label, { color: colors.text }]}>Nome de exibição</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
-            value={name} onChangeText={setName} placeholder="Seu nome"
-            placeholderTextColor={colors.mutedForeground} autoFocus
-          />
 
-          <Text style={[styles.label, { color: colors.text }]}>Nome de usuário</Text>
-          <View style={[styles.usernameWrap, { backgroundColor: colors.input, borderColor: usernameError ? colors.destructive : colors.border }]}>
-            <Text style={[styles.usernameAt, { color: colors.mutedForeground }]}>@</Text>
-            <TextInput
-              style={[styles.usernameInput, { color: colors.text }]}
-              value={username}
-              onChangeText={(t) => { setUsername(t.toLowerCase().replace(/[^a-z0-9_]/g, "")); setUsernameError(""); }}
-              placeholder="seu_usuario"
-              placeholderTextColor={colors.mutedForeground}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-          {usernameError ? <Text style={[styles.fieldError, { color: colors.destructive }]}>{usernameError}</Text> : null}
-          <Text style={[styles.fieldHint, { color: colors.mutedForeground }]}>Apenas letras minúsculas, números e _</Text>
+        <ScrollView
+          contentContainerStyle={[styles.epBody, { paddingBottom: 40 }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
 
-          <Text style={[styles.label, { color: colors.text }]}>E-mail</Text>
-          <View style={[styles.input, { backgroundColor: colors.muted, borderColor: colors.border, justifyContent: "center" }]}>
-            <Text style={[{ color: colors.mutedForeground, fontSize: 14, fontFamily: "Inter_400Regular" }]}>
-              {profile.email || "Não definido — não pode ser alterado"}
+          {/* ── Avatar picker ── */}
+          <View style={styles.epAvatarSection}>
+            <Pressable
+              onPress={() => setEmojiPickerOpen(true)}
+              style={styles.epAvatarWrap}
+            >
+              <View style={[styles.epAvatarRing, { borderColor: colors.primary + "50" }]}>
+                <View style={[styles.epAvatarInner, { backgroundColor: colors.primary + "18" }]}>
+                  <Text style={styles.epAvatarEmoji}>{localEmoji}</Text>
+                </View>
+              </View>
+              <View style={[styles.epAvatarBadge, { backgroundColor: colors.primary }]}>
+                <Feather name="camera" size={11} color="#fff" />
+              </View>
+            </Pressable>
+            <Text style={[styles.epAvatarHint, { color: colors.mutedForeground }]}>
+              Toque para mudar o avatar
             </Text>
           </View>
-          <Text style={[styles.fieldHint, { color: colors.mutedForeground }]}>O e-mail é fixo e não pode ser alterado</Text>
 
-          <Text style={[styles.label, { color: colors.text }]}>Nível atual</Text>
-          <View style={styles.levelRow}>
-            {LEVELS.map((l) => (
-              <Pressable key={l} onPress={() => setLevel(l)} style={[styles.levelPill, { backgroundColor: level === l ? colors.primary : colors.muted }]}>
-                <Text style={[styles.levelText, { color: level === l ? "#fff" : colors.mutedForeground }]}>{l}</Text>
-              </Pressable>
-            ))}
+          {/* ── Inline emoji picker ── */}
+          {emojiPickerOpen && (
+            <View style={[styles.epInlineEmoji, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.epInlineEmojiHeader}>
+                <Text style={[styles.epInlineEmojiTitle, { color: colors.text }]}>Escolher avatar</Text>
+                <Pressable onPress={() => setEmojiPickerOpen(false)}>
+                  <Feather name="check" size={18} color={colors.primary} />
+                </Pressable>
+              </View>
+              <View style={styles.epEmojiRow}>
+                {AVATAR_EMOJIS.map((emoji) => (
+                  <Pressable
+                    key={emoji}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setLocalEmoji(emoji);
+                      setEmojiPickerOpen(false);
+                    }}
+                    style={[
+                      styles.epEmojiCell,
+                      { backgroundColor: emoji === localEmoji ? colors.primary + "22" : colors.muted },
+                      emoji === localEmoji && { borderWidth: 2, borderColor: colors.primary },
+                    ]}
+                  >
+                    <Text style={styles.epEmojiCellText}>{emoji}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* ── Section: Identidade ── */}
+          <View style={styles.epSectionHeader}>
+            <Text style={[styles.epSectionLabel, { color: colors.mutedForeground }]}>IDENTIDADE</Text>
+          </View>
+          <View style={[styles.epGroup, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {/* Name */}
+            <View style={[styles.epFieldRow, { borderBottomColor: colors.border }]}>
+              <View style={[styles.epFieldIcon, { backgroundColor: colors.primary + "18" }]}>
+                <Feather name="user" size={14} color={colors.primary} />
+              </View>
+              <View style={styles.epFieldContent}>
+                <Text style={[styles.epFieldLabel, { color: colors.mutedForeground }]}>Nome de exibição</Text>
+                <TextInput
+                  style={[styles.epFieldInput, { color: colors.text }]}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Seu nome"
+                  placeholderTextColor={colors.mutedForeground}
+                  autoFocus
+                />
+              </View>
+            </View>
+
+            {/* Username */}
+            <View style={[styles.epFieldRow, { borderBottomWidth: 0 }]}>
+              <View style={[styles.epFieldIcon, { backgroundColor: colors.primary + "18" }]}>
+                <Feather name="at-sign" size={14} color={colors.primary} />
+              </View>
+              <View style={styles.epFieldContent}>
+                <Text style={[styles.epFieldLabel, { color: colors.mutedForeground }]}>Nome de usuário</Text>
+                <View style={styles.epUsernameRow}>
+                  <Text style={[styles.epUsernameAt, { color: colors.mutedForeground }]}>@</Text>
+                  <TextInput
+                    style={[styles.epFieldInput, { color: colors.text, flex: 1 }]}
+                    value={username}
+                    onChangeText={(t) => {
+                      setUsername(t.toLowerCase().replace(/[^a-z0-9_]/g, ""));
+                      setUsernameError("");
+                    }}
+                    placeholder="seu_usuario"
+                    placeholderTextColor={colors.mutedForeground}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+                {usernameError ? (
+                  <Text style={[styles.epFieldError, { color: colors.destructive }]}>{usernameError}</Text>
+                ) : (
+                  <Text style={[styles.epFieldHint, { color: colors.mutedForeground }]}>
+                    Letras minúsculas, números e _
+                  </Text>
+                )}
+              </View>
+            </View>
           </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Data da prova (AAAA-MM-DD)</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
-            value={examDate} onChangeText={setExamDate} placeholder="Ex: 2025-11-01"
-            placeholderTextColor={colors.mutedForeground}
-          />
+          {/* ── Section: Conta ── */}
+          <View style={styles.epSectionHeader}>
+            <Text style={[styles.epSectionLabel, { color: colors.mutedForeground }]}>CONTA</Text>
+          </View>
+          <View style={[styles.epGroup, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.epFieldRow, { borderBottomWidth: 0 }]}>
+              <View style={[styles.epFieldIcon, { backgroundColor: colors.muted }]}>
+                <Feather name="mail" size={14} color={colors.mutedForeground} />
+              </View>
+              <View style={styles.epFieldContent}>
+                <Text style={[styles.epFieldLabel, { color: colors.mutedForeground }]}>E-mail</Text>
+                <Text style={[styles.epFieldInput, { color: colors.mutedForeground }]}>
+                  {profile.email || "Não definido"}
+                </Text>
+                <View style={styles.epLockedRow}>
+                  <Feather name="lock" size={10} color={colors.mutedForeground} />
+                  <Text style={[styles.epFieldHint, { color: colors.mutedForeground, marginTop: 0 }]}>
+                    Não pode ser alterado
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Meta diária (minutos)</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
-            value={dailyGoal} onChangeText={setDailyGoal} keyboardType="numeric" placeholder="30"
-            placeholderTextColor={colors.mutedForeground}
-          />
+          {/* ── Section: Preferências ── */}
+          <View style={styles.epSectionHeader}>
+            <Text style={[styles.epSectionLabel, { color: colors.mutedForeground }]}>PREFERÊNCIAS</Text>
+          </View>
+
+          {/* Level selector */}
+          <View style={[styles.epGroup, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.epFieldRow, { borderBottomWidth: 0, alignItems: "flex-start", paddingBottom: 14 }]}>
+              <View style={[styles.epFieldIcon, { backgroundColor: colors.primary + "18", marginTop: 2 }]}>
+                <Feather name="bar-chart-2" size={14} color={colors.primary} />
+              </View>
+              <View style={[styles.epFieldContent, { gap: 10 }]}>
+                <Text style={[styles.epFieldLabel, { color: colors.mutedForeground }]}>Nível atual no Celpe-Bras</Text>
+                <View style={styles.epLevelGrid}>
+                  {LEVELS.map((l) => {
+                    const meta = levelMeta[l] || { label: l, color: colors.primary };
+                    const active = level === l;
+                    return (
+                      <Pressable
+                        key={l}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setLevel(l);
+                        }}
+                        style={[
+                          styles.epLevelCard,
+                          {
+                            backgroundColor: active ? meta.color + "18" : colors.muted,
+                            borderColor: active ? meta.color : "transparent",
+                            borderWidth: active ? 1.5 : 0,
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.epLevelCode, { color: active ? meta.color : colors.mutedForeground }]}>
+                          {l}
+                        </Text>
+                        <Text style={[styles.epLevelName, { color: active ? meta.color : colors.mutedForeground }]}>
+                          {meta.label}
+                        </Text>
+                        {active && (
+                          <View style={[styles.epLevelCheck, { backgroundColor: meta.color }]}>
+                            <Feather name="check" size={8} color="#fff" />
+                          </View>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Exam date */}
+          <View style={[styles.epGroup, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.epFieldRow, { borderBottomWidth: 0 }]}>
+              <View style={[styles.epFieldIcon, { backgroundColor: colors.warning + "18" }]}>
+                <Feather name="calendar" size={14} color={colors.warning} />
+              </View>
+              <View style={styles.epFieldContent}>
+                <Text style={[styles.epFieldLabel, { color: colors.mutedForeground }]}>Data da prova</Text>
+                <TextInput
+                  style={[styles.epFieldInput, { color: colors.text }]}
+                  value={examDate}
+                  onChangeText={setExamDate}
+                  placeholder="AAAA-MM-DD  (ex: 2025-11-01)"
+                  placeholderTextColor={colors.mutedForeground}
+                  keyboardType="numbers-and-punctuation"
+                />
+                <Text style={[styles.epFieldHint, { color: colors.mutedForeground }]}>
+                  Usada para o contador de dias até a prova
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Daily goal stepper */}
+          <View style={[styles.epGroup, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.epFieldRow, { borderBottomWidth: 0, alignItems: "center" }]}>
+              <View style={[styles.epFieldIcon, { backgroundColor: "#7c3aed18" }]}>
+                <Feather name="target" size={14} color="#7c3aed" />
+              </View>
+              <View style={[styles.epFieldContent, { flexDirection: "row", alignItems: "center" }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.epFieldLabel, { color: colors.mutedForeground }]}>Meta diária</Text>
+                  <Text style={[styles.epFieldInput, { color: colors.text }]}>
+                    {dailyGoal} minutos / dia
+                  </Text>
+                </View>
+                <View style={styles.epStepper}>
+                  <Pressable
+                    onPress={() => {
+                      const idx = DAILY_GOAL_OPTIONS.indexOf(dailyGoal);
+                      if (idx > 0) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setDailyGoal(DAILY_GOAL_OPTIONS[idx - 1]);
+                      }
+                    }}
+                    style={[
+                      styles.epStepperBtn,
+                      { backgroundColor: colors.muted, opacity: DAILY_GOAL_OPTIONS.indexOf(dailyGoal) === 0 ? 0.4 : 1 },
+                    ]}
+                  >
+                    <Feather name="minus" size={14} color={colors.text} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      const idx = DAILY_GOAL_OPTIONS.indexOf(dailyGoal);
+                      if (idx < DAILY_GOAL_OPTIONS.length - 1) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setDailyGoal(DAILY_GOAL_OPTIONS[idx + 1]);
+                      }
+                    }}
+                    style={[
+                      styles.epStepperBtn,
+                      { backgroundColor: colors.muted, opacity: DAILY_GOAL_OPTIONS.indexOf(dailyGoal) === DAILY_GOAL_OPTIONS.length - 1 ? 0.4 : 1 },
+                    ]}
+                  >
+                    <Feather name="plus" size={14} color={colors.text} />
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* ── Save button ── */}
+          <Pressable
+            onPress={handleSave}
+            disabled={saving}
+            style={[styles.epSaveBtn, { backgroundColor: saving ? colors.mutedForeground : colors.primary }]}
+          >
+            {saving ? (
+              <Text style={styles.epSaveBtnText}>Salvando...</Text>
+            ) : (
+              <>
+                <Feather name="check" size={16} color="#fff" />
+                <Text style={styles.epSaveBtnText}>Salvar alterações</Text>
+              </>
+            )}
+          </Pressable>
+
         </ScrollView>
       </View>
     </Modal>
@@ -804,21 +1049,53 @@ const styles = StyleSheet.create({
   version: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "center", marginTop: 8 },
 
   modalRoot: { flex: 1 },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderBottomWidth: 1 },
-  modalTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  modalCancel: { fontSize: 15, fontFamily: "Inter_400Regular", width: 60 },
-  modalSave: { fontSize: 15, fontFamily: "Inter_600SemiBold", width: 60, textAlign: "right" },
-  modalBody: { padding: 20, gap: 8 },
-  label: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginTop: 8 },
-  input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, fontFamily: "Inter_400Regular" },
-  usernameWrap: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 10, paddingHorizontal: 12 },
-  usernameAt: { fontSize: 16, fontFamily: "Inter_600SemiBold", marginRight: 4 },
-  usernameInput: { flex: 1, paddingVertical: 10, fontSize: 15, fontFamily: "Inter_400Regular" },
-  fieldError: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  fieldHint: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
-  levelRow: { flexDirection: "row", gap: 8 },
-  levelPill: { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: 10 },
-  levelText: { fontSize: 14, fontFamily: "Inter_700Bold" },
+
+  epHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1 },
+  epCloseBtn: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  epHeaderTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  epBody: { paddingHorizontal: 18, paddingTop: 8, gap: 6 },
+
+  epAvatarSection: { alignItems: "center", paddingVertical: 20, gap: 8 },
+  epAvatarWrap: { position: "relative" },
+  epAvatarRing: { width: 88, height: 88, borderRadius: 44, borderWidth: 3, alignItems: "center", justifyContent: "center" },
+  epAvatarInner: { width: 78, height: 78, borderRadius: 39, alignItems: "center", justifyContent: "center" },
+  epAvatarEmoji: { fontSize: 42 },
+  epAvatarBadge: { position: "absolute", bottom: 2, right: 2, width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  epAvatarHint: { fontSize: 12, fontFamily: "Inter_400Regular" },
+
+  epInlineEmoji: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 12, marginBottom: 4 },
+  epInlineEmojiHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  epInlineEmojiTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  epEmojiRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center" },
+  epEmojiCell: { width: 52, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  epEmojiCellText: { fontSize: 26 },
+
+  epSectionHeader: { paddingHorizontal: 4, paddingTop: 10, paddingBottom: 4 },
+  epSectionLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold", letterSpacing: 0.8 },
+
+  epGroup: { borderRadius: 14, borderWidth: 1, overflow: "hidden" },
+  epFieldRow: { flexDirection: "row", alignItems: "flex-start", padding: 14, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  epFieldIcon: { width: 32, height: 32, borderRadius: 9, alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 },
+  epFieldContent: { flex: 1, gap: 3 },
+  epFieldLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  epFieldInput: { fontSize: 15, fontFamily: "Inter_400Regular", paddingVertical: 0 },
+  epFieldHint: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  epFieldError: { fontSize: 11, fontFamily: "Inter_500Medium", marginTop: 2 },
+  epUsernameRow: { flexDirection: "row", alignItems: "center" },
+  epUsernameAt: { fontSize: 15, fontFamily: "Inter_400Regular" },
+  epLockedRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+
+  epLevelGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  epLevelCard: { position: "relative", width: "30%", alignItems: "center", paddingVertical: 10, paddingHorizontal: 6, borderRadius: 12, gap: 2 },
+  epLevelCode: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  epLevelName: { fontSize: 10, fontFamily: "Inter_400Regular" },
+  epLevelCheck: { position: "absolute", top: 4, right: 4, width: 14, height: 14, borderRadius: 7, alignItems: "center", justifyContent: "center" },
+
+  epStepper: { flexDirection: "row", gap: 8 },
+  epStepperBtn: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+
+  epSaveBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, paddingVertical: 16, marginTop: 12 },
+  epSaveBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_700Bold" },
 
   emojiGrid: { padding: 20 },
   emojiGridLabel: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", marginBottom: 20 },
