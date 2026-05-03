@@ -20,6 +20,68 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { GuestBanner } from "@/components/GuestBanner";
 
+const HEARTS_KEY = "celpeprep_hearts_v1";
+const MAX_HEARTS = 5;
+
+async function loadHearts(): Promise<{ hearts: number; date: string }> {
+  try {
+    const raw = await AsyncStorage.getItem(HEARTS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as { hearts: number; date: string };
+      if (parsed.date === new Date().toDateString()) return parsed;
+    }
+  } catch {}
+  return { hearts: MAX_HEARTS, date: new Date().toDateString() };
+}
+
+function HeartsBar() {
+  const colors = useColors();
+  const [hearts, setHearts] = useState(MAX_HEARTS);
+
+  useEffect(() => {
+    loadHearts().then((h) => setHearts(h.hearts));
+  }, []);
+
+  return (
+    <View style={[styles.heartsCard, { backgroundColor: "#EF444418", borderColor: "#EF444430" }]}>
+      <View style={styles.heartsLeft}>
+        <Feather name="heart" size={15} color="#EF4444" />
+        <Text style={[styles.heartsLabel, { color: "#EF4444" }]}>Vidas</Text>
+      </View>
+      <View style={styles.heartsRow}>
+        {Array.from({ length: MAX_HEARTS }).map((_, i) => (
+          <Text key={i} style={[styles.heartIcon, { opacity: i < hearts ? 1 : 0.25 }]}>❤️</Text>
+        ))}
+      </View>
+      <Text style={[styles.heartsCount, { color: "#EF4444" }]}>{hearts}/{MAX_HEARTS}</Text>
+    </View>
+  );
+}
+
+function FeatureCard({
+  icon, label, sublabel, color, onPress,
+}: { icon: string; label: string; sublabel: string; color: string; onPress: () => void }) {
+  const colors = useColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.featureCard,
+        { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      <View style={[styles.featureIcon, { backgroundColor: color + "18" }]}>
+        <Text style={styles.featureEmoji}>{icon}</Text>
+      </View>
+      <View style={styles.featureMeta}>
+        <Text style={[styles.featureLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.featureSub, { color: colors.mutedForeground }]}>{sublabel}</Text>
+      </View>
+      <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+    </Pressable>
+  );
+}
+
 function getApiUrl(path: string) {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   return domain ? `https://${domain}${path}` : path;
@@ -347,7 +409,7 @@ function DiagnosticBanner() {
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, attempts, refreshLimits } = useApp();
+  const { profile, attempts, refreshLimits, featureFlags } = useApp();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -417,6 +479,7 @@ export default function HomeScreen() {
       <GuestBanner />
       <DaysUntilExam examDate={profile.examDate} />
       <StreakCard streak={profile.streakDays} best={profile.bestStreak} />
+      {featureFlags["hearts_enabled"] && <HeartsBar />}
       <AICreditsBar used={profile.aiCreditsUsed} total={profile.aiCreditsTotal} />
       {!profile.diagnosticDone && <DiagnosticBanner />}
 
@@ -446,6 +509,49 @@ export default function HomeScreen() {
           </Pressable>
         ))}
       </View>
+
+      {/* Feature-flag-gated feature entry cards */}
+      {(featureFlags["leaderboards_enabled"] || featureFlags["community_enabled"] || featureFlags["live_lessons_enabled"] || featureFlags["teacher_marketplace_enabled"]) && (
+        <>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Comunidade</Text>
+          {featureFlags["leaderboards_enabled"] && (
+            <FeatureCard
+              icon="🏆"
+              label="Ranking"
+              sublabel="Veja os alunos mais dedicados"
+              color="#BA7517"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/leaderboard" as any); }}
+            />
+          )}
+          {featureFlags["community_enabled"] && (
+            <FeatureCard
+              icon="💬"
+              label="Comunidade"
+              sublabel="Tire dúvidas e compartilhe dicas"
+              color="#1D9E75"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/community" as any); }}
+            />
+          )}
+          {featureFlags["live_lessons_enabled"] && (
+            <FeatureCard
+              icon="📹"
+              label="Aulas ao Vivo"
+              sublabel="Sessões ao vivo com professores"
+              color="#185FA5"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/live-events" as any); }}
+            />
+          )}
+          {featureFlags["teacher_marketplace_enabled"] && (
+            <FeatureCard
+              icon="👩‍🏫"
+              label="Conectar Professor"
+              sublabel="Receba feedback de um professor"
+              color="#6B21A8"
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/teacher-connect" as any); }}
+            />
+          )}
+        </>
+      )}
 
       {/* Progress summary */}
       {avgScore && (
@@ -628,4 +734,16 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
   startBtn: { marginTop: 8, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10 },
   startBtnText: { color: "#fff", fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  heartsCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10 },
+  heartsLeft: { flexDirection: "row", alignItems: "center", gap: 5 },
+  heartsLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  heartsRow: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "center" },
+  heartIcon: { fontSize: 17 },
+  heartsCount: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  featureCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, borderWidth: 1, padding: 14 },
+  featureIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  featureEmoji: { fontSize: 22 },
+  featureMeta: { flex: 1, gap: 2 },
+  featureLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  featureSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
 });

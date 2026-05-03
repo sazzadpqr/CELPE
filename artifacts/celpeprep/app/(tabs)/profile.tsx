@@ -312,7 +312,7 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { profile, attempts, vocabWords, updateProfile, syncProfileToServer } = useApp();
+  const { profile, attempts, vocabWords, updateProfile, syncProfileToServer, featureFlags } = useApp();
   const [editVisible, setEditVisible] = useState(false);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [adVisible, setAdVisible] = useState(false);
@@ -597,6 +597,49 @@ export default function ProfileScreen() {
           </View>
         )}
       </View>
+
+      {/* ── Feature-flag sections ── */}
+      {(featureFlags["certificates_enabled"] || featureFlags["teacher_marketplace_enabled"]) && (
+        <>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recursos</Text>
+          <View style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {featureFlags["certificates_enabled"] && (
+              <Pressable
+                style={[styles.settingsRow, { borderBottomColor: colors.border, borderBottomWidth: featureFlags["teacher_marketplace_enabled"] ? 1 : 0 }]}
+                onPress={() => router.push("/certificates" as any)}
+              >
+                <View style={[styles.settingsIcon, { backgroundColor: "#BA751718" }]}>
+                  <Feather name="award" size={16} color="#BA7517" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingsLabel, { color: colors.text }]}>Certificados</Text>
+                  <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
+                    Conquistas e certificados de conclusão
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+            {featureFlags["teacher_marketplace_enabled"] && (
+              <Pressable
+                style={[styles.settingsRow, { borderBottomWidth: 0 }]}
+                onPress={() => router.push("/teacher-connect" as any)}
+              >
+                <View style={[styles.settingsIcon, { backgroundColor: "#6B21A818" }]}>
+                  <Feather name="user-check" size={16} color="#6B21A8" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingsLabel, { color: colors.text }]}>Conectar Professor</Text>
+                  <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>
+                    Receba feedback personalizado de um professor
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+          </View>
+        </>
+      )}
 
       {/* ── Settings ── */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Configurações</Text>

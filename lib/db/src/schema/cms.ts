@@ -87,3 +87,47 @@ export const learningPathSteps = pgTable("learning_path_steps", {
   estimatedMinutes: integer("estimated_minutes").notNull().default(20),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const communityPosts = pgTable("community_posts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token").notNull(),
+  authorName: text("author_name").notNull().default("Anônimo"),
+  authorEmoji: text("author_emoji").notNull().default("🎓"),
+  content: text("content").notNull(),
+  topic: text("topic").notNull().default("geral"),
+  likesCount: integer("likes_count").notNull().default(0),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  isHidden: boolean("is_hidden").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const communityPostLikes = pgTable("community_post_likes", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  postId: text("post_id").notNull(),
+  deviceToken: text("device_token").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const userCertificates = pgTable("user_certificates", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  deviceToken: text("device_token").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  pathId: text("path_id"),
+  issuedAt: timestamp("issued_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const liveEvents = pgTable("live_events", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  host: text("host").notNull().default(""),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  durationMinutes: integer("duration_minutes").notNull().default(60),
+  meetingUrl: text("meeting_url").notNull().default(""),
+  topic: text("topic").notNull().default("geral"),
+  maxParticipants: integer("max_participants").notNull().default(0),
+  isPremiumOnly: boolean("is_premium_only").notNull().default(false),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

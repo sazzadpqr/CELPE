@@ -115,6 +115,8 @@ interface AppContextType {
   exitGuestMode: () => Promise<void>;
   serverLimits: ServerLimits;
   refreshLimits: () => Promise<void>;
+  featureFlags: Record<string, boolean>;
+  refreshFeatureFlags: () => Promise<void>;
   vocabWords: VocabWord[];
   addVocabWord: (word: Omit<VocabWord, "id" | "addedAt" | "timesReviewed" | "easeLevel" | "nextReview" | "status">) => Promise<void>;
   updateVocabWord: (id: string, updates: Partial<VocabWord>) => Promise<void>;
@@ -181,10 +183,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [attempts, setAttempts] = useState<PracticeAttempt[]>([]);
   const [studyTasks, setStudyTasks] = useState<StudyTask[]>(defaultStudyTasks);
   const [serverLimits, setServerLimits] = useState<ServerLimits>(DEFAULT_SERVER_LIMITS);
+  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     loadAll();
+  }, []);
+
+  const fetchFeatureFlags = async (): Promise<Record<string, boolean> | null> => {
+    try {
+      const res = await fetch(getApiUrl("/api/content/feature-flags"));
+      if (!res.ok) return null;
+      return (await res.json()) as Record<string, boolean>;
+    } catch {
+      return null;
+    }
+  };
+
+  const refreshFeatureFlags = useCallback(async () => {
+    const flags = await fetchFeatureFlags();
+    if (flags) setFeatureFlags(flags);
   }, []);
 
   const fetchLimits = async (): Promise<ServerLimits | null> => {
@@ -229,9 +247,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         loadedProfile = { ...defaultProfile, deviceToken: generateUUID() };
       }
 
-      const [limits, adsConfigRes] = await Promise.all([
+      const [limits, adsConfigRes, flags] = await Promise.all([
         fetchLimits(),
         fetch(getApiUrl("/api/content/ads-config")).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetchFeatureFlags(),
       ]);
 
       if (limits) {
@@ -244,6 +263,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (adsConfigRes) {
         AdService.configure(adsConfigRes, loadedProfile.isPremium);
       }
+
+      if (flags) setFeatureFlags(flags);
 
       AsyncStorage.setItem("celpeprep_profile", JSON.stringify(loadedProfile));
       setProfile(loadedProfile);
@@ -386,7 +407,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider
-      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, serverLimits, refreshLimits, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
+      value={{ profile, updateProfile, syncProfileToServer, enterGuestMode, exitGuestMode, serverLimits, refreshLimits, featureFlags, refreshFeatureFlags, vocabWords, addVocabWord, updateVocabWord, attempts, addAttempt, studyTasks, toggleStudyTask, isLoaded }}
     >
       {children}
     </AppContext.Provider>

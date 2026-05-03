@@ -5,6 +5,7 @@ import {
   FlaskConical, SlidersHorizontal, ChevronDown, ChevronRight,
   Users, Library, Flag, Bell, Map, GraduationCap, DollarSign,
   Mic, Volume2, Headphones, MessageCircle, UserCheck, ExternalLink,
+  Video, Users2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -47,6 +48,8 @@ const NAV_SECTIONS = [
       { href: "/banners", label: "Banners", icon: Megaphone },
       { href: "/notifications", label: "Notificações Push", icon: Bell },
       { href: "/feature-flags", label: "Feature Flags", icon: Flag },
+      { href: "/live-events", label: "Aulas ao Vivo", icon: Video },
+      { href: "/community", label: "Comunidade", icon: Users2 },
     ],
   },
   {
