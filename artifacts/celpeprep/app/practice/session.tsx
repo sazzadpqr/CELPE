@@ -63,17 +63,18 @@ export default function PracticeSessionScreen() {
   const params = useLocalSearchParams<{ taskType: string; genre: string; title: string; subtitle: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, addAttempt, updateProfile } = useApp();
+  const { profile, addAttempt, updateProfile, serverLimits } = useApp();
 
   const taskType = params.taskType || "Tarefa 3";
   const genre = params.genre || "Artigo";
 
   const promptData = SAMPLE_PROMPTS[taskType] || SAMPLE_PROMPTS["Tarefa 3"];
+  const timerSeconds = serverLimits.practiceTimerSeconds || TIMER_SECONDS;
 
   const [text, setText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timerStartedAt] = useState(() => Date.now());
-  const [remaining, setRemaining] = useState(TIMER_SECONDS);
+  const [remaining, setRemaining] = useState(timerSeconds);
   const [timeExpired, setTimeExpired] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionIdRef = useRef<string | null>(null);
@@ -95,7 +96,7 @@ export default function PracticeSessionScreen() {
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ taskType, durationSeconds: TIMER_SECONDS }),
+          body: JSON.stringify({ taskType, durationSeconds: timerSeconds }),
         });
         const data = (await res.json()) as { sessionId?: string };
         if (data.sessionId) sessionIdRef.current = data.sessionId;
@@ -133,7 +134,7 @@ export default function PracticeSessionScreen() {
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
-      const rem = Math.max(0, TIMER_SECONDS - elapsed);
+      const rem = Math.max(0, timerSeconds - elapsed);
       setRemaining(rem);
       if (rem === 0) {
         clearInterval(intervalRef.current!);

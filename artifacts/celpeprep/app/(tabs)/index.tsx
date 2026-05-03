@@ -346,7 +346,11 @@ function DiagnosticBanner() {
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, attempts } = useApp();
+  const { profile, attempts, refreshLimits } = useApp();
+
+  useEffect(() => {
+    refreshLimits();
+  }, []);
 
   const recentAttempts = useMemo(() => attempts.slice(0, 3), [attempts]);
   const avgScore = useMemo(() => {
