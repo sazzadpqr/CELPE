@@ -1,14 +1,29 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { profiles, adminAdsConfig } from "@workspace/db/schema";
-import { eq, sql, ne } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 const router = Router();
+
+function normalizeUsername(username: string) {
+  return String(username).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+}
+
+function monthAgoDate() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 1);
+  return d;
+}
+
+function isWithinUsernameCooldown(updatedAt: unknown) {
+  if (!updatedAt) return false;
+  return new Date(updatedAt as string) > monthAgoDate();
+}
 
 router.get("/profile/check-username", async (req, res) => {
   const { username, deviceToken } = req.query as { username?: string; deviceToken?: string };
   if (!username) { res.status(400).json({ error: "username required" }); return; }
-  const handle = String(username).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const handle = normalizeUsername(username);
   if (handle.length < 3) { res.json({ available: false, reason: "too_short" }); return; }
   try {
     const [row] = await db.select({ id: profiles.id, deviceToken: profiles.deviceToken }).from(profiles).where(eq(profiles.username, handle));
@@ -36,6 +51,7 @@ router.get("/profile/:deviceToken", async (req, res) => {
         streakDays: profiles.streakDays,
         dailyGoalMinutes: profiles.dailyGoalMinutes,
         targetDate: profiles.targetDate,
+        usernameUpdatedAt: profiles.updatedAt,
       })
       .from(profiles)
       .where(eq(profiles.deviceToken, deviceToken));
@@ -59,22 +75,25 @@ router.put("/profile/:deviceToken", async (req, res) => {
   };
 
   try {
+    const [self] = await db.select({ id: profiles.id, username: profiles.username, updatedAt: profiles.updatedAt }).from(profiles).where(eq(profiles.deviceToken, deviceToken));
+
     if (body.username !== undefined && body.username !== null && body.username !== "") {
-      const handle = body.username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+      const handle = normalizeUsername(body.username);
       if (handle.length < 3) {
         res.status(400).json({ error: "Username must be at least 3 characters" });
         return;
       }
+      if (self?.username && handle !== self.username && isWithinUsernameCooldown(self.updatedAt)) {
+        res.status(429).json({ error: "Username can only be changed once a month" });
+        return;
+      }
       const [conflict] = await db
-        .select({ id: profiles.id })
+        .select({ id: profiles.id, deviceToken: profiles.deviceToken })
         .from(profiles)
         .where(eq(profiles.username, handle));
-      if (conflict) {
-        const [self] = await db.select({ id: profiles.id }).from(profiles).where(eq(profiles.deviceToken, deviceToken));
-        if (!self || self.id !== conflict.id) {
-          res.status(409).json({ error: "Username already taken" });
-          return;
-        }
+      if (conflict && conflict.deviceToken !== deviceToken) {
+        res.status(409).json({ error: "Username already taken" });
+        return;
       }
       body.username = handle;
     }
@@ -102,6 +121,7 @@ router.put("/profile/:deviceToken", async (req, res) => {
         streakDays: profiles.streakDays,
         dailyGoalMinutes: profiles.dailyGoalMinutes,
         targetDate: profiles.targetDate,
+        usernameUpdatedAt: profiles.updatedAt,
       });
 
     if (!updated) {
@@ -119,6 +139,7 @@ router.put("/profile/:deviceToken", async (req, res) => {
           streakDays: profiles.streakDays,
           dailyGoalMinutes: profiles.dailyGoalMinutes,
           targetDate: profiles.targetDate,
+          usernameUpdatedAt: profiles.updatedAt,
         });
       res.json(created);
       return;

@@ -66,6 +66,7 @@ export interface UserProfile {
   diagnosticDone: boolean;
   deviceToken: string;
   isGuest: boolean;
+  usernameUpdatedAt?: string | null;
 }
 
 export interface VocabWord {
@@ -146,6 +147,7 @@ const defaultProfile: UserProfile = {
   diagnosticDone: false,
   deviceToken: "",
   isGuest: false,
+  usernameUpdatedAt: null,
 };
 
 const defaultStudyTasks: StudyTask[] = [
@@ -322,10 +324,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (res.status === 409) {
         return { ok: false, error: "username_taken" };
       }
+      if (res.status === 429) {
+        return { ok: false, error: "username_cooldown" };
+      }
+      if (res.status === 400) {
+        return { ok: false, error: "validation_error" };
+      }
 
       await updateProfile(updates);
       if (!res.ok) {
         return { ok: false, error: "server_error" };
+      }
+      const data = await res.json().catch(() => null) as Partial<UserProfile> | null;
+      if (data?.usernameUpdatedAt) {
+        await updateProfile({ usernameUpdatedAt: data.usernameUpdatedAt });
       }
       return { ok: true };
     } catch {
