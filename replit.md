@@ -1,232 +1,85 @@
-# CelpePrep Workspace
+# CelpePrep
 
-## Overview
+CelpePrep is a Brazilian Portuguese learning and Celpe-Bras exam preparation app that helps users improve their language skills and prepare for the official proficiency exam.
 
-pnpm workspace monorepo using TypeScript. CelpePrep is a Brazilian Portuguese learning and Celpe-Bras exam preparation app.
+## Run & Operate
 
-## AdMob Integration
+- **Run API Server**: `npm run start:api` (from `artifacts/api-server`)
+- **Run Mobile App**: `npm run start` (from `artifacts/celpeprep`)
+- **Run Admin Dashboard**: `npm run dev` (from `artifacts/admin`)
+- **Typecheck**: `pnpm run typecheck`
+- **Codegen**: `pnpm --filter @workspace/api-spec run codegen` (regenerates API hooks and Zod schemas from OpenAPI spec)
+- **DB Push**: `pnpm --filter @workspace/db run push` (pushes DB schema changes; dev only)
 
-All 8 ad formats are implemented as an admin-controlled service layer. `services/AdService.ts` is the central singleton — configure it from the server's `/api/content/ads-config` response.
-
-| Format | Placement | Frequency | Admin toggle |
-|---|---|---|---|
-| App Open | Cold start / foreground | Every N hours (configurable) | `appOpenEnabled` |
-| Adaptive Banner | Home screen bottom | Always visible | `bannerEnabled` |
-| Fixed Size Banner | Included in banner unit | Always visible | `bannerEnabled` |
-| Interstitial | After practice feedback | Max N/day (configurable) | `interstitialEnabled` |
-| Rewarded | Profile screen (earn credits) | User-initiated, max N/day | `rewardedAdsEnabled` |
-| Rewarded Interstitial | Before AI practice | Optional offer | `rewardedInterstitialEnabled` |
-| Native | Courses list (every 5 items) | Passive | `nativeEnabled` |
-| Native Video | Served auto within Native unit | Passive | `nativeEnabled` |
-
-**To activate real ads (EAS native build):** Install `react-native-google-mobile-ads`, configure `app.json` plugin with real App IDs from `adminVaultConfig`, then replace the stub comments in `AdBanner.tsx`, `NativeAdCard.tsx`, `feedback.tsx` (Interstitial), and `_layout.tsx` (App Open) with real SDK calls. All unit IDs are resolved by `AdService` (falls back to Google test IDs when empty). All ads are no-ops on web and for premium users (when `hideAdsForPremium` is true).
-
-**DB table**: `admin_ads_config` — singleton row. 20 new columns added for unit IDs, enable flags, and frequency caps.
-
-## Study Plan Backend Integration
-
-All study plan content in the mobile app is now server-driven. The admin can manage:
-
-| Feature | Admin page | Public API | Admin API |
-|---|---|---|---|
-| Weekly study tasks | `/admin/study-plan` | `GET /api/content/study-tasks` | CRUD `/api/admin/study-tasks[/:id]` |
-| Study tips (Dica do dia) | `/admin/study-tips` | `GET /api/content/study-tips` | CRUD `/api/admin/study-tips[/:id]` |
-| Quick action grid | `/admin/quick-actions` | `GET /api/content/quick-actions` | `PUT /api/admin/quick-actions[/:id]` |
-| Premium interest list | `/admin/interest-list` | — | `GET /api/admin/interest-list` |
-
-- Data stored as JSON files in `artifacts/api-server/data/` (`study-tasks.json`, `study-tips.json`, `quick-actions.json`)
-- Mobile `study.tsx` fetches all three on mount with `Promise.allSettled` — falls back to hardcoded defaults on error
-- `AppContext.loadStudyTasksFromServer()` merges server task definitions with local completion state (AsyncStorage)
-- Admin nav: new **"Plano de Estudo"** section with 4 items
-
-## Artifacts
-
-- **`artifacts/celpeprep`** — Expo (React Native) mobile app, preview path `/celpeprep`
-- **`artifacts/api-server`** — Express 5 API server, preview path `/api`, port 8080
-- **`artifacts/admin`** — React/Vite admin dashboard, preview path `/admin`, port 23744
+**Required Environment Variables**:
+- `AI_INTEGRATIONS_OPENAI_BASE_URL`
+- `AI_INTEGRATIONS_OPENAI_API_KEY`
+- `PADDLE_API_KEY`
+- `PADDLE_MONTHLY_PRICE_ID`
+- `PADDLE_YEARLY_PRICE_ID`
+- `PADDLE_WEBHOOK_SECRET`
+- `PADDLE_ENV` (sandbox | production)
+- `SESSION_SECRET` (for admin authentication, default: "admin")
+- `EXPO_PUBLIC_DOMAIN` (for production API URL in mobile app)
 
 ## Stack
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5 + pino logging
+- **Monorepo**: pnpm workspaces
+- **Runtime**: Node.js 24
+- **Language**: TypeScript 5.9
+- **API**: Express 5 + Pino logging
 - **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec in `lib/api-spec/openapi.yaml`)
-- **AI**: OpenAI via Replit AI Integrations (env vars: AI_INTEGRATIONS_OPENAI_BASE_URL, AI_INTEGRATIONS_OPENAI_API_KEY)
+- **Validation**: Zod (v4), `drizzle-zod`
+- **API Codegen**: Orval (from `lib/api-spec/openapi.yaml`)
+- **AI**: OpenAI via Replit AI Integrations
 - **Build**: esbuild
+- **Mobile**: Expo (React Native)
+- **Admin UI**: React/Vite
 
-## Feature Flags System
+## Where things live
 
-All 14 feature flags are stored in the `feature_flags` DB table and served at `/api/content/feature-flags`. The `AppContext` fetches them on startup and exposes `featureFlags: Record<string, boolean>` to all screens. Toggling any flag in the admin immediately affects the mobile app on next load.
+- **Mobile App**: `artifacts/celpeprep`
+- **API Server**: `artifacts/api-server`
+- **Admin Dashboard**: `artifacts/admin`
+- **Database Schema**: `lib/db/src/schema/` (e.g., `admin.ts`, `content.ts`, `users.ts`)
+- **OpenAPI Spec**: `lib/api-spec/openapi.yaml`
+- **Admin Content Files**: `artifacts/api-server/data/` (JSON files for study tasks, tips, quick actions, quiz content, etc.)
+- **Design Tokens**: Defined within the mobile and admin app stylesheets, following the listed color palette.
 
-| Flag | Category | Mobile Effect | Admin Page |
-|---|---|---|---|
-| `gamification_enabled` | learning | XP/streak UI visible | Feature Flags |
-| `hearts_enabled` | learning | HeartsBar on home | Feature Flags |
-| `leaderboards_enabled` | social | Ranking card on home → `/leaderboard` | Feature Flags |
-| `community_enabled` | social | Community card on home → `/community` | App & CMS → Comunidade |
-| `live_lessons_enabled` | social | Live Events card on home → `/live-events` | App & CMS → Aulas ao Vivo |
-| `certificates_enabled` | social | Certificados link on profile → `/certificates` | Feature Flags |
-| `placement_test_v2_enabled` | features | "Refazer Nivelamento" card on home → `/diagnostic` | Feature Flags |
-| `manual_teacher_feedback_enabled` | features | "Feedback de Professor" card on home → `/teacher-feedback` | App & CMS → Feedback de Alunos |
-| `offline_mode_enabled` | features | Offline cache card on home (pre-downloads quiz+vocab) | Feature Flags |
-| `mobile_app_mode_enabled` | features | App Store/Play Store download CTA on home | Feature Flags |
-| `teacher_marketplace_enabled` | features | "Conectar Professor" card on home → `/teacher-connect` | Professores |
-| `external_course_links_enabled` | content | External course links visible | Feature Flags |
-| `resource_collections_enabled` | content | Resource collections visible | Feature Flags |
-| `content_import_enabled` | admin | Content import tools in admin | Feature Flags |
+## Architecture decisions
 
-### Teacher Feedback System
-- **DB table**: `teacher_feedback_requests`
-- **Student routes**: `POST /api/student/feedback-requests`, `GET /api/student/feedback-requests?deviceToken=...`
-- **Admin routes**: `GET /api/admin/feedback-requests`, `PUT /api/admin/feedback-requests/:id/respond`, `DELETE /api/admin/feedback-requests/:id`
-- **Mobile screen**: `artifacts/celpeprep/app/teacher-feedback.tsx` — submit text (escrita/oral/geral), view responses
-- **Admin page**: `artifacts/admin/src/pages/teacher-feedback.tsx` — review all submissions, write/send responses, change status
+- **Server-Driven Content**: Key mobile app content (study plans, tips, quick actions, feature flags, ad configurations) is fetched from the API, allowing dynamic updates without app store releases.
+- **Monorepo Structure**: Uses pnpm workspaces to manage shared code (e.g., DB schema, API spec) and separate applications (mobile, API, admin).
+- **Feature Flag System**: All major features are controlled by feature flags managed in the admin and stored in the DB, enabling granular rollout and A/B testing.
+- **Service Layer for Ads**: AdMob integration is centralized in `services/AdService.ts` and configured via an admin-controlled API endpoint, abstracting ad logic from UI components.
+- **Role-Based API Access**: Distinct API endpoints and authentication mechanisms are implemented for public, student, teacher, and admin users, ensuring secure and segregated access to resources.
 
-### Social Features (community, leaderboard, live events, certificates)
-- **DB tables**: `community_posts`, `community_post_likes`, `user_certificates`, `live_events`
-- **Public routes**: `social.ts` — leaderboard, community CRUD, certificates, live-events
-- **Admin routes**: `adminSocial.ts` — CRUD for all above
-- **Mobile screens**: `leaderboard.tsx`, `community.tsx`, `certificates.tsx`, `live-events.tsx`
-- **Admin pages**: `live-events.tsx`, `community-admin.tsx`, `teacher-feedback.tsx`
+## Product
 
-## Teacher Management System
+- **Learning Platform**: Offers study plans, grammar topics, vocabulary, flashcards (SRS), quizzes, and diagnostic tests.
+- **AI-Powered Practice**: Includes AI feedback on writing, prompt generation, AI conversation scenarios, and word-of-the-day features.
+- **Social & Community**: Supports leaderboards, community forums, live lessons, and certificate tracking (all feature-flagged).
+- **Teacher Management**: Allows teachers to register, manage students, create invite codes, and oversee classes through a dedicated portal.
+- **Monetization**: Implements premium subscriptions with Paddle integration, feature gating, and an extensive AdMob integration across various formats.
+- **Admin Control**: Comprehensive admin dashboard for content management (courses, quizzes, study materials), user management, configuration (ads, AI, paywall, limits), and feature flag toggling.
 
-- **DB tables**: `teachers`, `teacher_invite_codes`, `teacher_students`, `teacher_classes`
-- **Admin routes**: `GET/POST/PUT/DELETE /api/admin/teachers`, `POST /api/admin/teacher-codes`, `DELETE /api/admin/teacher-codes/:id`, `DELETE /api/admin/teacher-students/:id`
-- **Teacher auth**: `POST /api/teacher/register`, `POST /api/teacher/login` → returns session token (30-day UUID stored in DB)
-- **Teacher portal API**: `GET /api/teacher/me`, `GET /api/teacher/dashboard`, `GET/POST/DELETE /api/teacher/codes`, `GET/PUT/DELETE /api/teacher/students`, `GET/POST/PUT/DELETE /api/teacher/classes` (requires `Authorization: Bearer {token}`)
-- **Student connect**: `POST /api/student/connect-teacher` (code + deviceToken + studentName), `GET /api/student/my-teachers?deviceToken=...`, `DELETE /api/student/disconnect-teacher`
-- **Admin UI**: `/admin/teachers` — full teacher CRUD, view students/codes/classes per teacher
-- **Teacher login**: `/admin/teacher-login` — dedicated teacher login (email + password)
-- **Teacher portal**: `/admin/teacher-portal` — teacher self-service dashboard (manage codes, students, classes)
-- **Mobile screen**: `artifacts/celpeprep/app/teacher-connect.tsx` — enter invite code to connect to teacher, view upcoming classes
+## User preferences
 
-## Key Commands
+_Populate as you build_
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+## Gotchas
 
-## Database Schema Files
+- **Ad Activation**: For real AdMob ads, `react-native-google-mobile-ads` must be installed, `app.json` configured, and stub comments in UI files (`AdBanner.tsx`, `NativeAdCard.tsx`, `feedback.tsx`, `_layout.tsx`) replaced.
+- **Admin Authentication**: Admin password is the `SESSION_SECRET` environment variable. The token is `btoa(SESSION_SECRET)` and stored in `localStorage`.
+- **Mobile API URL**: Mobile app uses `getApiUrl(path)` which prepends `https://${EXPO_PUBLIC_DOMAIN}` in production; ensure `EXPO_PUBLIC_DOMAIN` is correctly set.
+- **Username Conflict**: `PUT /api/profile/:deviceToken` returns 409 on username conflict.
 
-- `lib/db/src/schema/admin.ts` — adminVaultConfig, adminAdsConfig, adminPaywallConfig, adminLimitsConfig, adminAiConfig, auditLogs
-- `lib/db/src/schema/content.ts` — practicePrompts, grammarTopics, wotdEntries, diagnosticQuestions
-- `lib/db/src/schema/users.ts` — profiles, attempts, practiceSessions, subscriptions
-- `lib/db/src/schema/learning.ts` — vocabularyEntries, flashcardReviews, studyPlans, studyPlanItems, courses, lessons, lessonProgress
-- `lib/db/src/schema/conversations.ts` — conversations
-- `lib/db/src/schema/messages.ts` — messages
-- `lib/db/src/schema/exams.ts` — examEditions, examTasks, examAttempts
-- `lib/db/src/schema/quiz.ts` — quizCategories, quizQuestions
-- `lib/db/src/schema/cms.ts` — studyCategories, studyMaterials, featureFlags, appBanners, learningPaths, learningPathSteps
-- `lib/db/src/schema/notifications.ts` — notificationCampaigns, userNotifications
-- `lib/db/src/schema/monetization.ts` — monetizationPlans, paywallVariants, promoCampaigns
+## Pointers
 
-## API Route Files
-
-- `artifacts/api-server/src/routes/admin.ts` — core admin routes (stats, logs, security)
-- `artifacts/api-server/src/routes/adminExtra.ts` — vault, ads, paywall, diagnostic, limits configs
-- `artifacts/api-server/src/routes/adminCms.ts` — study-categories, study-materials, feature-flags, banners, learning-paths (+ content/ read endpoints)
-- `artifacts/api-server/src/routes/adminCourses.ts` — courses + lessons CRUD (+ content/courses)
-- `artifacts/api-server/src/routes/adminUsers.ts` — users list, toggle-premium, credits, stats/overview
-- `artifacts/api-server/src/routes/adminNotifications.ts` — notification-campaigns CRUD + send, /notifications user endpoints
-- `artifacts/api-server/src/routes/adminMonetization.ts` — monetization-plans, paywall-variants, promo-campaigns
-- `artifacts/api-server/src/routes/ai.ts` — AI feedback, prompt generation, chat, word-of-day
-- `artifacts/api-server/src/routes/content.ts` — public content endpoints
-- `artifacts/api-server/src/routes/sessions.ts` — server-side timer sessions
-- `artifacts/api-server/src/routes/payments.ts` — Paddle checkout, webhooks, status
-
-## Admin Pages
-
-- `/dashboard` — Stats + request log
-- `/users` — Paginated user list, toggle premium, adjust AI credits
-- `/prompts` — Practice prompt management
-- `/grammar` — Grammar topic management
-- `/quiz` — Quiz management (categories + questions + lesson content per category; "Lesson Content" tab with full CRUD)
-- `/exams` — Exam editions
-- `/wotd` — Word-of-day bank
-- `/diagnostic` — Diagnostic questions CRUD
-- `/study-library` — Study categories + materials CRUD (tabs)
-- `/courses` — Courses + lessons CRUD (expand per-course)
-- `/learning-paths` — Learning paths + steps CRUD (expandable)
-- `/banners` — App banners with scheduling + audience targeting
-- `/notifications` — Notification campaigns CRUD + send in-app
-- `/feature-flags` — Feature flag toggles grouped by category (14 flags seeded)
-- `/monetization` — Plans, paywall variants, promo campaigns (3 tabs)
-- `/paywall-cms` — Legacy paywall text/prices/feature list
-- `/limits` — Freemium usage limits per feature
-- `/ads` — Ads config (AdSense, AdMob, toggles)
-- `/config` — AI system prompts config
-- `/vault` — API key vault (Paddle, OpenAI, Resend, AdMob)
-
-## Admin Content Store (adminStore.ts)
-
-Quiz categories, questions, WOTD, exams, practice prompts, grammar topics, and quiz lesson content are stored as JSON files in `artifacts/api-server/data/`. Key types: `QuizCategory`, `QuizQuestion`, `QuizLesson` (rule + examples + mistake + tip), `WotdEntry`, `ExamEdition`.
-
-Quiz lesson content is served embedded in `GET /api/content/quiz` (each category includes a `lesson` field). Admin manages lessons via `GET/PUT /api/admin/quiz/categories/:id/lesson`.
-
-## Mobile Screens
-
-- `app/(tabs)/index.tsx` — Home: streak, AI credits, diagnostic banner, WOTD, quick actions
-- `app/(tabs)/vocab.tsx` — Vocabulary list + flashcard CTA
-- `app/vocab/flashcards.tsx` — SRS flashcard session (SM2 algorithm)
-- `app/(tabs)/study.tsx` — Study plan + weakness dashboard
-- `app/(tabs)/profile.tsx` — Redesigned profile: emoji/avatar picker, unique @handle username, read-only email, stats, "Sobre o app" link
-- `app/courses.tsx` — Course list with premium gating (lock icon + purple badge), plan banner, redirects free users to paywall
-- `app/diagnostic.tsx` — 15-question grammar diagnostic
-- `app/paywall.tsx` — Premium paywall with Paddle checkout
-- `app/practice/session.tsx` — 25-min timed writing session
-- `app/oral.tsx` — Oral simulator with task types
-- `app/pronunciation.tsx` — Pronunciation practice (phonetic categories)
-- `app/conversation.tsx` — AI Conversation scenarios
-- `app/library.tsx` — Study resource library
-- `app/listening.tsx` — Listening comprehension
-- `app/notifications.tsx` — In-app notifications list with read/mark-all
-- `app/grammar.tsx` — Grammar quiz with lesson phase; lesson content fetched from `/api/content/quiz` (`lesson` field per category)
-
-## Premium Course Gating
-
-- DB: `courses.is_premium` boolean column
-- `GET /api/content/courses` returns `isPremium` field for each course
-- Free users see locked courses with lock icon + purple "Premium" badge; tapping redirects to `/paywall`
-- Admin `/courses` page shows ⭐ Premium badge in course list; form has "Exclusivo Premium" toggle switch
-
-## User Profile (username + avatar)
-
-- DB: `profiles.username` (unique text), `profiles.avatar_emoji` (text)
-- `GET /api/profile/:deviceToken` — returns `username`, `avatarEmoji`, `email`, and all other profile fields
-- `PUT /api/profile/:deviceToken` — upserts profile incl. username (409 on conflict) + avatarEmoji
-- `GET /api/profile/check-username?username=&deviceToken=` — returns `{ available, handle, reason? }`
-- `AppContext` carries `username`, `email`, `avatarEmoji`; `syncProfileToServer()` persists to API
-
-## About App / About URL
-
-- DB: `admin_vault_config.about_url` column (clearable, unlike other vault fields which skip empty)
-- `GET /api/content/app-info` — public endpoint returning `{ aboutUrl }`
-- Admin `/vault` — "App — Sobre / About" card with URL field
-- Profile screen "Sobre o app" row opens URL via `expo-linking` if set, otherwise hidden
-
-## Admin Auth
-
-Password = value of `SESSION_SECRET` env var (default: "admin"). Token = `btoa(SESSION_SECRET)`. Stored in `localStorage` as `admin_token`. All new route files use the same `checkAuth()` pattern from `adminExtra.ts`.
-
-## Design Tokens (CelpePrep)
-
-- Primary: #185FA5
-- Success: #1D9E75
-- Warning: #BA7517
-- Error: #D85A30
-- Purple: #6B21A8
-- Background dark: #141924
-- Card dark: #1E2535
-
-## Paddle Integration
-
-Requires env vars: `PADDLE_API_KEY`, `PADDLE_MONTHLY_PRICE_ID`, `PADDLE_YEARLY_PRICE_ID`, `PADDLE_WEBHOOK_SECRET`, `PADDLE_ENV` (sandbox | production).
-
-## Mobile API Pattern
-
-Mobile screens use `getApiUrl(path)` which prepends `https://${EXPO_PUBLIC_DOMAIN}` in production. Device token is stored in AppContext and passed as `x-device-token` header for user-specific endpoints.
+- **Drizzle ORM Docs**: [https://orm.drizzle.team/](https://orm.drizzle.team/)
+- **Zod Docs**: [https://zod.dev/](https://zod.dev/)
+- **Orval Docs**: [https://orval.dev/](https://orval.dev/)
+- **Express Docs**: [https://expressjs.com/](https://expressjs.com/)
+- **Expo Docs**: [https://docs.expo.dev/](https://docs.expo.dev/)
+- **React Native Google Mobile Ads**: [https://docs.page/invertase/react-native-google-mobile-ads](https://docs.page/invertase/react-native-google-mobile-ads)
+- **Paddle Docs**: [https://developer.paddle.com/](https://developer.paddle.com/)
