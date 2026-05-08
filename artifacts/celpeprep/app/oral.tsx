@@ -3,13 +3,14 @@ import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
@@ -32,6 +33,15 @@ type OralAiPack = {
   prepTips: string[];
   instructions: string[];
   followUps: string[];
+};
+
+type OralFeedback = {
+  overall_score: number;
+  rubric_adequacao: number;
+  rubric_fluencia: number;
+  rubric_pronuncia: number;
+  rubric_interacao: number;
+  commentary: string;
 };
 
 const FALLBACK_TASKS: OralTask[] = [
@@ -129,6 +139,12 @@ export default function OralSimulatorScreen() {
   const startedAt = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Oral AI feedback state
+  const [transcript, setTranscript] = useState("");
+  const [oralFeedback, setOralFeedback] = useState<OralFeedback | null>(null);
+  const [oralFeedbackLoading, setOralFeedbackLoading] = useState(false);
+  const [oralFeedbackStage, setOralFeedbackStage] = useState<string | null>(null);
+
   useEffect(() => {
     fetch(getApiUrl("/api/content/oral-tasks"))
       .then(r => r.ok ? r.json() : null)
@@ -221,6 +237,81 @@ export default function OralSimulatorScreen() {
     clearTimer();
     setPhase("select");
     setSelectedTask(null);
+    setTranscript("");
+    setOralFeedback(null);
+    setOralFeedbackStage(null);
+  };
+
+  const requestOralFeedback = async () => {
+    if (!selectedTask || !transcript.trim() || oralFeedbackLoading) return;
+    setOralFeedbackLoading(true);
+    setOralFeedbackStage("Analisando resposta oral…");
+    setOralFeedback(null);
+
+    try {
+      const r = await fetch(getApiUrl("/api/ai/oral-feedback"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deviceToken: profile.deviceToken || undefined,
+          task_type: "oral",
+          task_title: selectedTask.title,
+          instructions: JSON.stringify(selectedTask.instructions),
+          transcript: transcript.trim(),
+        }),
+      });
+
+      if (!r.ok) throw new Error("API error");
+
+      const reader = r.body?.getReader();
+      const decoder = new TextDecoder();
+      let scores: Omit<OralFeedback, "commentary"> | null = null;
+      let commentary = "";
+      let sseBuffer = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split("\n");
+          sseBuffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const payload = JSON.parse(line.slice(6)) as Record<string, unknown>;
+              if ("overall_score" in payload) {
+                scores = payload as typeof scores;
+                setOralFeedbackStage("Gerando comentário…");
+              } else if ("content" in payload && typeof payload["content"] === "string") {
+                commentary += payload["content"] as string;
+              } else if ("stage" in payload) {
+                const stage = payload["stage"] as string;
+                if (stage === "scoring") setOralFeedbackStage("Calculando notas…");
+              }
+            } catch { }
+          }
+        }
+      }
+
+      if (scores) {
+        setOralFeedback({
+          overall_score: scores.overall_score,
+          rubric_adequacao: scores.rubric_adequacao,
+          rubric_fluencia: scores.rubric_fluencia,
+          rubric_pronuncia: scores.rubric_pronuncia,
+          rubric_interacao: scores.rubric_interacao,
+          commentary: commentary.trim() || "Avaliação oral concluída.",
+        });
+      }
+    } catch {
+      setOralFeedback(null);
+    } finally {
+      setOralFeedbackLoading(false);
+      setOralFeedbackStage(null);
+    }
   };
 
   useEffect(() => () => clearTimer(), []);
@@ -407,6 +498,71 @@ export default function OralSimulatorScreen() {
           )}
         </View>
 
+        {/* ── AI Oral Feedback ─────────────────────────────────────────── */}
+        {!oralFeedback ? (
+          <View style={[styles.feedbackInputCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.feedbackInputHeader}>
+              <Feather name="cpu" size={15} color="#7C3AED" />
+              <Text style={[styles.feedbackInputTitle, { color: colors.text }]}>Avaliação IA da sua resposta</Text>
+            </View>
+            <Text style={[styles.feedbackInputHint, { color: colors.mutedForeground }]}>
+              Descreva resumidamente o que você disse na sua resposta oral para receber uma avaliação com base nos critérios do Celpe-Bras.
+            </Text>
+            <TextInput
+              style={[styles.feedbackTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              placeholder="Ex: Falei sobre os impactos da tecnologia na educação, apresentei dois argumentos e dei exemplos de experiências pessoais..."
+              placeholderTextColor={colors.mutedForeground}
+              multiline
+              value={transcript}
+              onChangeText={setTranscript}
+              textAlignVertical="top"
+              editable={!oralFeedbackLoading}
+            />
+            <Pressable
+              onPress={requestOralFeedback}
+              disabled={oralFeedbackLoading || !transcript.trim()}
+              style={({ pressed }) => [
+                styles.feedbackBtn,
+                { backgroundColor: "#7C3AED", opacity: (pressed || oralFeedbackLoading || !transcript.trim()) ? 0.6 : 1 },
+              ]}
+            >
+              {oralFeedbackLoading
+                ? <><ActivityIndicator color="#fff" size="small" /><Text style={styles.feedbackBtnText}>{oralFeedbackStage ?? "Avaliando…"}</Text></>
+                : <><Feather name="zap" size={15} color="#fff" /><Text style={styles.feedbackBtnText}>Avaliar com IA</Text></>
+              }
+            </Pressable>
+          </View>
+        ) : (
+          <View style={[styles.feedbackResultCard, { backgroundColor: colors.card, borderColor: "#7C3AED40" }]}>
+            <View style={styles.feedbackResultHeader}>
+              <Feather name="award" size={16} color="#7C3AED" />
+              <Text style={[styles.feedbackResultTitle, { color: colors.text }]}>Avaliação Oral IA</Text>
+              <Text style={[styles.feedbackOverall, { color: "#7C3AED" }]}>{oralFeedback.overall_score.toFixed(1)}/5</Text>
+            </View>
+            <View style={styles.rubricGrid}>
+              {([
+                ["Adequação", oralFeedback.rubric_adequacao],
+                ["Fluência", oralFeedback.rubric_fluencia],
+                ["Pronúncia", oralFeedback.rubric_pronuncia],
+                ["Interação", oralFeedback.rubric_interacao],
+              ] as [string, number][]).map(([label, score]) => (
+                <View key={label} style={styles.rubricItem}>
+                  <Text style={[styles.rubricLabel, { color: colors.mutedForeground }]}>{label}</Text>
+                  <Text style={[styles.rubricScore, { color: "#7C3AED" }]}>{score.toFixed(1)}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={[styles.feedbackCommentary, { color: colors.text }]}>{oralFeedback.commentary}</Text>
+            <Pressable
+              onPress={() => { setOralFeedback(null); setTranscript(""); }}
+              style={[styles.retryFeedbackBtn, { borderColor: "#7C3AED40" }]}
+            >
+              <Feather name="refresh-cw" size={13} color="#7C3AED" />
+              <Text style={[styles.retryFeedbackText, { color: "#7C3AED" }]}>Nova avaliação</Text>
+            </Pressable>
+          </View>
+        )}
+
         <View style={styles.doneActions}>
           <Pressable style={[styles.outlineBtn, { borderColor: selectedTask.color }]} onPress={() => startPrep(selectedTask)}>
             <Feather name="refresh-cw" size={15} color={selectedTask.color} />
@@ -476,4 +632,24 @@ const styles = StyleSheet.create({
   doneActions: { flexDirection: "row", gap: 12, flexWrap: "wrap", justifyContent: "center" },
   outlineBtn: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 20, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5 },
   outlineBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  // Oral feedback input
+  feedbackInputCard: { alignSelf: "stretch", borderRadius: 14, borderWidth: 1, padding: 16, gap: 12 },
+  feedbackInputHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  feedbackInputTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  feedbackInputHint: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
+  feedbackTextInput: { borderRadius: 10, borderWidth: 1, padding: 12, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, minHeight: 90 },
+  feedbackBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 12 },
+  feedbackBtnText: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#fff" },
+  // Oral feedback result
+  feedbackResultCard: { alignSelf: "stretch", borderRadius: 14, borderWidth: 1, padding: 16, gap: 12 },
+  feedbackResultHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  feedbackResultTitle: { flex: 1, fontSize: 14, fontFamily: "Inter_700Bold" },
+  feedbackOverall: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  rubricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  rubricItem: { flex: 1, minWidth: 80, alignItems: "center", gap: 2, backgroundColor: "#7C3AED12", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 4 },
+  rubricLabel: { fontSize: 11, fontFamily: "Inter_500Medium", textAlign: "center" },
+  rubricScore: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  feedbackCommentary: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  retryFeedbackBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 10, borderRadius: 10, borderWidth: 1 },
+  retryFeedbackText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
 });
