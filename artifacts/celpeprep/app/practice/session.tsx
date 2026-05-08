@@ -73,6 +73,7 @@ export default function PracticeSessionScreen() {
 
   const [text, setText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStage, setSubmitStage] = useState<string | null>(null);
   const [timerStartedAt] = useState(() => Date.now());
   const [remaining, setRemaining] = useState(timerSeconds);
   const [timeExpired, setTimeExpired] = useState(false);
@@ -178,16 +179,7 @@ export default function PracticeSessionScreen() {
   const submitForReview = async (responseText: string, expired = false) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
-
-    const remaining2 = profile.aiCreditsTotal - profile.aiCreditsUsed;
-    if (remaining2 <= 0 && !profile.isPremium) {
-      Alert.alert(
-        "Créditos esgotados",
-        "Você usou todos os seus créditos gratuitos. Assine o Premium para avaliações ilimitadas.",
-        [{ text: "OK", onPress: () => setIsSubmitting(false) }]
-      );
-      return;
-    }
+    setSubmitStage("Analisando seu texto…");
 
     try {
       const domain = process.env.EXPO_PUBLIC_DOMAIN;
@@ -196,19 +188,81 @@ export default function PracticeSessionScreen() {
       const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: responseText, task_type: taskType, genre, time_expired: expired }),
+        body: JSON.stringify({
+          text: responseText,
+          task_type: taskType,
+          genre,
+          time_expired: expired,
+          deviceToken: profile.deviceToken || undefined,
+        }),
       });
 
+      // Handle credit-exhausted error (non-streaming response)
+      if (res.status === 402) {
+        const body = await res.json() as { error?: string };
+        Alert.alert(
+          "Créditos esgotados",
+          body.error ?? "Você usou todos os seus créditos gratuitos. Assine o Premium para avaliações ilimitadas.",
+          [{ text: "OK", onPress: () => { setIsSubmitting(false); setSubmitStage(null); } }]
+        );
+        return;
+      }
+
       if (!res.ok) throw new Error("API error");
-      const data = await res.json();
+
+      // ── Read SSE stream ────────────────────────────────────────────────────
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      let scores: {
+        overall_score: number;
+        rubric_tema: number;
+        rubric_genero: number;
+        rubric_coesao: number;
+        rubric_gramatica: number;
+        aiCreditsRemaining?: number;
+      } | null = null;
+      let commentary = "";
+      let sseBuffer = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split("\n");
+          // Keep the last (possibly incomplete) line in the buffer
+          sseBuffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const payload = JSON.parse(line.slice(6)) as Record<string, unknown>;
+              // Determine event type from a preceding "event:" line — not available here
+              // so we infer by payload shape
+              if ("overall_score" in payload) {
+                scores = payload as typeof scores;
+                setSubmitStage("Gerando comentário…");
+              } else if ("content" in payload && typeof payload["content"] === "string") {
+                commentary += payload["content"] as string;
+              } else if ("stage" in payload) {
+                const stage = payload["stage"] as string;
+                if (stage === "scoring") setSubmitStage("Calculando notas…");
+              }
+            } catch { /* malformed SSE data line — skip */ }
+          }
+        }
+      }
+
       await saveAttempt({
         text: responseText,
-        score: data.overall_score,
-        tema: data.rubric_tema,
-        genero: data.rubric_genero,
-        coesao: data.rubric_coesao,
-        gramatica: data.rubric_gramatica,
-        commentary: data.commentary,
+        score: scores?.overall_score ?? 0,
+        tema: scores?.rubric_tema ?? 0,
+        genero: scores?.rubric_genero ?? 0,
+        coesao: scores?.rubric_coesao ?? 0,
+        gramatica: scores?.rubric_gramatica ?? 0,
+        commentary: commentary.trim() || "Avaliação concluída.",
         expired,
       });
     } catch (_) {
@@ -226,6 +280,8 @@ export default function PracticeSessionScreen() {
           : "Avaliação automática indisponível no momento. Pontuação estimada com base na quantidade de palavras.",
         expired,
       });
+    } finally {
+      setSubmitStage(null);
     }
   };
 
@@ -322,7 +378,7 @@ export default function PracticeSessionScreen() {
             disabled={isSubmitting || timeExpired || text.trim().length === 0}
           >
             {isSubmitting ? (
-              <Text style={[styles.submitText, { color: colors.mutedForeground }]}>Avaliando...</Text>
+              <Text style={[styles.submitText, { color: colors.mutedForeground }]}>{submitStage ?? "Avaliando..."}</Text>
             ) : (
               <>
                 <Text style={styles.submitText}>Enviar</Text>
